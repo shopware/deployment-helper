@@ -1,0 +1,29 @@
+#!/usr/bin/env php
+<?php
+
+use Shopware\Deployment\Application;
+
+error_reporting(-1);
+ini_set('display_errors', 1);
+
+$includables = [
+    __DIR__ . '/../../../autoload.php',
+    __DIR__ . '/../../vendor/autoload.php',
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/vendor/autoload.php'
+];
+
+if (str_contains(__DIR__, 'custom/plugins')) {
+    $includables[] = __DIR__ . '/../../../../vendor/autoload.php';
+}
+
+foreach ($includables as $file) {
+    if (file_exists($file)) {
+        include_once ($file);
+
+        break;
+    }
+}
+
+$app = new Application();
+$app->run();
