@@ -48,8 +48,7 @@ class ShopwareState
         if ($id) {
             $this->connection->executeStatement('UPDATE system_config SET configuration_value = ? WHERE id = ?', [$payload, $id]);
         } else {
-            $uuid = md5('deployment_version');
-            $this->connection->executeStatement('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (?, "deployment.version", ?, NULL, NOW())', [$uuid, $payload]);
+            $this->connection->executeStatement('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (0x0353f2502acd5dbdfe797c1cc4af9afc, "deployment.version", ?, NULL, NOW())', [$payload]);
         }
     }
 
