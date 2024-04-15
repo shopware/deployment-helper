@@ -34,8 +34,8 @@ class ConfigFactory
             self::fillHooks($projectConfiguration->hooks, $deployment['hooks']);
         }
 
-        if (isset($deployment['extensionManagement']) && is_array($deployment['extensionManagement'])) {
-            self::fillExtensionManagement($projectConfiguration->extensionManagement, $deployment['extensionManagement']);
+        if (isset($deployment['extension-management']) && is_array($deployment['extension-management'])) {
+            self::fillExtensionManagement($projectConfiguration->extensionManagement, $deployment['extension-management']);
         }
 
         if (isset($deployment['one-time-tasks']) && is_array($deployment['one-time-tasks'])) {
@@ -86,8 +86,8 @@ class ConfigFactory
             $extensionManagement->enabled = $config['enabled'];
         }
 
-        if (isset($config['excluded']) && is_array($config['excluded'])) {
-            $extensionManagement->excluded = $config['excluded'];
+        if (isset($config['exclude']) && is_array($config['exclude'])) {
+            $extensionManagement->excluded = $config['exclude'];
         }
     }
 }

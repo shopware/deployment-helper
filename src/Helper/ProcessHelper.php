@@ -6,11 +6,14 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\PhpSubprocess;
 use Symfony\Component\Process\Process;
 
-readonly class ProcessHelper
+/**
+ * @codeCoverageIgnore
+ */
+class ProcessHelper
 {
     public function __construct(
         #[Autowire('%kernel.project_dir%')]
-        private string $projectDir,
+        private readonly string $projectDir,
     ) {}
 
     /**
@@ -55,5 +58,10 @@ readonly class ProcessHelper
         if (!$process->isSuccessful()) {
             throw new \RuntimeException('Execution of ' . $code . ' failed');
         }
+    }
+
+    public function getPluginList(): string
+    {
+        return (new PhpSubprocess(['bin/console', 'plugin:list', '--json'], $this->projectDir))->mustRun()->getOutput();
     }
 }

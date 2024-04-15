@@ -30,6 +30,6 @@ class HookExecutor
             return;
         }
 
-        $this->processHelper->run($code);
+        $this->processHelper->runAndTail($code);
     }
 }

@@ -5,10 +5,10 @@ namespace Shopware\Deployment\Services;
 use Composer\InstalledVersions;
 use Doctrine\DBAL\Connection;
 
-readonly class ShopwareState
+class ShopwareState
 {
     public function __construct(
-        private Connection $connection,
+        private readonly Connection $connection,
     ) {}
 
     public function isInstalled(): bool
@@ -20,6 +20,11 @@ readonly class ShopwareState
         } catch (\Throwable $e) {
             return false;
         }
+    }
+
+    public function isStorefrontInstalled(): bool
+    {
+        return InstalledVersions::isInstalled('shopware/storefront');
     }
 
     public function getPreviousVersion(): string

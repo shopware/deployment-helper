@@ -1,0 +1,61 @@
+<?php declare(strict_types=1);
+
+namespace Shopware\Deployment\Tests\Services;
+
+use Doctrine\DBAL\Connection;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
+use Shopware\Deployment\Helper\ProcessHelper;
+use Shopware\Deployment\Services\AppHelper;
+use Shopware\Deployment\Services\HookExecutor;
+use Shopware\Deployment\Services\InstallationManager;
+use Shopware\Deployment\Services\PluginHelper;
+use Shopware\Deployment\Services\ShopwareState;
+use Symfony\Component\Console\Output\OutputInterface;
+
+#[CoversClass(InstallationManager::class)]
+class InstallationManagerTest extends TestCase
+{
+    public function testRun(): void
+    {
+        $hookExecutor = $this->createMock(HookExecutor::class);
+        $hookExecutor
+            ->expects(static::exactly(2))
+            ->method('execute');
+
+        $manager = new InstallationManager(
+            $this->createMock(ShopwareState::class),
+            $this->createMock(Connection::class),
+            $this->createMock(ProcessHelper::class),
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $hookExecutor,
+        );
+
+        $manager->run($this->createMock(OutputInterface::class));
+    }
+
+    public function testRunNoStorefront(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state->method('isStorefrontInstalled')
+            ->willReturn(true);
+
+        $connection = $this->createMock(Connection::class);
+        $connection
+            ->expects(static::once())
+            ->method('executeStatement')
+            ->with('DELETE FROM sales_channel WHERE type_id = 0xf183ee5650cf4bdb8a774337575067a6');
+
+        $manager = new InstallationManager(
+            $state,
+            $connection,
+            $this->createMock(ProcessHelper::class),
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+        );
+
+        $manager->run($this->createMock(OutputInterface::class));
+    }
+}

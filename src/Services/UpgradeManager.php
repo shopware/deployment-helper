@@ -5,15 +5,15 @@ namespace Shopware\Deployment\Services;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Symfony\Component\Console\Output\OutputInterface;
 
-readonly class UpgradeManager
+class UpgradeManager
 {
     public function __construct(
-        private ShopwareState $state,
-        private ProcessHelper $processHelper,
-        private PluginHelper $pluginHelper,
-        private AppHelper $appHelper,
-        private HookExecutor $hookExecutor,
-        private OneTimeTasks $oneTimeTasks,
+        private readonly ShopwareState $state,
+        private readonly ProcessHelper $processHelper,
+        private readonly PluginHelper $pluginHelper,
+        private readonly AppHelper $appHelper,
+        private readonly HookExecutor $hookExecutor,
+        private readonly OneTimeTasks $oneTimeTasks,
     ) {}
 
     public function run(OutputInterface $output): void

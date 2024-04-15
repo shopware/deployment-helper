@@ -8,6 +8,9 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Tools\DsnParser;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 
+/**
+ * @codeCoverageIgnore
+ */
 readonly class MySQLFactory
 {
     private static function create(): Connection

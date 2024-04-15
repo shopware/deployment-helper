@@ -3,19 +3,18 @@
 namespace Shopware\Deployment\Services;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Exception\TableNotFoundException;
 use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
-readonly class OneTimeTasks
+class OneTimeTasks
 {
     public function __construct(
         #[Autowire('%kernel.project_dir%')]
-        private ProcessHelper $processHelper,
-        private Connection $connection,
-        private ProjectConfiguration $configuration,
+        private readonly ProcessHelper $processHelper,
+        private readonly Connection $connection,
+        private readonly ProjectConfiguration $configuration,
     ) {}
 
     public function execute(OutputInterface $output): void
@@ -42,7 +41,7 @@ readonly class OneTimeTasks
     {
         try {
             return $this->connection->fetchAllAssociativeIndexed('SELECT id, created_at FROM one_time_tasks');
-        } catch (TableNotFoundException) {
+        } catch (\Throwable) {
             $this->connection->executeStatement('CREATE TABLE one_time_tasks (id VARCHAR(255) PRIMARY KEY, created_at DATETIME NOT NULL)');
 
             return [];

@@ -1,0 +1,7 @@
+{
+  "name": "plugin/1",
+  "version": "1.0.0",
+  "require": {
+    "plugin/2": "1.0.0"
+  }
+}
