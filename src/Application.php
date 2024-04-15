@@ -7,9 +7,7 @@ namespace Shopware\Deployment;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
-use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
@@ -24,7 +22,9 @@ class Application extends SymfonyApplication
     {
         parent::__construct('Shopware Deployment Helper', '__VERSION__');
         $this->container = $this->createContainer();
+        // @phpstan-ignore-next-line
         $this->setDispatcher($this->container->get('event_dispatcher'));
+        // @phpstan-ignore-next-line
         $this->setCommandLoader($this->container->get('console.command_loader'));
     }
 
@@ -36,10 +36,12 @@ class Application extends SymfonyApplication
     private function createContainer(): ContainerBuilder
     {
         $container = new ContainerBuilder();
-        $container->registerAttributeForAutoconfiguration(AsCommand::class, function (ChildDefinition $definition) {
+        $container->registerAttributeForAutoconfiguration(AsCommand::class, function (ChildDefinition $definition): void {
             $definition->addTag('console.command');
         });
-        $container->registerAttributeForAutoconfiguration(AsEventListener::class, static function (ChildDefinition $definition, AsEventListener $attribute, \ReflectionClass|\ReflectionMethod $reflector) {
+
+        // @phpstan-ignore-next-line
+        $container->registerAttributeForAutoconfiguration(AsEventListener::class, static function (ChildDefinition $definition, AsEventListener $attribute, \ReflectionClass|\ReflectionMethod $reflector): void {
             $tagAttributes = get_object_vars($attribute);
             if ($reflector instanceof \ReflectionMethod) {
                 if (isset($tagAttributes['method'])) {
@@ -65,6 +67,10 @@ class Application extends SymfonyApplication
     {
         $dir = __DIR__;
         while (!file_exists($dir . '/bin/console')) {
+            if ('/' === $dir) {
+                throw new \RuntimeException('Could not find project root');
+            }
+
             if ($dir === \dirname($dir)) {
                 return __DIR__;
             }

@@ -1,11 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Shopware\Deployment\DependencyInjection;
 
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Shopware\Core\DevOps\Environment\EnvironmentHelper;
+use Shopware\Deployment\Helper\EnvironmentHelper;
 
 class MySQLFactory
 {
@@ -13,8 +13,8 @@ class MySQLFactory
     {
         $config = new Configuration();
 
-        $url = (string) EnvironmentHelper::getVariable('DATABASE_URL', getenv('DATABASE_URL'));
-        if ($url === '') {
+        $url = (string) EnvironmentHelper::getVariable('DATABASE_URL');
+        if ('' === $url) {
             throw new \RuntimeException('$DATABASE_URL is not set');
         }
 
@@ -52,6 +52,7 @@ class MySQLFactory
 
         for ($i = 0; $i < $retries; ++$i) {
             $con = null;
+
             try {
                 $con = self::create();
                 $con->fetchAllAssociative('SELECT 1');

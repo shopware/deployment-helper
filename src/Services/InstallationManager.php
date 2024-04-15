@@ -1,8 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
+
 use Composer\InstalledVersions;
-use Shopware\Core\DevOps\Environment\EnvironmentHelper;
+use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -12,10 +13,8 @@ class InstallationManager
     public function __construct(
         private ShopwareState $state,
         #[Autowire('%kernel.project_dir%')]
-        private string $projectDir
-        )
-    {
-    }
+        private string $projectDir,
+    ) {}
 
     public function run(OutputInterface $output): void
     {
@@ -30,7 +29,7 @@ class InstallationManager
         ProcessHelper::console(['user:create', (string) $adminUser, '--password=' . $adminPassword]);
 
         if (InstalledVersions::isInstalled('shopware/storefront')) {
-            //SalesChannelHelper::removeExistingHeadless($connection);
+            // SalesChannelHelper::removeExistingHeadless($connection);
             ProcessHelper::console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $appUrl]);
             ProcessHelper::console(['theme:change', '--all', 'Storefront']);
         }

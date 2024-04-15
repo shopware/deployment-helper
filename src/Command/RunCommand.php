@@ -1,14 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Shopware\Deployment\Command;
 
-use Composer\InstalledVersions;
-use Shopware\Core\DevOps\Environment\EnvironmentHelper;
 use Shopware\Deployment\Services\InstallationManager;
-use Shopware\Deployment\Services\MySQLFactory;
 use Shopware\Deployment\Services\PluginHelper;
 use Shopware\Deployment\Helper\ProcessHelper;
-use Shopware\Deployment\Services\SalesChannelHelper;
 use Shopware\Deployment\Services\ShopwareState;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

@@ -1,25 +1,23 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
 use Composer\InstalledVersions;
 use Doctrine\DBAL\Connection;
-use Shopware\Core\Framework\Uuid\Uuid;
 
 class ShopwareState
 {
     public function __construct(
-        private Connection $connection
-    )
-    {
-    }
+        private Connection $connection,
+    ) {}
 
     public function isInstalled(): bool
     {
         try {
             $this->connection->fetchAllAssociative('SELECT * FROM system_config');
+
             return true;
-        } catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             return false;
         }
     }
@@ -28,7 +26,7 @@ class ShopwareState
     {
         $data = $this->connection->fetchOne('SELECT configuration_value FROM system_config WHERE configuration_key = "deployment.version" AND sales_channel_id IS NULL');
 
-        if ($data === false) {
+        if (false === $data) {
             return 'unknown';
         }
 
@@ -45,7 +43,8 @@ class ShopwareState
         if ($id) {
             $this->connection->executeStatement('UPDATE system_config SET configuration_value = ? WHERE id = ?', [$payload, $id]);
         } else {
-            $this->connection->executeStatement('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (?, "deployment.version", ?, NULL, NOW())', [Uuid::randomBytes(), $payload]);
+            $uuid = md5('deployment_version');
+            $this->connection->executeStatement('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (?, "deployment.version", ?, NULL, NOW())', [$uuid, $payload]);
         }
     }
 

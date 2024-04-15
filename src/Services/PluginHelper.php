@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
@@ -19,7 +19,8 @@ class PluginHelper
     public static function all(string $path): array
     {
         $text = (new PhpSubprocess(['bin/console', 'plugin:list', '--json']))->mustRun()->getOutput();
-        /** @var Plugin[]  $data */
+
+        /** @var Plugin[] $data */
         $data = json_decode($text, true, JSON_THROW_ON_ERROR);
 
         $graph = new DependencyGraph();
@@ -48,6 +49,7 @@ class PluginHelper
         }
 
         $formatted = [];
+
         /** @var string[] $resolved */
         $resolved = $graph->resolve();
         foreach ($resolved as $name) {
@@ -67,8 +69,9 @@ class PluginHelper
             }
 
             // plugin is installed, but not active
-            if ($plugin['installedAt'] !== null) {
+            if (null !== $plugin['installedAt']) {
                 ProcessHelper::console(['plugin:activate', $plugin['name']]);
+
                 continue;
             }
 
@@ -81,7 +84,7 @@ class PluginHelper
         $plugins = self::all($path);
 
         foreach ($plugins as $plugin) {
-            if ($plugin['upgradeVersion'] === null || $plugin['version'] === $plugin['upgradeVersion']) {
+            if (null === $plugin['upgradeVersion'] || $plugin['version'] === $plugin['upgradeVersion']) {
                 continue;
             }
 

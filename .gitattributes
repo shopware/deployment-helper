@@ -1,0 +1,8 @@
+/vendor export-ignore
+/.github export-ignore
+/tests export-ignore
+/.* export-ignore
+/composer.lock export-ignore
+/phpstan.neon.dist export-ignore
+/phpunit.xml.dist export-ignore
+/README.md export-ignore
