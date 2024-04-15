@@ -14,7 +14,7 @@ class ApplicationTest extends TestCase
     #[BackupGlobals(enabled: true)]
     public function testCanBoot(): void
     {
-        $_SERVER['PROJECT_ROOT'] = __DIR__;
+        $_SERVER['PROJECT_ROOT'] = dirname(__DIR__);
         $app = new Application();
         static::assertTrue($app->getContainer()->has(RunCommand::class));
     }
