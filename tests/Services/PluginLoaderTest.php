@@ -2,10 +2,12 @@
 
 namespace Shopware\Deployment\Tests\Services;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\PluginLoader;
 use PHPUnit\Framework\TestCase;
 
+#[CoversClass(PluginLoader::class)]
 class PluginLoaderTest extends TestCase
 {
     public function testLoad(): void

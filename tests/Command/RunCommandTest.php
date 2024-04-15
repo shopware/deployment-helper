@@ -2,6 +2,7 @@
 
 namespace Shopware\Deployment\Tests\Command;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use Shopware\Deployment\Command\RunCommand;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Services\HookExecutor;
@@ -10,6 +11,7 @@ use Shopware\Deployment\Services\ShopwareState;
 use Shopware\Deployment\Services\UpgradeManager;
 use Symfony\Component\Console\Tester\CommandTester;
 
+#[CoversClass(RunCommand::class)]
 class RunCommandTest extends TestCase
 {
     public function testInstall(): void

@@ -2,6 +2,7 @@
 
 namespace Shopware\Deployment\Tests\Services;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Config\ProjectConfiguration;
@@ -9,6 +10,7 @@ use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\PluginHelper;
 use Shopware\Deployment\Services\PluginLoader;
 
+#[CoversClass(PluginHelper::class)]
 class PluginHelperTest extends TestCase
 {
     public function testInstallSkipped(): void

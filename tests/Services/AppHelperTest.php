@@ -3,6 +3,7 @@
 namespace Shopware\Deployment\Tests\Services;
 
 use Doctrine\DBAL\Connection;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Config\ProjectConfiguration;
@@ -10,6 +11,7 @@ use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\AppHelper;
 use Shopware\Deployment\Services\AppLoader;
 
+#[CoversClass(AppHelper::class)]
 class AppHelperTest extends TestCase
 {
     public function testInstallManagementDisabled(): void

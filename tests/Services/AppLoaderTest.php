@@ -3,9 +3,11 @@
 namespace Shopware\Deployment\Tests\Services;
 
 use Composer\InstalledVersions;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Services\AppLoader;
 
+#[CoversClass(AppLoader::class)]
 class AppLoaderTest extends TestCase
 {
     public function testNotExistingAppsFolder(): void
