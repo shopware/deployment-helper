@@ -40,4 +40,20 @@ readonly class ProcessHelper
     {
         $this->run(['bin/console', '-n', ...$args]);
     }
+
+    public function runAndTail(string $code): void
+    {
+        $process = new Process(['sh', '-c', $code], $this->projectDir);
+        $process->run(function (string $type, string $buffer): void {
+            if ($type === Process::ERR) {
+                fwrite(\STDERR, $buffer);
+            } else {
+                fwrite(\STDOUT, $buffer);
+            }
+        });
+
+        if (!$process->isSuccessful()) {
+            throw new \RuntimeException('Execution of ' . $code . ' failed');
+        }
+    }
 }

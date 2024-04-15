@@ -1,10 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
 use Shopware\Deployment\Config\ProjectConfiguration;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Process\Process;
+use Shopware\Deployment\Helper\ProcessHelper;
 
 class HookExecutor
 {
@@ -16,8 +15,7 @@ class HookExecutor
     public const POST_UPDATE = 'postUpdate';
 
     public function __construct(
-        #[Autowire('%kernel.project_dir%')]
-        private string $projectDir,
+        private ProcessHelper $processHelper,
         private ProjectConfiguration $configuration,
     ) {}
 
@@ -32,22 +30,6 @@ class HookExecutor
             return;
         }
 
-        $this->run($code);
-    }
-
-    private function run(string $code): void
-    {
-        $process = new Process(['sh', '-c', $code], $this->projectDir);
-        $process->run(function (string $type, string $buffer): void {
-            if ($type === Process::ERR) {
-                fwrite(\STDERR, $buffer);
-            } else {
-                fwrite(\STDOUT, $buffer);
-            }
-        });
-
-        if (!$process->isSuccessful()) {
-            throw new \RuntimeException('Execution of ' . $code . ' failed');
-        }
+        $this->processHelper->run($code);
     }
 }

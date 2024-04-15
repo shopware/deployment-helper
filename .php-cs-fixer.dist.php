@@ -19,6 +19,8 @@ return (new Config())
             'identical' => false,
             'less_and_greater' => false,
         ],
+        'no_unused_imports' => true,
+        'declare_strict_types' => true,
     ])
     ->setFinder(
         Finder::create()

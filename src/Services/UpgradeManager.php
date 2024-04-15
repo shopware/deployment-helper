@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
@@ -13,6 +13,7 @@ readonly class UpgradeManager
         private PluginHelper $pluginHelper,
         private AppHelper $appHelper,
         private HookExecutor $hookExecutor,
+        private OneTimeTasks $oneTimeTasks,
     ) {}
 
     public function run(OutputInterface $output): void
@@ -35,6 +36,8 @@ readonly class UpgradeManager
         $this->appHelper->updateApps();
 
         $this->processHelper->console(['theme:compile', '--active-only']);
+
+        $this->oneTimeTasks->execute($output);
 
         $this->hookExecutor->execute(HookExecutor::POST_UPDATE);
     }
