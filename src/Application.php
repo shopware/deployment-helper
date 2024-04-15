@@ -45,12 +45,6 @@ class Application extends SymfonyApplication
         // @phpstan-ignore-next-line
         $container->registerAttributeForAutoconfiguration(AsEventListener::class, static function (ChildDefinition $definition, AsEventListener $attribute, \ReflectionClass|\ReflectionMethod $reflector): void {
             $tagAttributes = get_object_vars($attribute);
-            if ($reflector instanceof \ReflectionMethod) {
-                if (isset($tagAttributes['method'])) {
-                    throw new \LogicException(sprintf('AsEventListener attribute cannot declare a method on "%s::%s()".', $reflector->class, $reflector->name));
-                }
-                $tagAttributes['method'] = $reflector->getName();
-            }
             $definition->addTag('kernel.event_listener', $tagAttributes);
         });
 
@@ -68,6 +62,9 @@ class Application extends SymfonyApplication
         return $container;
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     private function getProjectDir(): string
     {
         if ($root = EnvironmentHelper::getVariable('PROJECT_ROOT')) {
