@@ -11,6 +11,7 @@
     "require": {
         "php": ">=8.2",
         "ext-pdo": "*",
+        "ext-dom": "*",
         "doctrine/dbal": "^3.0 || ^4.0",
         "symfony/dotenv": "^7.0 || ^6.0",
         "symfony/process": "^7.0 || ^6.0",
@@ -18,9 +19,12 @@
         "symfony/dependency-injection": "^7.0 || ^6.0",
         "symfony/config": "^7.0 || ^6.0",
         "symfony/console": "^7.0 || ^6.0",
+        "symfony/yaml": "^7.0 || ^6.0",
+        "symfony/finder": "^7.0 || ^6.0",
         "digilist/dependency-graph": "*"
     },
     "require-dev": {
+        "symfony/var-dumper": "^7.0 || ^6.0",
         "phpunit/phpunit": "^11.0",
         "phpstan/phpstan": "^1.10",
         "phpstan/phpstan-phpunit": "^1.0",

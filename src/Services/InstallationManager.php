@@ -15,11 +15,13 @@ readonly class InstallationManager
         private Connection $connection,
         private ProcessHelper $processHelper,
         private PluginHelper $pluginHelper,
+        private AppHelper $appHelper,
     ) {}
 
     public function run(OutputInterface $output): void
     {
         $output->writeln('Shopware is not installed, starting installation');
+
         $shopLocale = EnvironmentHelper::getVariable('INSTALL_LOCALE', 'en-GB');
         $shopCurrency = EnvironmentHelper::getVariable('INSTALL_CURRENCY', 'EUR');
         $adminUser = EnvironmentHelper::getVariable('INSTALL_ADMIN_USERNAME', 'admin');
@@ -40,6 +42,8 @@ readonly class InstallationManager
         $this->processHelper->console(['plugin:refresh']);
         $this->pluginHelper->installPlugins();
         $this->pluginHelper->updatePlugins();
+        $this->appHelper->installApps();
+        $this->appHelper->updateApps();
     }
 
     private function removeExistingHeadlessSalesChannel(): void

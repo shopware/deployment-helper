@@ -68,9 +68,7 @@ readonly class PluginHelper
 
     public function installPlugins(): void
     {
-        $plugins = $this->all();
-
-        foreach ($plugins as $plugin) {
+        foreach ($this->all() as $plugin) {
             if ($plugin['active']) {
                 continue;
             }
@@ -88,9 +86,7 @@ readonly class PluginHelper
 
     public function updatePlugins(): void
     {
-        $plugins = $this->all();
-
-        foreach ($plugins as $plugin) {
+        foreach ($this->all() as $plugin) {
             if (null === $plugin['upgradeVersion'] || $plugin['version'] === $plugin['upgradeVersion']) {
                 continue;
             }

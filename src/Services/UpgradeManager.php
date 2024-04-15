@@ -11,6 +11,7 @@ readonly class UpgradeManager
         private ShopwareState $state,
         private ProcessHelper $processHelper,
         private PluginHelper $pluginHelper,
+        private AppHelper $appHelper,
     ) {}
 
     public function run(OutputInterface $output): void
@@ -27,6 +28,8 @@ readonly class UpgradeManager
 
         $this->pluginHelper->installPlugins();
         $this->pluginHelper->updatePlugins();
+        $this->appHelper->installApps();
+        $this->appHelper->updateApps();
 
         $this->processHelper->console(['theme:compile', '--active-only']);
     }

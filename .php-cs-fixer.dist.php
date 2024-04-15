@@ -1,6 +1,9 @@
 <?php declare(strict_types=1);
 
-return (new PhpCsFixer\Config())
+use PhpCsFixer\Config;
+use PhpCsFixer\Finder;
+
+return (new Config())
     ->setRiskyAllowed(true)
     ->setRules([
         '@PhpCsFixer' => true,
@@ -13,8 +16,9 @@ return (new PhpCsFixer\Config())
         // We use the attribute CoversClass which is not recognized by php-cs-fixer
         'php_unit_test_class_requires_covers' => false,
     ])
-    ->setFinder(PhpCsFixer\Finder::create()
-        ->exclude('vendor')
-        ->in(__DIR__),
+    ->setFinder(
+        Finder::create()
+            ->exclude('vendor')
+            ->in(__DIR__),
     )
-    ;
+;
