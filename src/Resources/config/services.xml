@@ -13,5 +13,10 @@
         </service>
 
         <prototype namespace="Shopware\Deployment\" resource="../../" exclude="../../Application.php"/>
+
+        <service id="Shopware\Deployment\Config\ProjectConfiguration">
+            <factory class="Shopware\Deployment\Config\ConfigFactory" method="create"/>
+            <argument>%kernel.project_dir%</argument>
+        </service>
     </services>
 </container>

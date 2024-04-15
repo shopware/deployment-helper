@@ -4,6 +4,7 @@ namespace Shopware\Deployment\Services;
 
 use Digilist\DependencyGraph\DependencyGraph;
 use Digilist\DependencyGraph\DependencyNode;
+use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Path;
@@ -18,6 +19,7 @@ readonly class PluginHelper
         #[Autowire('%kernel.project_dir%')]
         private string $projectDir,
         private ProcessHelper $processHelper,
+        private ProjectConfiguration $configuration,
     ) {}
 
     /**
@@ -69,6 +71,10 @@ readonly class PluginHelper
     public function installPlugins(): void
     {
         foreach ($this->all() as $plugin) {
+            if (!$this->configuration->isExtensionManaged($plugin['name'])) {
+                continue;
+            }
+
             if ($plugin['active']) {
                 continue;
             }
@@ -87,6 +93,10 @@ readonly class PluginHelper
     public function updatePlugins(): void
     {
         foreach ($this->all() as $plugin) {
+            if (!$this->configuration->isExtensionManaged($plugin['name'])) {
+                continue;
+            }
+
             if (null === $plugin['upgradeVersion'] || $plugin['version'] === $plugin['upgradeVersion']) {
                 continue;
             }

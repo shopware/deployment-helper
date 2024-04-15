@@ -4,6 +4,7 @@ namespace Shopware\Deployment\Services;
 
 use Composer\InstalledVersions;
 use Doctrine\DBAL\Connection;
+use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Symfony\Component\Config\Util\XmlUtils;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -19,6 +20,7 @@ readonly class AppHelper
         private string $projectDir,
         private ProcessHelper $processHelper,
         private Connection $connection,
+        private ProjectConfiguration $configuration,
     ) {}
 
     /**
@@ -39,6 +41,10 @@ readonly class AppHelper
         $installed = $this->connection->fetchAllAssociativeIndexed('SELECT name, version, active FROM app');
 
         foreach ($this->all() as $app) {
+            if (!$this->configuration->isExtensionManaged($app['name'])) {
+                continue;
+            }
+
             if (isset($installed[$app['name']])) {
                 if (!$installed[$app['name']]['active']) {
                     $this->processHelper->console(['app:update', $app['name']]);
@@ -59,6 +65,10 @@ readonly class AppHelper
         $installed = $this->connection->fetchAllAssociativeIndexed('SELECT name, version, active FROM app');
 
         foreach ($this->all() as $app) {
+            if (!$this->configuration->isExtensionManaged($app['name'])) {
+                continue;
+            }
+
             if (!isset($installed[$app['name']])) {
                 continue;
             }
