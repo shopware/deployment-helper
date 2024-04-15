@@ -11,7 +11,6 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 class OneTimeTasks
 {
     public function __construct(
-        #[Autowire('%kernel.project_dir%')]
         private readonly ProcessHelper $processHelper,
         private readonly Connection $connection,
         private readonly ProjectConfiguration $configuration,
