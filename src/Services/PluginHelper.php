@@ -11,7 +11,7 @@ use Symfony\Component\Process\PhpSubprocess;
 /**
  * @phpstan-type Plugin array{name: string, composerName: string, path: string, installedAt: string|null, version: string, upgradeVersion: string|null, active: boolean}
  */
-class PluginHelper
+readonly class PluginHelper
 {
     /**
      * @return array<Plugin>

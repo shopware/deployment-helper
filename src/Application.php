@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment;
 
+use Shopware\Deployment\Helper\EnvironmentHelper;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -65,6 +66,10 @@ class Application extends SymfonyApplication
 
     private function getProjectDir(): string
     {
+        if ($root = EnvironmentHelper::getVariable('PROJECT_ROOT')) {
+            return $root;
+        }
+
         $dir = __DIR__;
         while (!file_exists($dir . '/bin/console')) {
             if ('/' === $dir) {

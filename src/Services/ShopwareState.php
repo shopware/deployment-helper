@@ -5,7 +5,7 @@ namespace Shopware\Deployment\Services;
 use Composer\InstalledVersions;
 use Doctrine\DBAL\Connection;
 
-class ShopwareState
+readonly class ShopwareState
 {
     public function __construct(
         private Connection $connection,

@@ -21,11 +21,14 @@ class MySQLFactory
         $parameters = [
             'url' => $url,
             'charset' => 'utf8mb4',
+            'driver' => 'pdo_mysql',
             'driverOptions' => [
                 \PDO::ATTR_STRINGIFY_FETCHES => true,
-                \PDO::ATTR_TIMEOUT => 5, // 5s connection timeout
+                \PDO::ATTR_TIMEOUT => 1,
             ],
         ];
+
+        var_dump($parameters);
 
         if ($sslCa = EnvironmentHelper::getVariable('DATABASE_SSL_CA')) {
             $parameters['driverOptions'][\PDO::MYSQL_ATTR_SSL_CA] = $sslCa;
@@ -59,6 +62,7 @@ class MySQLFactory
 
                 return $con;
             } catch (\Throwable $e) {
+                var_dump($e->getMessage());
                 if (str_contains($e->getMessage(), 'Unknown database') && $con) {
                     return $con;
                 }
