@@ -4,7 +4,6 @@ namespace Shopware\Deployment\Services;
 
 use Shopware\Deployment\Helper\ProcessHelper;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 readonly class UpgradeManager
 {

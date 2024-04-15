@@ -7,7 +7,6 @@ use Doctrine\DBAL\Connection;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 readonly class InstallationManager
 {
