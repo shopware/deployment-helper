@@ -2,7 +2,7 @@
 
 namespace Shopware\Deployment\Helper;
 
-class EnvironmentHelper
+readonly class EnvironmentHelper
 {
     /**
      * Reads an env var first from $_SERVER then from $_ENV super globals

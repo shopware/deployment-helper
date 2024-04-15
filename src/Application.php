@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment;
 
+use Composer\InstalledVersions;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Application as SymfonyApplication;
@@ -52,10 +53,13 @@ class Application extends SymfonyApplication
             }
             $definition->addTag('kernel.event_listener', $tagAttributes);
         });
+
         $container->addCompilerPass(new AddConsoleCommandPass());
         $container->addCompilerPass(new RegisterListenersPass());
 
-        $container->setParameter('kernel.project_dir', $this->getProjectDir());
+        $projectDir = $this->getProjectDir();
+        $container->setParameter('kernel.project_dir', $projectDir);
+        InstalledVersions::reload(include $projectDir . '/vendor/composer/installed.php');
 
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/Resources/config'));
         $loader->load('services.xml');

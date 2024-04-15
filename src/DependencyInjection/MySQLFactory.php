@@ -5,9 +5,10 @@ namespace Shopware\Deployment\DependencyInjection;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Tools\DsnParser;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 
-class MySQLFactory
+readonly class MySQLFactory
 {
     private static function create(): Connection
     {
@@ -28,7 +29,12 @@ class MySQLFactory
             ],
         ];
 
-        var_dump($parameters);
+        $dsnParser  = new DsnParser(['mysql' => 'pdo_mysql']);
+
+        if (class_exists(DsnParser::class)) {
+            unset($parameters['url']);
+            $parameters = [... $parameters, ... $dsnParser->parse($url)];
+        }
 
         if ($sslCa = EnvironmentHelper::getVariable('DATABASE_SSL_CA')) {
             $parameters['driverOptions'][\PDO::MYSQL_ATTR_SSL_CA] = $sslCa;
@@ -62,7 +68,6 @@ class MySQLFactory
 
                 return $con;
             } catch (\Throwable $e) {
-                var_dump($e->getMessage());
                 if (str_contains($e->getMessage(), 'Unknown database') && $con) {
                     return $con;
                 }

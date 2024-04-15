@@ -2,17 +2,23 @@
 
 namespace Shopware\Deployment\Helper;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\PhpSubprocess;
 use Symfony\Component\Process\Process;
 
-class ProcessHelper
+readonly class ProcessHelper
 {
+    public function __construct(
+        #[Autowire('%kernel.project_dir%')]
+        private string $projectDir,
+    ) {}
+
     /**
      * @param list<string> $args
      */
-    public static function run(array $args): void
+    public function run(array $args): void
     {
-        $process = new PhpSubprocess($args);
+        $process = new PhpSubprocess($args, $this->projectDir);
         $process->setPty(true);
         $process->run(function (string $type, string $buffer): void {
             if (Process::ERR === $type) {
@@ -30,8 +36,8 @@ class ProcessHelper
     /**
      * @param list<string> $args
      */
-    public static function console(array $args): void
+    public function console(array $args): void
     {
-        self::run(['bin/console', '-n', ...$args]);
+        $this->run(['bin/console', '-n', ...$args]);
     }
 }

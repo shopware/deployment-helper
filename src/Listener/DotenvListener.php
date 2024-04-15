@@ -8,7 +8,7 @@ use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
 #[AsEventListener('console.command')]
-class DotenvListener
+readonly class DotenvListener
 {
     public function __construct(#[Autowire('%kernel.project_dir%')] private string $projectDir) {}
 

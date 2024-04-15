@@ -10,8 +10,8 @@ readonly class UpgradeManager
 {
     public function __construct(
         private ShopwareState $state,
-        #[Autowire('%kernel.project_dir%')]
-        private string $projectDir,
+        private ProcessHelper $processHelper,
+        private PluginHelper $pluginHelper,
     ) {}
 
     public function run(OutputInterface $output): void
@@ -20,15 +20,15 @@ readonly class UpgradeManager
 
         if ($this->state->getPreviousVersion() !== $this->state->getCurrentVersion()) {
             $output->writeln(sprintf('Updating Shopware from %s to %s', $this->state->getPreviousVersion(), $this->state->getCurrentVersion()));
-            ProcessHelper::console(['system:update:finish']);
+            $this->processHelper->console(['system:update:finish']);
             $this->state->setVersion($this->state->getCurrentVersion());
         }
 
-        ProcessHelper::console(['plugin:refresh']);
+        $this->processHelper->console(['plugin:refresh']);
 
-        PluginHelper::installPlugins($this->projectDir);
-        PluginHelper::updatePlugins($this->projectDir);
+        $this->pluginHelper->installPlugins();
+        $this->pluginHelper->updatePlugins();
 
-        ProcessHelper::console(['theme:compile', '--active-only']);
+        $this->processHelper->console(['theme:compile', '--active-only']);
     }
 }

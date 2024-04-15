@@ -13,9 +13,9 @@ readonly class InstallationManager
 {
     public function __construct(
         private ShopwareState $state,
-        #[Autowire('%kernel.project_dir%')]
-        private string $projectDir,
         private Connection $connection,
+        private ProcessHelper $processHelper,
+        private PluginHelper $pluginHelper,
     ) {}
 
     public function run(OutputInterface $output): void
@@ -27,20 +27,20 @@ readonly class InstallationManager
         $adminPassword = EnvironmentHelper::getVariable('INSTALL_ADMIN_PASSWORD', 'shopware');
         $appUrl = EnvironmentHelper::getVariable('APP_URL', 'http://localhost');
 
-        ProcessHelper::console(['system:install', '--create-database', '--shop-locale=' . $shopLocale, '--shop-currency=' . $shopCurrency, '--force']);
-        ProcessHelper::console(['user:create', (string) $adminUser, '--password=' . $adminPassword]);
+        $this->processHelper->console(['system:install', '--create-database', '--shop-locale=' . $shopLocale, '--shop-currency=' . $shopCurrency, '--force']);
+        $this->processHelper->console(['user:create', (string) $adminUser, '--password=' . $adminPassword]);
 
         if (InstalledVersions::isInstalled('shopware/storefront')) {
             $this->removeExistingHeadlessSalesChannel();
-            ProcessHelper::console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $appUrl]);
-            ProcessHelper::console(['theme:change', '--all', 'Storefront']);
+            $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $appUrl]);
+            $this->processHelper->console(['theme:change', '--all', 'Storefront']);
         }
 
         $this->state->setVersion($this->state->getCurrentVersion());
 
-        ProcessHelper::console(['plugin:refresh']);
-        PluginHelper::installPlugins($this->projectDir);
-        PluginHelper::updatePlugins($this->projectDir);
+        $this->processHelper->console(['plugin:refresh']);
+        $this->pluginHelper->installPlugins();
+        $this->pluginHelper->updatePlugins();
     }
 
     private function removeExistingHeadlessSalesChannel(): void
