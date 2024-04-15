@@ -15,7 +15,7 @@ readonly class MySQLFactory
         $config = new Configuration();
 
         $url = (string) EnvironmentHelper::getVariable('DATABASE_URL');
-        if ('' === $url) {
+        if ($url === '') {
             throw new \RuntimeException('$DATABASE_URL is not set');
         }
 

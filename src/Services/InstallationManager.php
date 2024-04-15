@@ -16,11 +16,14 @@ readonly class InstallationManager
         private ProcessHelper $processHelper,
         private PluginHelper $pluginHelper,
         private AppHelper $appHelper,
+        private HookExecutor $hookExecutor,
     ) {}
 
     public function run(OutputInterface $output): void
     {
         $output->writeln('Shopware is not installed, starting installation');
+
+        $this->hookExecutor->execute(HookExecutor::PRE_INSTALL);
 
         $shopLocale = EnvironmentHelper::getVariable('INSTALL_LOCALE', 'en-GB');
         $shopCurrency = EnvironmentHelper::getVariable('INSTALL_CURRENCY', 'EUR');
@@ -44,6 +47,8 @@ readonly class InstallationManager
         $this->pluginHelper->updatePlugins();
         $this->appHelper->installApps();
         $this->appHelper->updateApps();
+
+        $this->hookExecutor->execute(HookExecutor::POST_INSTALL);
     }
 
     private function removeExistingHeadlessSalesChannel(): void

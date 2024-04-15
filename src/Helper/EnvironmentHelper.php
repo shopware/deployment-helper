@@ -12,7 +12,7 @@ readonly class EnvironmentHelper
     {
         $value = $_SERVER[$key] ?? $_ENV[$key] ?? null;
 
-        return null !== $value ? (string) $value : $default;
+        return $value !== null ? (string) $value : $default;
     }
 
     public static function hasVariable(string $key): bool

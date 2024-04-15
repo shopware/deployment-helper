@@ -26,7 +26,7 @@ readonly class ShopwareState
     {
         $data = $this->connection->fetchOne('SELECT configuration_value FROM system_config WHERE configuration_key = "deployment.version" AND sales_channel_id IS NULL');
 
-        if (false === $data) {
+        if ($data === false) {
             return 'unknown';
         }
 

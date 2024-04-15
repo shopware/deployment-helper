@@ -76,7 +76,7 @@ class Application extends SymfonyApplication
 
         $dir = __DIR__;
         while (!file_exists($dir . '/bin/console')) {
-            if ('/' === $dir) {
+            if ($dir === '/') {
                 throw new \RuntimeException('Could not find project root');
             }
 

@@ -138,7 +138,7 @@ readonly class AppHelper
             $name = $this->getNodeValueByPath($xpath, '/manifest/meta/name');
             $version = $this->getNodeValueByPath($xpath, '/manifest/meta/version');
 
-            if (null === $name || null === $version) {
+            if ($name === null || $version === null) {
                 continue;
             }
 

@@ -2,6 +2,7 @@
 
 namespace Shopware\Deployment\Command;
 
+use Shopware\Deployment\Services\HookExecutor;
 use Shopware\Deployment\Services\InstallationManager;
 use Shopware\Deployment\Services\ShopwareState;
 use Shopware\Deployment\Services\UpgradeManager;
@@ -17,6 +18,7 @@ class RunCommand extends Command
         private readonly ShopwareState $state,
         private readonly InstallationManager $installationManager,
         private readonly UpgradeManager $upgradeManager,
+        private readonly HookExecutor $hookExecutor,
     ) {
         parent::__construct();
     }
@@ -25,11 +27,15 @@ class RunCommand extends Command
     {
         $installed = $this->state->isInstalled();
 
+        $this->hookExecutor->execute(HookExecutor::PRE);
+
         if ($installed) {
             $this->upgradeManager->run($output);
         } else {
             $this->installationManager->run($output);
         }
+
+        $this->hookExecutor->execute(HookExecutor::POST);
 
         return Command::SUCCESS;
     }

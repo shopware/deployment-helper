@@ -21,7 +21,7 @@ readonly class ProcessHelper
         $process = new PhpSubprocess($args, $this->projectDir);
         $process->setPty(true);
         $process->run(function (string $type, string $buffer): void {
-            if (Process::ERR === $type) {
+            if ($type === Process::ERR) {
                 fwrite(\STDERR, $buffer);
             } else {
                 fwrite(\STDOUT, $buffer);

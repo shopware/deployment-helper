@@ -80,7 +80,7 @@ readonly class PluginHelper
             }
 
             // plugin is installed, but not active
-            if (null !== $plugin['installedAt']) {
+            if ($plugin['installedAt'] !== null) {
                 $this->processHelper->console(['plugin:activate', $plugin['name']]);
 
                 continue;
@@ -97,7 +97,7 @@ readonly class PluginHelper
                 continue;
             }
 
-            if (null === $plugin['upgradeVersion'] || $plugin['version'] === $plugin['upgradeVersion']) {
+            if ($plugin['upgradeVersion'] === null || $plugin['version'] === $plugin['upgradeVersion']) {
                 continue;
             }
 
