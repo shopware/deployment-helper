@@ -43,12 +43,6 @@ class Application extends SymfonyApplication
             $definition->addTag('console.command');
         });
 
-        // @phpstan-ignore-next-line
-        $container->registerAttributeForAutoconfiguration(AsEventListener::class, static function (ChildDefinition $definition, AsEventListener $attribute, \ReflectionClass|\ReflectionMethod $reflector): void {
-            $tagAttributes = get_object_vars($attribute);
-            $definition->addTag('kernel.event_listener', $tagAttributes);
-        });
-
         $container->addCompilerPass(new AddConsoleCommandPass());
         $container->addCompilerPass(new RegisterListenersPass());
 

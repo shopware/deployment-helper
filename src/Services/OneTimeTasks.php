@@ -35,7 +35,7 @@ class OneTimeTasks
     /**
      * @return array<string, string>[]
      */
-    private function getExecutedTasks(): array
+    public function getExecutedTasks(): array
     {
         try {
             return $this->connection->fetchAllAssociativeIndexed('SELECT id, created_at FROM one_time_tasks');
@@ -46,11 +46,18 @@ class OneTimeTasks
         }
     }
 
-    private function markAsRun(string $id): void
+    public function markAsRun(string $id): void
     {
         $this->connection->executeStatement('INSERT INTO one_time_tasks (id, created_at) VALUES (:id, :created_at)', [
             'id' => $id,
             'created_at' => (new \DateTime())->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function remove(string $id): void
+    {
+        $this->connection->executeStatement('DELETE FROM one_time_tasks WHERE id = ?', [
+            $id,
         ]);
     }
 }

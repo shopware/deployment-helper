@@ -93,4 +93,15 @@ class OneTimeTasksTest extends TestCase
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
         $tasks->execute($output);
     }
+
+    public function testRemove(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection->expects($this->once())->method('executeStatement')->with('DELETE FROM one_time_tasks WHERE id = ?', ['test']);
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+
+        $tasks = new OneTimeTasks($processHelper, $connection, new ProjectConfiguration());
+        $tasks->remove('test');
+    }
 }
