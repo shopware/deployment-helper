@@ -38,6 +38,9 @@ jobs:
         with:
          path: ./custom/plugins/deployment-helper
 
+      - name: Set fake version into deployment helper
+        run: composer -d custom/plugins/deployment-helper config version 999.9.9
+
       - name: Install Deployment Helper
         run: composer require --dev 'shopware/deployment-helper:*'
 
@@ -81,6 +84,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: ./custom/plugins/deployment-helper
+
+      - name: Set fake version into deployment helper
+        run: composer -d custom/plugins/deployment-helper config version 999.9.9
 
       - name: Install Deployment Helper
         run: composer require --dev 'shopware/deployment-helper:*'
