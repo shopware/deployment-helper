@@ -1,6 +1,5 @@
 {
     "name": "shopware/deployment-helper",
-    "version": "0.0.1",
     "type": "library",
     "description": "Shopware deployment tools",
     "keywords": ["shopware", "deployment"],
