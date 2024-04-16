@@ -18,12 +18,18 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '${{ matrix.php }}'
+          coverage: xdebug
 
       - name: Install dependencies
         run: composer install
 
       - name: Run tests
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit --coverage-cobertura coverage.xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
 
   phpstan:
     runs-on: ubuntu-latest
