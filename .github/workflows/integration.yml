@@ -48,7 +48,7 @@ jobs:
         run: composer require 'swag/paypal:*'
 
       - name: Install Shopware using Helper
-        run: ./vendor/bin/shopware-deployment-helper deploy
+        run: ./vendor/bin/shopware-deployment-helper run
 
       - name: Start Webserver
         run: symfony server:start -d
@@ -95,7 +95,7 @@ jobs:
         run: composer require 'swag/paypal:*'
 
       - name: Install Shopware using Helper
-        run: ./vendor/bin/shopware-deployment-helper deploy
+        run: ./vendor/bin/shopware-deployment-helper run
 
       - name: Start Webserver
         run: symfony server:start -d
@@ -113,7 +113,7 @@ jobs:
         run: yes | composer recipes:install --force --reset
 
       - name: Update Shopware using Helper
-        run: ./vendor/bin/shopware-deployment-helper deploy
+        run: ./vendor/bin/shopware-deployment-helper run
 
       - name: Check that a major update was performed
         run: ./bin/console --version | grep -v 6.5

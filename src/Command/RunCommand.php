@@ -11,8 +11,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand('deploy', description: 'Install or Update Shopware')]
-class DeployCommand extends Command
+#[AsCommand('run', description: 'Install or Update Shopware')]
+class RunCommand extends Command
 {
     public function __construct(
         private readonly ShopwareState $state,

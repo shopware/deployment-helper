@@ -6,7 +6,7 @@ use PHPUnit\Framework\Attributes\BackupGlobals;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Shopware\Deployment\Application;
 use PHPUnit\Framework\TestCase;
-use Shopware\Deployment\Command\DeployCommand;
+use Shopware\Deployment\Command\RunCommand;
 
 #[CoversClass(Application::class)]
 class ApplicationTest extends TestCase
@@ -16,6 +16,6 @@ class ApplicationTest extends TestCase
     {
         $_SERVER['PROJECT_ROOT'] = dirname(__DIR__);
         $app = new Application();
-        static::assertTrue($app->getContainer()->has(DeployCommand::class));
+        static::assertTrue($app->getContainer()->has(RunCommand::class));
     }
 }

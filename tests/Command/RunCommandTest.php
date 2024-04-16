@@ -3,7 +3,7 @@
 namespace Shopware\Deployment\Tests\Command;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use Shopware\Deployment\Command\DeployCommand;
+use Shopware\Deployment\Command\RunCommand;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Services\HookExecutor;
 use Shopware\Deployment\Services\InstallationManager;
@@ -11,8 +11,8 @@ use Shopware\Deployment\Services\ShopwareState;
 use Shopware\Deployment\Services\UpgradeManager;
 use Symfony\Component\Console\Tester\CommandTester;
 
-#[CoversClass(DeployCommand::class)]
-class DeployCommandTest extends TestCase
+#[CoversClass(RunCommand::class)]
+class RunCommandTest extends TestCase
 {
     public function testInstall(): void
     {
@@ -32,7 +32,7 @@ class DeployCommandTest extends TestCase
             ->expects(static::once())
             ->method('run');
 
-        $command = new DeployCommand(
+        $command = new RunCommand(
             $state,
             $installationManager,
             $this->createMock(UpgradeManager::class),
@@ -66,7 +66,7 @@ class DeployCommandTest extends TestCase
             ->expects(static::once())
             ->method('run');
 
-        $command = new DeployCommand(
+        $command = new RunCommand(
             $state,
             $installationManager,
             $upgradeManager,
