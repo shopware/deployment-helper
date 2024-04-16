@@ -1,0 +1,114 @@
+name: Integration
+
+on:
+  push:
+
+env:
+  APP_ENV: prod
+  APP_URL: http://localhost:8000
+  DATABASE_URL: mysql://root@127.0.0.1/shopware
+
+jobs:
+  installation:
+    name: Install a Shopware Shop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: symfony-cli
+
+      - name: Start Default MySQL
+        run: |
+          sudo mv /var/lib/mysql /var/lib/mysql-old
+          sudo mkdir /var/lib/mysql
+          sudo mount -t tmpfs tmpfs /var/lib/mysql -o size=1G
+          sudo -u mysql mysqld --datadir=/var/lib/mysql --default-time-zone=SYSTEM --initialize-insecure
+          sudo systemctl start mysql
+
+      - name: Create new Shopware Project
+        run: composer create-project shopware/production . --no-interaction
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+         path: ./custom/plugins/deployment-helper
+
+      - name: Install Deployment Helper
+        run: composer require --dev 'shopware/deployment-helper:*'
+
+      - name: Install PayPal
+        run: composer require 'swag/paypal:*'
+
+      - name: Install Shopware using Helper
+        run: ./vendor/bin/shopware-deployment-helper deploy
+
+      - name: Start Webserver
+        run: symfony server:start -d
+
+      - name: PayPal plugin should be installed
+        run: ./bin/console plugin:list | grep SwagPayPal
+
+      - name: Default Storefront should be available
+        run: curl -q --fail http://localhost:8000
+
+  update:
+    name: Update from 6.5
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: symfony-cli
+
+      - name: Start Default MySQL
+        run: |
+          sudo mv /var/lib/mysql /var/lib/mysql-old
+          sudo mkdir /var/lib/mysql
+          sudo mount -t tmpfs tmpfs /var/lib/mysql -o size=1G
+          sudo -u mysql mysqld --datadir=/var/lib/mysql --default-time-zone=SYSTEM --initialize-insecure
+          sudo systemctl start mysql
+
+      - name: Create new Shopware Project
+        run: composer create-project shopware/production:6.5.8.8 . --no-interaction
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ./custom/plugins/deployment-helper
+
+      - name: Install Deployment Helper
+        run: composer require --dev 'shopware/deployment-helper:*'
+
+      - name: Install PayPal
+        run: composer require 'swag/paypal:*'
+
+      - name: Install Shopware using Helper
+        run: ./vendor/bin/shopware-deployment-helper deploy
+
+      - name: Start Webserver
+        run: symfony server:start -d
+
+      - name: PayPal plugin should be installed
+        run: ./bin/console plugin:list | grep SwagPayPal
+
+      - name: Default Storefront should be available
+        run: curl -q --fail http://localhost:8000
+
+      - name: Update to latest version
+        run: composer require "shopware/core:*" "swag/paypal:*"  -W --no-interaction --no-scripts
+
+      - name: Update recipes
+        run: yes | composer recipes:install --force --reset
+
+      - name: Update Shopware using Helper
+        run: ./vendor/bin/shopware-deployment-helper deploy
+
+      - name: Check that a major update was performed
+        run: ./bin/console --version | grep -v 6.5
+
+
+
+
