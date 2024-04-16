@@ -100,7 +100,7 @@ class ShopwareStateTest extends TestCase
         $this->connection
             ->expects(static::once())
             ->method('executeStatement')
-            ->with('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (?, "deployment.version", ?, NULL, NOW())', [md5('deployment_version'), '{"_value":"v1.0.0"}']);
+            ->with('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (0x0353f2502acd5dbdfe797c1cc4af9afc, "deployment.version", ?, NULL, NOW())', ['{"_value":"v1.0.0"}']);
 
         $this->state->setVersion('v1.0.0');
     }

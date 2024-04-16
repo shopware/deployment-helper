@@ -1,18 +1,15 @@
 <?php declare(strict_types=1);
 
-namespace Shopware\Deployment\Listener;
+namespace Shopware\Deployment\Services;
 
-use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Dotenv\Dotenv;
-use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
-#[AsEventListener('console.command')]
-readonly class DotenvListener
+readonly class DotenvLoader
 {
     public function __construct(#[Autowire('%kernel.project_dir%')] private string $projectDir) {}
 
-    public function __invoke(ConsoleCommandEvent $event): void
+    public function load(): void
     {
         if (!file_exists($this->projectDir . '/.env') && !file_exists($this->projectDir . '/.env.dist') && !file_exists($this->projectDir . '/.env.local.php')) {
             return;

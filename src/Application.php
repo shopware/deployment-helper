@@ -6,6 +6,7 @@ namespace Shopware\Deployment;
 
 use Composer\InstalledVersions;
 use Shopware\Deployment\Helper\EnvironmentHelper;
+use Shopware\Deployment\Services\DotenvLoader;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -54,6 +55,7 @@ class Application extends SymfonyApplication
         $projectDir = $this->getProjectDir();
         $container->setParameter('kernel.project_dir', $projectDir);
         InstalledVersions::reload(include $projectDir . '/vendor/composer/installed.php');
+        (new DotenvLoader($projectDir))->load();
 
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/Resources/config'));
         $loader->load('services.xml');
