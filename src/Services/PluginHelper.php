@@ -17,8 +17,14 @@ class PluginHelper
         private readonly ProjectConfiguration $configuration,
     ) {}
 
-    public function installPlugins(): void
+    public function installPlugins(bool $skipAssetInstall = false): void
     {
+        $additionalParameters = [];
+
+        if ($skipAssetInstall) {
+            $additionalParameters[] = '--skip-asset-build';
+        }
+
         foreach ($this->pluginLoader->all() as $plugin) {
             if (!$this->configuration->isExtensionManaged($plugin['name'])) {
                 continue;
@@ -30,17 +36,23 @@ class PluginHelper
 
             // plugin is installed, but not active
             if ($plugin['installedAt'] !== null) {
-                $this->processHelper->console(['plugin:activate', $plugin['name']]);
+                $this->processHelper->console(['plugin:activate', $plugin['name'], ...$additionalParameters]);
 
                 continue;
             }
 
-            $this->processHelper->console(['plugin:install', $plugin['name'], '--activate']);
+            $this->processHelper->console(['plugin:install', $plugin['name'], '--activate', ...$additionalParameters]);
         }
     }
 
-    public function updatePlugins(): void
+    public function updatePlugins(bool $skipAssetInstall = false): void
     {
+        $additionalParameters = [];
+
+        if ($skipAssetInstall) {
+            $additionalParameters[] = '--skip-asset-build';
+        }
+
         foreach ($this->pluginLoader->all() as $plugin) {
             if (!$this->configuration->isExtensionManaged($plugin['name'])) {
                 continue;
@@ -50,7 +62,7 @@ class PluginHelper
                 continue;
             }
 
-            $this->processHelper->console(['plugin:update', $plugin['name']]);
+            $this->processHelper->console(['plugin:update', $plugin['name'], ...$additionalParameters]);
         }
     }
 }

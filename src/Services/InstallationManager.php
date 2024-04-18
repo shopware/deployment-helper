@@ -5,6 +5,7 @@ namespace Shopware\Deployment\Services;
 use Doctrine\DBAL\Connection;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Helper\ProcessHelper;
+use Shopware\Deployment\Struct\RunConfiguration;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class InstallationManager
@@ -18,7 +19,7 @@ class InstallationManager
         private readonly HookExecutor $hookExecutor,
     ) {}
 
-    public function run(OutputInterface $output): void
+    public function run(RunConfiguration $configuration, OutputInterface $output): void
     {
         $output->writeln('Shopware is not installed, starting installation');
 
@@ -30,20 +31,41 @@ class InstallationManager
         $adminPassword = EnvironmentHelper::getVariable('INSTALL_ADMIN_PASSWORD', 'shopware');
         $appUrl = EnvironmentHelper::getVariable('APP_URL', 'http://localhost');
 
-        $this->processHelper->console(['system:install', '--create-database', '--shop-locale=' . $shopLocale, '--shop-currency=' . $shopCurrency, '--force']);
+        $additionalInstallParameters = [];
+
+        if ($configuration->skipThemeCompile) {
+            $additionalInstallParameters[] = '--no-assign-theme';
+        }
+
+        if ($configuration->skipAssetInstall) {
+            $additionalInstallParameters[] = '--skip-assets-install';
+        }
+
+        $this->processHelper->console(['system:install', '--create-database', '--shop-locale=' . $shopLocale, '--shop-currency=' . $shopCurrency, '--force', ...$additionalInstallParameters]);
         $this->processHelper->console(['user:create', (string) $adminUser, '--password=' . $adminPassword]);
 
         if ($this->state->isStorefrontInstalled()) {
             $this->removeExistingHeadlessSalesChannel();
             $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $appUrl]);
-            $this->processHelper->console(['theme:change', '--all', 'Storefront']);
+
+            $themeChangeParameters = [];
+            if ($configuration->skipThemeCompile) {
+                $themeChangeParameters[] = '--no-compile';
+            }
+
+            $this->processHelper->console(['theme:change', '--all', 'Storefront', ...$themeChangeParameters]);
+
+            if ($configuration->skipThemeCompile) {
+                $this->processHelper->console(['theme:dump']);
+            }
         }
 
+        $this->state->disableFirstRunWizard();
         $this->state->setVersion($this->state->getCurrentVersion());
 
         $this->processHelper->console(['plugin:refresh']);
-        $this->pluginHelper->installPlugins();
-        $this->pluginHelper->updatePlugins();
+        $this->pluginHelper->installPlugins($configuration->skipAssetInstall);
+        $this->pluginHelper->updatePlugins($configuration->skipAssetInstall);
         $this->appHelper->installApps();
         $this->appHelper->updateApps();
 

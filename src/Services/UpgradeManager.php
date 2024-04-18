@@ -3,6 +3,7 @@
 namespace Shopware\Deployment\Services;
 
 use Shopware\Deployment\Helper\ProcessHelper;
+use Shopware\Deployment\Struct\RunConfiguration;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class UpgradeManager
@@ -16,7 +17,7 @@ class UpgradeManager
         private readonly OneTimeTasks $oneTimeTasks,
     ) {}
 
-    public function run(OutputInterface $output): void
+    public function run(RunConfiguration $configuration, OutputInterface $output): void
     {
         $this->hookExecutor->execute(HookExecutor::PRE_UPDATE);
 
@@ -24,18 +25,27 @@ class UpgradeManager
 
         if ($this->state->getPreviousVersion() !== $this->state->getCurrentVersion()) {
             $output->writeln(sprintf('Updating Shopware from %s to %s', $this->state->getPreviousVersion(), $this->state->getCurrentVersion()));
-            $this->processHelper->console(['system:update:finish']);
+
+            $additionalUpdateParameters = [];
+
+            if ($configuration->skipAssetInstall) {
+                $additionalUpdateParameters[] = '--skip-asset-build';
+            }
+
+            $this->processHelper->console(['system:update:finish', ...$additionalUpdateParameters]);
             $this->state->setVersion($this->state->getCurrentVersion());
         }
 
         $this->processHelper->console(['plugin:refresh']);
 
-        $this->pluginHelper->installPlugins();
-        $this->pluginHelper->updatePlugins();
+        $this->pluginHelper->installPlugins($configuration->skipAssetInstall);
+        $this->pluginHelper->updatePlugins($configuration->skipAssetInstall);
         $this->appHelper->installApps();
         $this->appHelper->updateApps();
 
-        $this->processHelper->console(['theme:compile', '--active-only']);
+        if (!$configuration->skipThemeCompile) {
+            $this->processHelper->console(['theme:compile', '--active-only']);
+        }
 
         $this->oneTimeTasks->execute($output);
 

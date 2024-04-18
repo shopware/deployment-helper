@@ -11,6 +11,7 @@ use Shopware\Deployment\Services\HookExecutor;
 use Shopware\Deployment\Services\InstallationManager;
 use Shopware\Deployment\Services\PluginHelper;
 use Shopware\Deployment\Services\ShopwareState;
+use Shopware\Deployment\Struct\RunConfiguration;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[CoversClass(InstallationManager::class)]
@@ -32,7 +33,7 @@ class InstallationManagerTest extends TestCase
             $hookExecutor,
         );
 
-        $manager->run($this->createMock(OutputInterface::class));
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
     }
 
     public function testRunNoStorefront(): void
@@ -56,6 +57,36 @@ class InstallationManagerTest extends TestCase
             $this->createMock(HookExecutor::class),
         );
 
-        $manager->run($this->createMock(OutputInterface::class));
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+    }
+
+    public function testRunDisabledAssetCopyAndThemeCompile(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state->method('isStorefrontInstalled')
+            ->willReturn(true);
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $manager = new InstallationManager(
+            $state,
+            $this->createMock(Connection::class),
+            $processHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+        );
+
+        $manager->run(new RunConfiguration(true, true), $this->createMock(OutputInterface::class));
+
+        static::assertCount(6, $consoleCommands);
+        static::assertSame(['system:install', '--create-database', '--shop-locale=en-GB', '--shop-currency=EUR', '--force', '--no-assign-theme', '--skip-assets-install'], $consoleCommands[0]);
     }
 }

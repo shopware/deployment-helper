@@ -52,6 +52,12 @@ class ShopwareState
         }
     }
 
+    public function disableFirstRunWizard(): void
+    {
+        $payload = json_encode(['_value' => '2021-01-01 00:00:00'], JSON_THROW_ON_ERROR);
+        $this->connection->executeStatement('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (0x0353f2502acd5dbdfe797c1cc4af9bfc, "core.frw.completedAt", ?, NULL, NOW())', [$payload]);
+    }
+
     public function getCurrentVersion(): string
     {
         if (InstalledVersions::isInstalled('shopware/platform')) {

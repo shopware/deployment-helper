@@ -90,6 +90,16 @@ class ShopwareStateTest extends TestCase
         $this->state->setVersion('v1.0.0');
     }
 
+    public function testDisableFRW(): void
+    {
+        $this->connection
+            ->expects(static::once())
+            ->method('executeStatement')
+            ->with('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (0x0353f2502acd5dbdfe797c1cc4af9bfc, "core.frw.completedAt", ?, NULL, NOW())', ['{"_value":"2021-01-01 00:00:00"}']);
+
+        $this->state->disableFirstRunWizard();
+    }
+
     public function testSetVersionInsert(): void
     {
         $this->connection

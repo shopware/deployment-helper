@@ -58,6 +58,20 @@ class PluginHelperTest extends TestCase
         $helper->installPlugins();
     }
 
+    public function testInstallNotInstalledSkipAssets(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects(static::once())->method('console')->with(['plugin:install', 'TestPlugin', '--activate', '--skip-asset-build']);
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(active:false, installedAt: null),
+            $processHelper,
+            new ProjectConfiguration(),
+        );
+
+        $helper->installPlugins(true);
+    }
+
     public function testInstalledButNotActive(): void
     {
         $processHelper = $this->createMock(ProcessHelper::class);
@@ -115,6 +129,20 @@ class PluginHelperTest extends TestCase
         );
 
         $helper->updatePlugins();
+    }
+
+    public function testUpdateDisableAssetBuild(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects(static::once())->method('console')->with(['plugin:update', 'TestPlugin', '--skip-asset-build']);
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(upgradeVersion: '1.0.1'),
+            $processHelper,
+            new ProjectConfiguration(),
+        );
+
+        $helper->updatePlugins(true);
     }
 
     public function getPluginLoader(bool $active = true, ?string $installedAt = 'test', ?string $upgradeVersion = null): PluginLoader&MockObject
