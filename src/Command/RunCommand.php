@@ -29,7 +29,7 @@ class RunCommand extends Command
     {
         $this->addOption('skip-theme-compile', null, InputOption::VALUE_OPTIONAL, 'Skip theme compile (should be used when the Theme has been compiled before in the CI/CD)', false);
         $this->addOption('skip-asset-install', null, InputOption::VALUE_OPTIONAL, 'Skip asset install (should be used when the Assets has been copied before in the CI/CD)', false);
-        $this->addOption('timeout', null, InputOption::VALUE_OPTIONAL, 'Set script execution timeout (is seconds). Set to null to disable timeout', 60);
+        $this->addOption('timeout', null, InputOption::VALUE_OPTIONAL, 'Set script execution timeout (is seconds). Set to null to disable timeout', 300);
     }
 
 
