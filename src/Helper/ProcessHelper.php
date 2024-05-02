@@ -15,7 +15,7 @@ class ProcessHelper
     public function __construct(
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
-        private ?float $timeout = 60
+        private ?float $timeout = 60,
     ) {}
 
     /**
@@ -145,7 +145,7 @@ class ProcessHelper
     {
         $timeout = (float) $timeout;
 
-        if (0.0 === $timeout) {
+        if ($timeout === 0.0) {
             $timeout = null;
         } elseif ($timeout < 0) {
             throw new InvalidArgumentException('The timeout value must be a valid positive integer or float number.');
