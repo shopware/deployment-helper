@@ -19,6 +19,8 @@ class UpgradeManager
 
     public function run(RunConfiguration $configuration, OutputInterface $output): void
     {
+        $this->processHelper->setTimeout($configuration->timeout);
+
         $this->hookExecutor->execute(HookExecutor::PRE_UPDATE);
 
         $output->writeln('Shopware is installed, running update tools');

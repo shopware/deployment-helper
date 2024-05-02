@@ -21,6 +21,8 @@ class InstallationManager
 
     public function run(RunConfiguration $configuration, OutputInterface $output): void
     {
+        $this->processHelper->setTimeout($configuration->timeout);
+
         $output->writeln('Shopware is not installed, starting installation');
 
         $this->hookExecutor->execute(HookExecutor::PRE_INSTALL);
