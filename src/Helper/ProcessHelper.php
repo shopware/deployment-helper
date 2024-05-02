@@ -3,6 +3,7 @@
 namespace Shopware\Deployment\Helper;
 
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Process\Exception\InvalidArgumentException;
 use Symfony\Component\Process\PhpSubprocess;
 use Symfony\Component\Process\Process;
 
@@ -14,6 +15,7 @@ class ProcessHelper
     public function __construct(
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
+        private ?float $timeout = 60
     ) {}
 
     /**
@@ -24,6 +26,7 @@ class ProcessHelper
         $completeCmd = ['php', ...$args];
 
         $process = new PhpSubprocess($args, $this->projectDir);
+        $process->setTimeout($this->timeout);
 
         $startTime = $this->printPreStart($completeCmd);
 
@@ -59,6 +62,7 @@ class ProcessHelper
         $start = $this->printPreStart([$code]);
 
         $process = new Process(['sh', '-c', $code], $this->projectDir);
+        $process->setTimeout($this->timeout);
 
         if (function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
             $process->setTty(true);
@@ -82,6 +86,21 @@ class ProcessHelper
     public function getPluginList(): string
     {
         return (new PhpSubprocess(['bin/console', 'plugin:list', '--json'], $this->projectDir))->mustRun()->getOutput();
+    }
+    /**
+     * Sets the process timeout (max. runtime) in seconds.
+     *
+     * To disable the timeout, set this value to null.
+     *
+     * @return $this
+     *
+     * @throws InvalidArgumentException if the timeout is negative
+     */
+    public function setTimeout(?float $timeout): static
+    {
+        $this->timeout = $this->validateTimeout($timeout);
+
+        return $this;
     }
 
     /**
@@ -117,6 +136,22 @@ class ProcessHelper
         fwrite(\STDOUT, PHP_EOL);
     }
 
+    /**
+     * Validates and returns the filtered timeout.
+     *
+     * @throws InvalidArgumentException if the given timeout is a negative number
+     */
+    private function validateTimeout(?float $timeout): ?float
+    {
+        $timeout = (float) $timeout;
 
+        if (0.0 === $timeout) {
+            $timeout = null;
+        } elseif ($timeout < 0) {
+            throw new InvalidArgumentException('The timeout value must be a valid positive integer or float number.');
+        }
+
+        return $timeout;
+    }
 
 }

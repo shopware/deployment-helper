@@ -4,5 +4,5 @@ namespace Shopware\Deployment\Struct;
 
 class RunConfiguration
 {
-    public function __construct(public readonly bool $skipThemeCompile = false, public readonly bool $skipAssetInstall = false) {}
+    public function __construct(public readonly bool $skipThemeCompile = false, public readonly bool $skipAssetInstall = false, public readonly ?float $timeout = 60) {}
 }
