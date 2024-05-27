@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Services;
 
@@ -21,7 +23,7 @@ class AppHelperTest extends TestCase
 
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper
-            ->expects(static::never())
+            ->expects($this->never())
             ->method('console');
 
         $appHelper = new AppHelper(
@@ -40,7 +42,7 @@ class AppHelperTest extends TestCase
 
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('console')
             ->with(['app:install', 'TestApp', '--activate', '--force']);
 
@@ -60,7 +62,7 @@ class AppHelperTest extends TestCase
 
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('console')
             ->with(['app:activate', 'TestApp']);
 
@@ -88,7 +90,7 @@ class AppHelperTest extends TestCase
 
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper
-            ->expects(static::never())
+            ->expects($this->never())
             ->method('console');
 
         $appHelper = new AppHelper(
@@ -107,7 +109,7 @@ class AppHelperTest extends TestCase
 
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper
-            ->expects(static::never())
+            ->expects($this->never())
             ->method('console');
 
         $appHelper = new AppHelper(
@@ -126,7 +128,7 @@ class AppHelperTest extends TestCase
 
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper
-            ->expects(static::never())
+            ->expects($this->never())
             ->method('console');
 
         $connection = $this->createMock(Connection::class);
@@ -152,7 +154,7 @@ class AppHelperTest extends TestCase
 
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('console')
             ->with(['app:update', 'TestApp']);
 

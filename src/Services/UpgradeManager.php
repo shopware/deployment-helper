@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
@@ -15,13 +17,14 @@ class UpgradeManager
         private readonly AppHelper $appHelper,
         private readonly HookExecutor $hookExecutor,
         private readonly OneTimeTasks $oneTimeTasks,
-    ) {}
+    ) {
+    }
 
     public function run(RunConfiguration $configuration, OutputInterface $output): void
     {
         $this->processHelper->setTimeout($configuration->timeout);
 
-        $this->hookExecutor->execute(HookExecutor::PRE_UPDATE);
+        $this->hookExecutor->execute(HookExecutor::HOOK_PRE_UPDATE);
 
         $output->writeln('Shopware is installed, running update tools');
 
@@ -51,6 +54,6 @@ class UpgradeManager
 
         $this->oneTimeTasks->execute($output);
 
-        $this->hookExecutor->execute(HookExecutor::POST_UPDATE);
+        $this->hookExecutor->execute(HookExecutor::HOOK_POST_UPDATE);
     }
 }

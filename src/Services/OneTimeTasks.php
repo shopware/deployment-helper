@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
@@ -13,7 +15,8 @@ class OneTimeTasks
         private readonly ProcessHelper $processHelper,
         private readonly Connection $connection,
         private readonly ProjectConfiguration $configuration,
-    ) {}
+    ) {
+    }
 
     public function execute(OutputInterface $output): void
     {
@@ -33,7 +36,7 @@ class OneTimeTasks
     }
 
     /**
-     * @return array<string, string>[]
+     * @return array<array<string, string>>
      */
     public function getExecutedTasks(): array
     {
@@ -56,8 +59,6 @@ class OneTimeTasks
 
     public function remove(string $id): void
     {
-        $this->connection->executeStatement('DELETE FROM one_time_tasks WHERE id = ?', [
-            $id,
-        ]);
+        $this->connection->executeStatement('DELETE FROM one_time_tasks WHERE id = ?', [$id]);
     }
 }

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
@@ -17,18 +19,19 @@ class PluginLoader
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
         private readonly ProcessHelper $processHelper,
-    ) {}
+    ) {
+    }
 
     /**
-     * @return Plugin[]
+     * @return array<string, Plugin>
      */
     public function all(): array
     {
-        /** @var Plugin[] $data */
-        $data = json_decode($this->processHelper->getPluginList(), true, JSON_THROW_ON_ERROR);
+        $data = json_decode($this->processHelper->getPluginList(), true, 512, \JSON_THROW_ON_ERROR);
 
         $graph = new DependencyGraph();
         $byName = [];
+        $nodes = [];
 
         foreach ($data as $item) {
             $byName[$item['name']] = $item;
@@ -40,7 +43,7 @@ class PluginLoader
             $composerJson = Path::join($this->projectDir, $item['path'], 'composer.json');
 
             if (file_exists($composerJson)) {
-                $composer = json_decode((string) file_get_contents($composerJson), true, 512, JSON_THROW_ON_ERROR);
+                $composer = json_decode((string) file_get_contents($composerJson), true, 512, \JSON_THROW_ON_ERROR);
 
                 if (isset($composer['require'])) {
                     foreach ($composer['require'] as $require => $version) {
@@ -53,10 +56,7 @@ class PluginLoader
         }
 
         $formatted = [];
-
-        /** @var string[] $resolved */
-        $resolved = $graph->resolve();
-        foreach ($resolved as $name) {
+        foreach ($graph->resolve() as $name) {
             $formatted[$name] = $byName[$name];
         }
 

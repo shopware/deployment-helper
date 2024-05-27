@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Config;
 
@@ -18,7 +20,7 @@ class ConfigFactory
         $projectConfiguration = new ProjectConfiguration();
         $config = Yaml::parseFile($file);
 
-        if (isset($config['deployment']) && is_array($config['deployment'])) {
+        if (isset($config['deployment']) && \is_array($config['deployment'])) {
             self::fillConfig($projectConfiguration, $config['deployment']);
         }
 
@@ -30,17 +32,17 @@ class ConfigFactory
      */
     private static function fillConfig(ProjectConfiguration $projectConfiguration, array $deployment): void
     {
-        if (isset($deployment['hooks']) && is_array($deployment['hooks'])) {
+        if (isset($deployment['hooks']) && \is_array($deployment['hooks'])) {
             self::fillHooks($projectConfiguration->hooks, $deployment['hooks']);
         }
 
-        if (isset($deployment['extension-management']) && is_array($deployment['extension-management'])) {
+        if (isset($deployment['extension-management']) && \is_array($deployment['extension-management'])) {
             self::fillExtensionManagement($projectConfiguration->extensionManagement, $deployment['extension-management']);
         }
 
-        if (isset($deployment['one-time-tasks']) && is_array($deployment['one-time-tasks'])) {
+        if (isset($deployment['one-time-tasks']) && \is_array($deployment['one-time-tasks'])) {
             foreach ($deployment['one-time-tasks'] as $task) {
-                if (isset($task['id']) && is_string($task['id']) && isset($task['script']) && is_string($task['script'])) {
+                if (isset($task['id'], $task['script']) && \is_string($task['id']) && \is_string($task['script'])) {
                     $projectConfiguration->oneTimeTasks[$task['id']] = $task['script'];
                 }
             }
@@ -52,27 +54,27 @@ class ConfigFactory
      */
     private static function fillHooks(ProjectHooks $hooks, array $config): void
     {
-        if (isset($config['pre']) && is_string($config['pre'])) {
+        if (isset($config['pre']) && \is_string($config['pre'])) {
             $hooks->pre = $config['pre'];
         }
 
-        if (isset($config['post']) && is_string($config['post'])) {
+        if (isset($config['post']) && \is_string($config['post'])) {
             $hooks->post = $config['post'];
         }
 
-        if (isset($config['pre-install']) && is_string($config['pre-install'])) {
+        if (isset($config['pre-install']) && \is_string($config['pre-install'])) {
             $hooks->preInstall = $config['pre-install'];
         }
 
-        if (isset($config['post-install']) && is_string($config['post-install'])) {
+        if (isset($config['post-install']) && \is_string($config['post-install'])) {
             $hooks->postInstall = $config['post-install'];
         }
 
-        if (isset($config['pre-update']) && is_string($config['pre-update'])) {
+        if (isset($config['pre-update']) && \is_string($config['pre-update'])) {
             $hooks->preUpdate = $config['pre-update'];
         }
 
-        if (isset($config['post-update']) && is_string($config['post-update'])) {
+        if (isset($config['post-update']) && \is_string($config['post-update'])) {
             $hooks->postUpdate = $config['post-update'];
         }
     }
@@ -82,11 +84,11 @@ class ConfigFactory
      */
     public static function fillExtensionManagement(ProjectExtensionManagement $extensionManagement, array $config): void
     {
-        if (isset($config['enabled']) && is_bool($config['enabled'])) {
+        if (isset($config['enabled']) && \is_bool($config['enabled'])) {
             $extensionManagement->enabled = $config['enabled'];
         }
 
-        if (isset($config['exclude']) && is_array($config['exclude'])) {
+        if (isset($config['exclude']) && \is_array($config['exclude'])) {
             $extensionManagement->excluded = $config['exclude'];
         }
     }

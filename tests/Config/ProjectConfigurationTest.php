@@ -1,10 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Config;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use Shopware\Deployment\Config\ProjectConfiguration;
 use PHPUnit\Framework\TestCase;
+use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Config\ProjectExtensionManagement;
 use Shopware\Deployment\Config\ProjectHooks;
 

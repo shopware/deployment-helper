@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Command;
 
@@ -12,7 +14,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'one-time-task:mark',
-    description: 'Mark a one-time task as run without executing it',
+    description: 'Mark an one-time task as run without executing it',
 )]
 class OneTimeTaskMarkCommand extends Command
 {
@@ -31,7 +33,7 @@ class OneTimeTaskMarkCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         try {
-            $this->oneTimeTasks->markAsRun($input->getArgument('id'));
+            $this->oneTimeTasks->markAsRun((string) $input->getArgument('id'));
         } catch (\Throwable) {
             $io->error('Could not mark one-time task as run, as it has been marked as run before.');
 

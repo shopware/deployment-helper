@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: [8.2, 8.3]
+        php: [ 8.2, 8.3 ]
     steps:
       - uses: actions/checkout@v4
 
@@ -24,7 +24,7 @@ jobs:
         run: composer install
 
       - name: Run tests
-        run: vendor/bin/phpunit --coverage-cobertura coverage.xml
+        run: composer test-coverage-cobertura
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
@@ -46,7 +46,7 @@ jobs:
         run: composer install
 
       - name: Run PHPStan
-        run: vendor/bin/phpstan analyse
+        run: composer phpstan
 
   cs:
     runs-on: ubuntu-latest
@@ -62,4 +62,4 @@ jobs:
         run: composer install
 
       - name: Run PHP CS Fixer
-        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+        run: composer cs-dry

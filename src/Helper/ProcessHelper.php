@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Helper;
 
@@ -16,7 +18,8 @@ class ProcessHelper
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
         private ?float $timeout = 60,
-    ) {}
+    ) {
+    }
 
     /**
      * @param list<string> $args
@@ -30,7 +33,7 @@ class ProcessHelper
 
         $startTime = $this->printPreStart($completeCmd);
 
-        if (function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
+        if (\function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
             $process->setTty(true);
         }
 
@@ -64,7 +67,7 @@ class ProcessHelper
         $process = new Process(['sh', '-c', $code], $this->projectDir);
         $process->setTimeout($this->timeout);
 
-        if (function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
+        if (\function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
             $process->setTty(true);
         }
 
@@ -87,6 +90,7 @@ class ProcessHelper
     {
         return (new PhpSubprocess(['bin/console', 'plugin:list', '--json'], $this->projectDir))->mustRun()->getOutput();
     }
+
     /**
      * Sets the process timeout (max. runtime) in seconds.
      *
@@ -111,11 +115,11 @@ class ProcessHelper
         $cmdString = implode(' ', $cmd);
         $startTime = microtime(true);
 
-        fwrite(\STDOUT, PHP_EOL);
+        fwrite(\STDOUT, \PHP_EOL);
         fwrite(\STDOUT, "=================================================\n");
         fwrite(\STDOUT, sprintf("Start: %s\n", $cmdString));
         fwrite(\STDOUT, "=================================================\n");
-        fwrite(\STDOUT, PHP_EOL);
+        fwrite(\STDOUT, \PHP_EOL);
 
         return $startTime;
     }
@@ -133,11 +137,13 @@ class ProcessHelper
         ));
 
         fwrite(\STDOUT, "=================================================\n");
-        fwrite(\STDOUT, PHP_EOL);
+        fwrite(\STDOUT, \PHP_EOL);
     }
 
     /**
      * Validates and returns the filtered timeout.
+     *
+     * @see Process::validateTimeout
      *
      * @throws InvalidArgumentException if the given timeout is a negative number
      */
@@ -153,5 +159,4 @@ class ProcessHelper
 
         return $timeout;
     }
-
 }

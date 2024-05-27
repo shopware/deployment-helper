@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Config;
 
@@ -25,7 +27,7 @@ class ProjectConfiguration
             return false;
         }
 
-        if (in_array($name, $this->extensionManagement->excluded, true)) {
+        if (\in_array($name, $this->extensionManagement->excluded, true)) {
             return false;
         }
 

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Command;
 
@@ -15,7 +17,7 @@ class OneTimeTaskUnmarkCommandTest extends TestCase
     {
         $taskService = $this->createMock(OneTimeTasks::class);
         $taskService
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('remove')
             ->with('test');
 

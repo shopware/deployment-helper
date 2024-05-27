@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
@@ -6,9 +8,6 @@ use Doctrine\DBAL\Connection;
 use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\ProcessHelper;
 
-/**
- * @phpstan-type App array{name: string, version: string}
- */
 class AppHelper
 {
     public function __construct(
@@ -16,7 +15,8 @@ class AppHelper
         private readonly ProcessHelper $processHelper,
         private readonly Connection $connection,
         private readonly ProjectConfiguration $configuration,
-    ) {}
+    ) {
+    }
 
     /**
      * Install all apps that are not installed.
@@ -31,7 +31,7 @@ class AppHelper
             }
 
             if (isset($installed[$app['name']])) {
-                if (!$installed[$app['name']]['active']) {
+                if (!(bool) $installed[$app['name']]['active']) {
                     $this->processHelper->console(['app:activate', $app['name']]);
                 }
 

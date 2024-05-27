@@ -1,11 +1,13 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Services;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\PluginLoader;
-use PHPUnit\Framework\TestCase;
 
 #[CoversClass(PluginLoader::class)]
 class PluginLoaderTest extends TestCase
@@ -18,11 +20,10 @@ class PluginLoaderTest extends TestCase
             ->method('getPluginList')
             ->willReturn('[{"name":"TestPlugin", "version": "1.0.0", "composerName": "test/test-plugin", "path": "custom/plugins/TestPlugin", "active": true, "installedAt": "2021-01-01 00:00:00", "upgradeVersion": "1.0.1"}]');
 
-        $loader = new PluginLoader(__DIR__, $processHelper);
-        $plugins = $loader->all();
+        $plugins = (new PluginLoader(__DIR__, $processHelper))->all();
 
-        $this->assertCount(1, $plugins);
-        $this->assertArrayHasKey('TestPlugin', $plugins);
+        static::assertCount(1, $plugins);
+        static::assertArrayHasKey('TestPlugin', $plugins);
     }
 
     public function testLoadDependenciesInRightOrder(): void
@@ -46,11 +47,9 @@ class PluginLoaderTest extends TestCase
 
         $processHelper
             ->method('getPluginList')
-            ->willReturn(json_encode($data, JSON_THROW_ON_ERROR));
+            ->willReturn(json_encode($data, \JSON_THROW_ON_ERROR));
 
-        $loader = new PluginLoader(__DIR__, $processHelper);
-
-        $plugins = $loader->all();
+        $plugins = (new PluginLoader(__DIR__, $processHelper))->all();
 
         static::assertCount(2, $plugins);
         static::assertSame(

@@ -1,10 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Command;
 
 use PHPUnit\Framework\Attributes\CoversClass;
-use Shopware\Deployment\Command\RunCommand;
 use PHPUnit\Framework\TestCase;
+use Shopware\Deployment\Command\RunCommand;
 use Shopware\Deployment\Services\HookExecutor;
 use Shopware\Deployment\Services\InstallationManager;
 use Shopware\Deployment\Services\ShopwareState;
@@ -18,18 +20,18 @@ class RunCommandTest extends TestCase
     {
         $state = $this->createMock(ShopwareState::class);
         $state
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('isInstalled')
             ->willReturn(false);
 
         $hookExecutor = $this->createMock(HookExecutor::class);
         $hookExecutor
-            ->expects(static::exactly(2))
+            ->expects($this->exactly(2))
             ->method('execute');
 
         $installationManager = $this->createMock(InstallationManager::class);
         $installationManager
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('run');
 
         $command = new RunCommand(
@@ -47,23 +49,23 @@ class RunCommandTest extends TestCase
     {
         $state = $this->createMock(ShopwareState::class);
         $state
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('isInstalled')
             ->willReturn(true);
 
         $hookExecutor = $this->createMock(HookExecutor::class);
         $hookExecutor
-            ->expects(static::exactly(2))
+            ->expects($this->exactly(2))
             ->method('execute');
 
         $installationManager = $this->createMock(InstallationManager::class);
         $installationManager
-            ->expects(static::never())
+            ->expects($this->never())
             ->method('run');
 
         $upgradeManager = $this->createMock(UpgradeManager::class);
         $upgradeManager
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('run');
 
         $command = new RunCommand(

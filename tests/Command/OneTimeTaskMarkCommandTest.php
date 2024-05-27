@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Command;
 
@@ -16,7 +18,7 @@ class OneTimeTaskMarkCommandTest extends TestCase
     {
         $taskService = $this->createMock(OneTimeTasks::class);
         $taskService
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('markAsRun')
             ->with('test');
 
@@ -31,7 +33,7 @@ class OneTimeTaskMarkCommandTest extends TestCase
     {
         $taskService = $this->createMock(OneTimeTasks::class);
         $taskService
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('markAsRun')
             ->willThrowException(new \Exception('Task already marked as run'));
 

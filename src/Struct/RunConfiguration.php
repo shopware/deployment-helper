@@ -1,8 +1,15 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Struct;
 
-class RunConfiguration
+readonly class RunConfiguration
 {
-    public function __construct(public readonly bool $skipThemeCompile = false, public readonly bool $skipAssetInstall = false, public readonly ?float $timeout = 60) {}
+    public function __construct(
+        public bool $skipThemeCompile = false,
+        public bool $skipAssetInstall = false,
+        public ?float $timeout = 60,
+    ) {
+    }
 }

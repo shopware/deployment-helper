@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
@@ -17,7 +19,8 @@ class InstallationManager
         private readonly PluginHelper $pluginHelper,
         private readonly AppHelper $appHelper,
         private readonly HookExecutor $hookExecutor,
-    ) {}
+    ) {
+    }
 
     public function run(RunConfiguration $configuration, OutputInterface $output): void
     {
@@ -25,7 +28,7 @@ class InstallationManager
 
         $output->writeln('Shopware is not installed, starting installation');
 
-        $this->hookExecutor->execute(HookExecutor::PRE_INSTALL);
+        $this->hookExecutor->execute(HookExecutor::HOOK_PRE_INSTALL);
 
         $shopLocale = EnvironmentHelper::getVariable('INSTALL_LOCALE', 'en-GB');
         $shopCurrency = EnvironmentHelper::getVariable('INSTALL_CURRENCY', 'EUR');
@@ -71,7 +74,7 @@ class InstallationManager
         $this->appHelper->installApps();
         $this->appHelper->updateApps();
 
-        $this->hookExecutor->execute(HookExecutor::POST_INSTALL);
+        $this->hookExecutor->execute(HookExecutor::HOOK_POST_INSTALL);
     }
 
     private function removeExistingHeadlessSalesChannel(): void

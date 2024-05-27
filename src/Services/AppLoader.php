@@ -1,10 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
 use Composer\InstalledVersions;
-use DOMNode;
-use DOMNodeList;
 use Symfony\Component\Config\Util\XmlUtils;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Finder\Finder;
@@ -14,21 +14,24 @@ use Symfony\Component\Finder\Finder;
  */
 class AppLoader
 {
-    public function __construct(#[Autowire('%kernel.project_dir%')]
-        private readonly string $projectDir) {}
+    public function __construct(
+        #[Autowire('%kernel.project_dir%')]
+        private readonly string $projectDir,
+    ) {
+    }
 
     /**
-     * @return App[]
+     * @return list<App>
      */
     public function all(): array
     {
-        $files = [... $this->loadFromFilesystem(), ...$this->loadFromComposer()];
+        $files = [...$this->loadFromFilesystem(), ...$this->loadFromComposer()];
 
         return $this->loadApps($files);
     }
 
     /**
-     * @return array<string>
+     * @return list<string>
      */
     private function loadFromFilesystem(): array
     {
@@ -52,7 +55,7 @@ class AppLoader
     }
 
     /**
-     * @return array<string>
+     * @return list<string>
      */
     private function loadFromComposer(): array
     {
@@ -68,9 +71,9 @@ class AppLoader
     }
 
     /**
-     * @param array<string> $files
+     * @param list<string> $files
      *
-     * @return App[]
+     * @return list<App>
      */
     private function loadApps(array $files): array
     {
@@ -79,7 +82,7 @@ class AppLoader
         foreach ($files as $file) {
             $appXml = XmlUtils::loadFile($file);
 
-            $xpath =  new \DOMXPath($appXml);
+            $xpath = new \DOMXPath($appXml);
 
             $name = $this->getNodeValueByPath($xpath, '/manifest/meta/name');
             $version = $this->getNodeValueByPath($xpath, '/manifest/meta/version');
@@ -99,8 +102,8 @@ class AppLoader
 
     private function getNodeValueByPath(\DOMXPath $xpath, string $query): ?string
     {
-        /** @var DOMNodeList<DOMNode> $node */
         $node = $xpath->query($query);
+        \assert($node instanceof \DOMNodeList);
 
         return $node->item(0)?->nodeValue;
     }

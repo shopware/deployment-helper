@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Command;
 
@@ -27,11 +29,10 @@ class RunCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption('skip-theme-compile', null, InputOption::VALUE_OPTIONAL, 'Skip theme compile (should be used when the Theme has been compiled before in the CI/CD)', false);
-        $this->addOption('skip-asset-install', null, InputOption::VALUE_OPTIONAL, 'Skip asset install (should be used when the Assets has been copied before in the CI/CD)', false);
-        $this->addOption('timeout', null, InputOption::VALUE_OPTIONAL, 'Set script execution timeout (is seconds). Set to null to disable timeout', 300);
+        $this->addOption('skip-theme-compile', null, InputOption::VALUE_OPTIONAL, 'Skip theme compile (Should be used when the theme has been compiled before in the CI/CD)', false);
+        $this->addOption('skip-asset-install', null, InputOption::VALUE_OPTIONAL, 'Skip asset install (Should be used when the assets have been copied before in the CI/CD)', false);
+        $this->addOption('timeout', null, InputOption::VALUE_OPTIONAL, 'Set script execution timeout (in seconds). Set to null to disable timeout', 300);
     }
-
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -40,12 +41,12 @@ class RunCommand extends Command
         $config = new RunConfiguration(
             skipThemeCompile: (bool) $input->getOption('skip-theme-compile'),
             skipAssetInstall: (bool) $input->getOption('skip-asset-install'),
-            timeout: $timeout ? (float) $timeout : null,
+            timeout: is_numeric($timeout) ? (float) $timeout : null,
         );
 
         $installed = $this->state->isInstalled();
 
-        $this->hookExecutor->execute(HookExecutor::PRE);
+        $this->hookExecutor->execute(HookExecutor::HOOK_PRE);
 
         if ($installed) {
             $this->upgradeManager->run($config, $output);
@@ -53,7 +54,7 @@ class RunCommand extends Command
             $this->installationManager->run($config, $output);
         }
 
-        $this->hookExecutor->execute(HookExecutor::POST);
+        $this->hookExecutor->execute(HookExecutor::HOOK_POST);
 
         return Command::SUCCESS;
     }
