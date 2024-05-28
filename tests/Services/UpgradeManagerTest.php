@@ -115,4 +115,42 @@ class UpgradeManagerTest extends TestCase
         static::assertCount(2, $consoleCommands);
         static::assertSame(['system:update:finish', '--skip-asset-build'], $consoleCommands[0]);
     }
+
+    public function testRunWithDifferentSalesChannelUrl(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state
+            ->expects($this->once())
+            ->method('isStorefrontInstalled')
+            ->willReturn(true);
+
+        $state
+            ->expects($this->once())
+            ->method('isSalesChannelExisting')
+            ->with('http://localhost')
+            ->willReturn(false);
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $manager = new UpgradeManager(
+            $state,
+            $processHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertCount(3, $consoleCommands);
+        static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://localhost'], $consoleCommands[0]);
+    }
 }

@@ -35,6 +35,7 @@ class InstallationManager
         $adminUser = EnvironmentHelper::getVariable('INSTALL_ADMIN_USERNAME', 'admin');
         $adminPassword = EnvironmentHelper::getVariable('INSTALL_ADMIN_PASSWORD', 'shopware');
         $appUrl = EnvironmentHelper::getVariable('APP_URL', 'http://localhost');
+        $salesChannelUrl = EnvironmentHelper::getVariable('SALES_CHANNEL_URL', $appUrl);
 
         $additionalInstallParameters = [];
 
@@ -47,11 +48,13 @@ class InstallationManager
         }
 
         $this->processHelper->console(['system:install', '--create-database', '--shop-locale=' . $shopLocale, '--shop-currency=' . $shopCurrency, '--force', ...$additionalInstallParameters]);
-        $this->processHelper->console(['user:create', (string) $adminUser, '--password=' . $adminPassword]);
+        $this->processHelper->console(['user:create', $adminUser, '--password=' . $adminPassword]);
 
         if ($this->state->isStorefrontInstalled()) {
             $this->removeExistingHeadlessSalesChannel();
-            $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $appUrl]);
+            if (!$this->state->isSalesChannelExisting($salesChannelUrl)) {
+                $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $salesChannelUrl]);
+            }
 
             $themeChangeParameters = [];
             if ($configuration->skipThemeCompile) {

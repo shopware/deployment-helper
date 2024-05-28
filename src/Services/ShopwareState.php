@@ -69,4 +69,9 @@ class ShopwareState
 
         return (string) InstalledVersions::getVersion('shopware/core');
     }
+
+    public function isSalesChannelExisting(?string $salesChannelUrl): bool
+    {
+        return (bool) $this->connection->fetchOne('SELECT id FROM sales_channel_domain WHERE url = ?', [$salesChannelUrl]);
+    }
 }

@@ -150,4 +150,24 @@ class ShopwareStateTest extends TestCase
 
         InstalledVersions::reload($before);
     }
+
+    public function testIsSalesChannelExisting(): void
+    {
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn('id');
+
+        static::assertTrue($this->state->isSalesChannelExisting('http://localhost'));
+    }
+
+    public function testIsSalesChannelNotExisting(): void
+    {
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        static::assertFalse($this->state->isSalesChannelExisting('http://localhost'));
+    }
 }

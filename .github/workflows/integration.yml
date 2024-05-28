@@ -8,7 +8,7 @@ on:
 
 env:
   APP_ENV: prod
-  APP_URL: http://localhost:8000
+  SALES_CHANNEL_URL: http://localhost:8000
   DATABASE_URL: mysql://root@127.0.0.1/shopware
 
 jobs:
