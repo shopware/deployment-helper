@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\DependencyInjection;
 
@@ -32,26 +34,28 @@ readonly class MySQLFactory
             ],
         ];
 
-        $dsnParser  = new DsnParser(['mysql' => 'pdo_mysql']);
-
         if (class_exists(DsnParser::class)) {
             unset($parameters['url']);
-            $parameters = [... $parameters, ... $dsnParser->parse($url)];
+            $dsnParser = new DsnParser(['mysql' => 'pdo_mysql']);
+            $parameters = [...$parameters, ...$dsnParser->parse($url)];
         }
 
-        if ($sslCa = EnvironmentHelper::getVariable('DATABASE_SSL_CA')) {
+        $sslCa = EnvironmentHelper::getVariable('DATABASE_SSL_CA');
+        if (\is_string($sslCa) && $sslCa !== '') {
             $parameters['driverOptions'][\PDO::MYSQL_ATTR_SSL_CA] = $sslCa;
         }
 
-        if ($sslCert = EnvironmentHelper::getVariable('DATABASE_SSL_CERT')) {
+        $sslCert = EnvironmentHelper::getVariable('DATABASE_SSL_CERT');
+        if (\is_string($sslCert) && $sslCert !== '') {
             $parameters['driverOptions'][\PDO::MYSQL_ATTR_SSL_CERT] = $sslCert;
         }
 
-        if ($sslCertKey = EnvironmentHelper::getVariable('DATABASE_SSL_KEY')) {
+        $sslCertKey = EnvironmentHelper::getVariable('DATABASE_SSL_KEY');
+        if (\is_string($sslCertKey) && $sslCertKey !== '') {
             $parameters['driverOptions'][\PDO::MYSQL_ATTR_SSL_KEY] = $sslCertKey;
         }
 
-        if (EnvironmentHelper::getVariable('DATABASE_SSL_DONT_VERIFY_SERVER_CERT')) {
+        if (EnvironmentHelper::hasVariable('DATABASE_SSL_DONT_VERIFY_SERVER_CERT')) {
             $parameters['driverOptions'][\PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
         }
 
@@ -71,7 +75,7 @@ readonly class MySQLFactory
 
                 return $con;
             } catch (\Throwable $e) {
-                if (str_contains($e->getMessage(), 'Unknown database') && $con) {
+                if (str_contains($e->getMessage(), 'Unknown database') && $con instanceof Connection) {
                     return $con;
                 }
 

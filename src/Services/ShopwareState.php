@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
@@ -9,7 +11,8 @@ class ShopwareState
 {
     public function __construct(
         private readonly Connection $connection,
-    ) {}
+    ) {
+    }
 
     public function isInstalled(): bool
     {
@@ -17,7 +20,7 @@ class ShopwareState
             $this->connection->fetchAllAssociative('SELECT * FROM system_config');
 
             return true;
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return false;
         }
     }
@@ -35,17 +38,17 @@ class ShopwareState
             return 'unknown';
         }
 
-        $value = json_decode($data, true, JSON_THROW_ON_ERROR);
+        $value = json_decode($data, true, 512, \JSON_THROW_ON_ERROR);
 
         return $value['_value'];
     }
 
     public function setVersion(string $version): void
     {
-        $id = $this->connection->fetchOne('SELECT id FROM system_config WHERE configuration_key = "deployment.version" AND sales_channel_id IS NULL');
-        $payload = json_encode(['_value' => $version], JSON_THROW_ON_ERROR);
+        $id = (string) $this->connection->fetchOne('SELECT id FROM system_config WHERE configuration_key = "deployment.version" AND sales_channel_id IS NULL');
+        $payload = json_encode(['_value' => $version], \JSON_THROW_ON_ERROR);
 
-        if ($id) {
+        if ($id !== '') {
             $this->connection->executeStatement('UPDATE system_config SET configuration_value = ? WHERE id = ?', [$payload, $id]);
         } else {
             $this->connection->executeStatement('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (0x0353f2502acd5dbdfe797c1cc4af9afc, "deployment.version", ?, NULL, NOW())', [$payload]);
@@ -54,7 +57,7 @@ class ShopwareState
 
     public function disableFirstRunWizard(): void
     {
-        $payload = json_encode(['_value' => '2021-01-01 00:00:00'], JSON_THROW_ON_ERROR);
+        $payload = json_encode(['_value' => '2021-01-01 00:00:00'], \JSON_THROW_ON_ERROR);
         $this->connection->executeStatement('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (0x0353f2502acd5dbdfe797c1cc4af9bfc, "core.frw.completedAt", ?, NULL, NOW())', [$payload]);
     }
 
@@ -65,5 +68,10 @@ class ShopwareState
         }
 
         return (string) InstalledVersions::getVersion('shopware/core');
+    }
+
+    public function isSalesChannelExisting(?string $salesChannelUrl): bool
+    {
+        return (bool) $this->connection->fetchOne('SELECT id FROM sales_channel_domain WHERE url = ?', [$salesChannelUrl]);
     }
 }

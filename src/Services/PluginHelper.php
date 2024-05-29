@@ -1,21 +1,20 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
 use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\ProcessHelper;
-use Symfony\Component\Filesystem\Path;
 
-/**
- * @phpstan-type Plugin array{name: string, composerName: string, path: string, installedAt: string|null, version: string, upgradeVersion: string|null, active: boolean}
- */
 class PluginHelper
 {
     public function __construct(
         private readonly PluginLoader $pluginLoader,
         private readonly ProcessHelper $processHelper,
         private readonly ProjectConfiguration $configuration,
-    ) {}
+    ) {
+    }
 
     public function installPlugins(bool $skipAssetInstall = false): void
     {

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
@@ -7,24 +9,34 @@ use Shopware\Deployment\Helper\ProcessHelper;
 
 class HookExecutor
 {
-    public const PRE = 'pre';
-    public const POST = 'post';
-    public const PRE_INSTALL = 'preInstall';
-    public const POST_INSTALL = 'postInstall';
-    public const PRE_UPDATE = 'preUpdate';
-    public const POST_UPDATE = 'postUpdate';
+    public const HOOK_PRE = 'pre';
+    public const HOOK_POST = 'post';
+    public const HOOK_PRE_INSTALL = 'preInstall';
+    public const HOOK_POST_INSTALL = 'postInstall';
+    public const HOOK_PRE_UPDATE = 'preUpdate';
+    public const HOOK_POST_UPDATE = 'postUpdate';
 
     public function __construct(
-        private ProcessHelper $processHelper,
-        private ProjectConfiguration $configuration,
-    ) {}
+        private readonly ProcessHelper $processHelper,
+        private readonly ProjectConfiguration $configuration,
+    ) {
+    }
 
     /**
-     * @param 'post'|'pre'|'preInstall'|'postInstall'|'preUpdate'|'postUpdate' $name
+     * @param self::HOOK_* $name
      */
     public function execute(string $name): void
     {
-        $code = $this->configuration->hooks->{$name};
+        $code = '';
+        match ($name) {
+            self::HOOK_PRE => $code = $this->configuration->hooks->pre,
+            self::HOOK_POST => $code = $this->configuration->hooks->post,
+            self::HOOK_PRE_INSTALL => $code = $this->configuration->hooks->preInstall,
+            self::HOOK_POST_INSTALL => $code = $this->configuration->hooks->postInstall,
+            self::HOOK_PRE_UPDATE => $code = $this->configuration->hooks->preUpdate,
+            self::HOOK_POST_UPDATE => $code = $this->configuration->hooks->postUpdate,
+            default => throw new \RuntimeException('Unknown hook name'),
+        };
 
         if ($code === '') {
             return;

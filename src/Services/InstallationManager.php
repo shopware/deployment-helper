@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
@@ -17,7 +19,8 @@ class InstallationManager
         private readonly PluginHelper $pluginHelper,
         private readonly AppHelper $appHelper,
         private readonly HookExecutor $hookExecutor,
-    ) {}
+    ) {
+    }
 
     public function run(RunConfiguration $configuration, OutputInterface $output): void
     {
@@ -25,13 +28,14 @@ class InstallationManager
 
         $output->writeln('Shopware is not installed, starting installation');
 
-        $this->hookExecutor->execute(HookExecutor::PRE_INSTALL);
+        $this->hookExecutor->execute(HookExecutor::HOOK_PRE_INSTALL);
 
         $shopLocale = EnvironmentHelper::getVariable('INSTALL_LOCALE', 'en-GB');
         $shopCurrency = EnvironmentHelper::getVariable('INSTALL_CURRENCY', 'EUR');
         $adminUser = EnvironmentHelper::getVariable('INSTALL_ADMIN_USERNAME', 'admin');
         $adminPassword = EnvironmentHelper::getVariable('INSTALL_ADMIN_PASSWORD', 'shopware');
         $appUrl = EnvironmentHelper::getVariable('APP_URL', 'http://localhost');
+        $salesChannelUrl = EnvironmentHelper::getVariable('SALES_CHANNEL_URL', $appUrl);
 
         $additionalInstallParameters = [];
 
@@ -44,11 +48,13 @@ class InstallationManager
         }
 
         $this->processHelper->console(['system:install', '--create-database', '--shop-locale=' . $shopLocale, '--shop-currency=' . $shopCurrency, '--force', ...$additionalInstallParameters]);
-        $this->processHelper->console(['user:create', (string) $adminUser, '--password=' . $adminPassword]);
+        $this->processHelper->console(['user:create', $adminUser, '--password=' . $adminPassword]);
 
         if ($this->state->isStorefrontInstalled()) {
             $this->removeExistingHeadlessSalesChannel();
-            $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $appUrl]);
+            if (!$this->state->isSalesChannelExisting($salesChannelUrl)) {
+                $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $salesChannelUrl]);
+            }
 
             $themeChangeParameters = [];
             if ($configuration->skipThemeCompile) {
@@ -71,7 +77,7 @@ class InstallationManager
         $this->appHelper->installApps();
         $this->appHelper->updateApps();
 
-        $this->hookExecutor->execute(HookExecutor::POST_INSTALL);
+        $this->hookExecutor->execute(HookExecutor::HOOK_POST_INSTALL);
     }
 
     private function removeExistingHeadlessSalesChannel(): void

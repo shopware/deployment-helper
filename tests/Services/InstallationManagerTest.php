@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Services;
 
@@ -21,7 +23,7 @@ class InstallationManagerTest extends TestCase
     {
         $hookExecutor = $this->createMock(HookExecutor::class);
         $hookExecutor
-            ->expects(static::exactly(2))
+            ->expects($this->exactly(2))
             ->method('execute');
 
         $manager = new InstallationManager(
@@ -44,7 +46,7 @@ class InstallationManagerTest extends TestCase
 
         $connection = $this->createMock(Connection::class);
         $connection
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('executeStatement')
             ->with('DELETE FROM sales_channel WHERE type_id = 0xf183ee5650cf4bdb8a774337575067a6');
 

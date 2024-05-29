@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
@@ -7,7 +9,11 @@ use Symfony\Component\Dotenv\Dotenv;
 
 readonly class DotenvLoader
 {
-    public function __construct(#[Autowire('%kernel.project_dir%')] private string $projectDir) {}
+    public function __construct(
+        #[Autowire('%kernel.project_dir%')]
+        private string $projectDir
+    ) {
+    }
 
     public function load(): void
     {

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Command;
 
@@ -12,7 +14,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'one-time-task:unmark',
-    description: 'Unmark a one-time task as run without executing it',
+    description: 'Unmark an one-time task as run without executing it',
 )]
 class OneTimeTaskUnmarkCommand extends Command
 {
@@ -30,7 +32,7 @@ class OneTimeTaskUnmarkCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $this->oneTimeTasks->remove($input->getArgument('id'));
+        $this->oneTimeTasks->remove((string) $input->getArgument('id'));
 
         $io->success('One-time task mark has been removed, this script will be executed on next deployment.');
 

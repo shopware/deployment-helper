@@ -1,7 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
+use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Struct\RunConfiguration;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -15,13 +18,14 @@ class UpgradeManager
         private readonly AppHelper $appHelper,
         private readonly HookExecutor $hookExecutor,
         private readonly OneTimeTasks $oneTimeTasks,
-    ) {}
+    ) {
+    }
 
     public function run(RunConfiguration $configuration, OutputInterface $output): void
     {
         $this->processHelper->setTimeout($configuration->timeout);
 
-        $this->hookExecutor->execute(HookExecutor::PRE_UPDATE);
+        $this->hookExecutor->execute(HookExecutor::HOOK_PRE_UPDATE);
 
         $output->writeln('Shopware is installed, running update tools');
 
@@ -38,6 +42,12 @@ class UpgradeManager
             $this->state->setVersion($this->state->getCurrentVersion());
         }
 
+        $appUrl = EnvironmentHelper::getVariable('APP_URL', 'http://localhost');
+        $salesChannelUrl = EnvironmentHelper::getVariable('SALES_CHANNEL_URL', $appUrl);
+        if ($this->state->isStorefrontInstalled() && !$this->state->isSalesChannelExisting($salesChannelUrl)) {
+            $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $salesChannelUrl]);
+        }
+
         $this->processHelper->console(['plugin:refresh']);
 
         $this->pluginHelper->installPlugins($configuration->skipAssetInstall);
@@ -51,6 +61,6 @@ class UpgradeManager
 
         $this->oneTimeTasks->execute($output);
 
-        $this->hookExecutor->execute(HookExecutor::POST_UPDATE);
+        $this->hookExecutor->execute(HookExecutor::HOOK_POST_UPDATE);
     }
 }

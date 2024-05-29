@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Services;
 
@@ -20,7 +22,7 @@ class HookExecutorTest extends TestCase
 
         $processHelper->expects($this->never())->method('run');
 
-        $executor->execute(HookExecutor::PRE);
+        $executor->execute(HookExecutor::HOOK_PRE);
     }
 
     public function testRuns(): void
@@ -33,6 +35,6 @@ class HookExecutorTest extends TestCase
 
         $processHelper->expects($this->once())->method('runAndTail');
 
-        $executor->execute(HookExecutor::PRE);
+        $executor->execute(HookExecutor::HOOK_PRE);
     }
 }

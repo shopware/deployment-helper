@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Services;
 
@@ -22,12 +24,12 @@ class UpgradeManagerTest extends TestCase
     {
         $oneTimeTasks = $this->createMock(OneTimeTasks::class);
         $oneTimeTasks
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('execute');
 
         $hookExecutor = $this->createMock(HookExecutor::class);
         $hookExecutor
-            ->expects(static::exactly(2))
+            ->expects($this->exactly(2))
             ->method('execute');
 
         $manager = new UpgradeManager(
@@ -46,17 +48,17 @@ class UpgradeManagerTest extends TestCase
     {
         $state = $this->createMock(ShopwareState::class);
         $state
-            ->expects(static::exactly(3))
+            ->expects($this->exactly(3))
             ->method('getCurrentVersion')
             ->willReturn('1.0.0');
 
         $state
-            ->expects(static::exactly(2))
+            ->expects($this->exactly(2))
             ->method('getPreviousVersion')
             ->willReturn('0.0.0');
 
         $state
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('setVersion')
             ->with('1.0.0');
 
@@ -76,17 +78,17 @@ class UpgradeManagerTest extends TestCase
     {
         $state = $this->createMock(ShopwareState::class);
         $state
-            ->expects(static::exactly(3))
+            ->expects($this->exactly(3))
             ->method('getCurrentVersion')
             ->willReturn('1.0.0');
 
         $state
-            ->expects(static::exactly(2))
+            ->expects($this->exactly(2))
             ->method('getPreviousVersion')
             ->willReturn('0.0.0');
 
         $state
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('setVersion')
             ->with('1.0.0');
 
@@ -112,5 +114,43 @@ class UpgradeManagerTest extends TestCase
 
         static::assertCount(2, $consoleCommands);
         static::assertSame(['system:update:finish', '--skip-asset-build'], $consoleCommands[0]);
+    }
+
+    public function testRunWithDifferentSalesChannelUrl(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state
+            ->expects($this->once())
+            ->method('isStorefrontInstalled')
+            ->willReturn(true);
+
+        $state
+            ->expects($this->once())
+            ->method('isSalesChannelExisting')
+            ->with('http://localhost')
+            ->willReturn(false);
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $manager = new UpgradeManager(
+            $state,
+            $processHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertCount(3, $consoleCommands);
+        static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://localhost'], $consoleCommands[0]);
     }
 }

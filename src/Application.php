@@ -13,8 +13,10 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Dumper\XmlDumper;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
+use Symfony\Component\Filesystem\Filesystem;
 
 class Application extends SymfonyApplication
 {
@@ -24,9 +26,7 @@ class Application extends SymfonyApplication
     {
         parent::__construct('Shopware Deployment Helper', '__VERSION__');
         $this->container = $this->createContainer();
-        // @phpstan-ignore-next-line
         $this->setDispatcher($this->container->get('event_dispatcher'));
-        // @phpstan-ignore-next-line
         $this->setCommandLoader($this->container->get('console.command_loader'));
     }
 
@@ -54,6 +54,10 @@ class Application extends SymfonyApplication
         $loader->load('services.xml');
         $container->compile();
 
+        if (EnvironmentHelper::hasVariable('DEV_MODE')) {
+            (new Filesystem())->dumpFile(\dirname(__DIR__) . '/var/cache/container.xml', (new XmlDumper($container))->dump());
+        }
+
         return $container;
     }
 
@@ -62,7 +66,8 @@ class Application extends SymfonyApplication
      */
     private function getProjectDir(): string
     {
-        if ($root = EnvironmentHelper::getVariable('PROJECT_ROOT')) {
+        $root = EnvironmentHelper::getVariable('PROJECT_ROOT');
+        if (\is_string($root) && $root !== '') {
             return $root;
         }
 

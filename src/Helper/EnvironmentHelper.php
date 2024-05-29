@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Helper;
 
@@ -7,6 +9,8 @@ readonly class EnvironmentHelper
     /**
      * Reads an env var first from $_SERVER then from $_ENV super globals
      * The caller needs to take care of casting the return value to the appropriate type.
+     *
+     * @return ($default is null ? null : string)
      */
     public static function getVariable(string $key, ?string $default = null): ?string
     {

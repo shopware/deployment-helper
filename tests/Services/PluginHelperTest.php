@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Services;
 
@@ -19,7 +21,7 @@ class PluginHelperTest extends TestCase
         $configuration->extensionManagement->enabled = false;
 
         $processHelper = $this->createMock(ProcessHelper::class);
-        $processHelper->expects(static::never())->method('console');
+        $processHelper->expects($this->never())->method('console');
 
         $helper = new PluginHelper(
             $this->getPluginLoader(),
@@ -33,7 +35,7 @@ class PluginHelperTest extends TestCase
     public function testInstallActiveSkipped(): void
     {
         $processHelper = $this->createMock(ProcessHelper::class);
-        $processHelper->expects(static::never())->method('console');
+        $processHelper->expects($this->never())->method('console');
 
         $helper = new PluginHelper(
             $this->getPluginLoader(),
@@ -47,10 +49,10 @@ class PluginHelperTest extends TestCase
     public function testInstallNotInstalled(): void
     {
         $processHelper = $this->createMock(ProcessHelper::class);
-        $processHelper->expects(static::once())->method('console')->with(['plugin:install', 'TestPlugin', '--activate']);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:install', 'TestPlugin', '--activate']);
 
         $helper = new PluginHelper(
-            $this->getPluginLoader(active:false, installedAt: null),
+            $this->getPluginLoader(active: false, installedAt: null),
             $processHelper,
             new ProjectConfiguration(),
         );
@@ -61,10 +63,10 @@ class PluginHelperTest extends TestCase
     public function testInstallNotInstalledSkipAssets(): void
     {
         $processHelper = $this->createMock(ProcessHelper::class);
-        $processHelper->expects(static::once())->method('console')->with(['plugin:install', 'TestPlugin', '--activate', '--skip-asset-build']);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:install', 'TestPlugin', '--activate', '--skip-asset-build']);
 
         $helper = new PluginHelper(
-            $this->getPluginLoader(active:false, installedAt: null),
+            $this->getPluginLoader(active: false, installedAt: null),
             $processHelper,
             new ProjectConfiguration(),
         );
@@ -75,10 +77,10 @@ class PluginHelperTest extends TestCase
     public function testInstalledButNotActive(): void
     {
         $processHelper = $this->createMock(ProcessHelper::class);
-        $processHelper->expects(static::once())->method('console')->with(['plugin:activate', 'TestPlugin']);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:activate', 'TestPlugin']);
 
         $helper = new PluginHelper(
-            $this->getPluginLoader(active:false),
+            $this->getPluginLoader(active: false),
             $processHelper,
             new ProjectConfiguration(),
         );
@@ -92,7 +94,7 @@ class PluginHelperTest extends TestCase
         $configuration->extensionManagement->enabled = false;
 
         $processHelper = $this->createMock(ProcessHelper::class);
-        $processHelper->expects(static::never())->method('console');
+        $processHelper->expects($this->never())->method('console');
 
         $helper = new PluginHelper(
             $this->getPluginLoader(),
@@ -106,7 +108,7 @@ class PluginHelperTest extends TestCase
     public function testUpdateNoUpgrade(): void
     {
         $processHelper = $this->createMock(ProcessHelper::class);
-        $processHelper->expects(static::never())->method('console');
+        $processHelper->expects($this->never())->method('console');
 
         $helper = new PluginHelper(
             $this->getPluginLoader(),
@@ -120,7 +122,7 @@ class PluginHelperTest extends TestCase
     public function testUpdate(): void
     {
         $processHelper = $this->createMock(ProcessHelper::class);
-        $processHelper->expects(static::once())->method('console')->with(['plugin:update', 'TestPlugin']);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:update', 'TestPlugin']);
 
         $helper = new PluginHelper(
             $this->getPluginLoader(upgradeVersion: '1.0.1'),
@@ -134,7 +136,7 @@ class PluginHelperTest extends TestCase
     public function testUpdateDisableAssetBuild(): void
     {
         $processHelper = $this->createMock(ProcessHelper::class);
-        $processHelper->expects(static::once())->method('console')->with(['plugin:update', 'TestPlugin', '--skip-asset-build']);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:update', 'TestPlugin', '--skip-asset-build']);
 
         $helper = new PluginHelper(
             $this->getPluginLoader(upgradeVersion: '1.0.1'),

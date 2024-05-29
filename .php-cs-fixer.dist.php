@@ -2,29 +2,24 @@
 
 use PhpCsFixer\Config;
 use PhpCsFixer\Finder;
+use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 
 return (new Config())
     ->setRiskyAllowed(true)
+    ->setParallelConfig(ParallelConfigFactory::detect())
     ->setRules([
-        '@PER-CS2.0' => true,
-        '@PER-CS2.0:risky' => true,
-        // Ensure there is no code on the same line as the PHP open tag and it is followed by a blank line.
-        'blank_line_after_opening_tag' => false,
-        // Ensure there is no code on the same line as the PHP open tag.
-        'linebreak_after_opening_tag' => false,
-        // We use the attribute CoversClass which is not recognized by php-cs-fixer
-        'php_unit_test_class_requires_covers' => false,
-        'yoda_style' => [
-            'equal' => false,
-            'identical' => false,
-            'less_and_greater' => false,
-        ],
-        'no_unused_imports' => true,
-        'declare_strict_types' => true,
+        '@PER-CS' => true,
+        '@PER-CS:risky' => true,
+        '@PHP84Migration' => true,
+        '@PHP80Migration:risky' => true,
+        '@Symfony' => true,
+        '@Symfony:risky' => true,
+        'yoda_style' => ['equal' => false, 'identical' => false, 'less_and_greater' => false],
+        'concat_space' => ['spacing' => 'one'],
     ])
     ->setFinder(
         Finder::create()
-            ->exclude('vendor')
+            ->name('shopware-deployment-helper')
             ->in(__DIR__),
     )
 ;

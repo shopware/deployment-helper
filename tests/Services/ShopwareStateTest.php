@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Services;
 
@@ -6,8 +8,8 @@ use Composer\InstalledVersions;
 use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
-use Shopware\Deployment\Services\ShopwareState;
 use PHPUnit\Framework\TestCase;
+use Shopware\Deployment\Services\ShopwareState;
 
 #[CoversClass(ShopwareState::class)]
 class ShopwareStateTest extends TestCase
@@ -31,7 +33,7 @@ class ShopwareStateTest extends TestCase
     public function testShopwareIsInstalled(): void
     {
         $this->connection
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('fetchAllAssociative')
             ->willReturn([]);
         static::assertTrue($this->state->isInstalled());
@@ -59,7 +61,7 @@ class ShopwareStateTest extends TestCase
     public function testGetPreviousVersionNotExisting(): void
     {
         $this->connection
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('fetchOne')
             ->willReturn(false);
         static::assertSame('unknown', $this->state->getPreviousVersion());
@@ -68,7 +70,7 @@ class ShopwareStateTest extends TestCase
     public function testGetPreviousVersion(): void
     {
         $this->connection
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('fetchOne')
             ->willReturn('{"_value": "v1.0.0"}');
 
@@ -78,12 +80,12 @@ class ShopwareStateTest extends TestCase
     public function testSetVersion(): void
     {
         $this->connection
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('fetchOne')
             ->willReturn('id');
 
         $this->connection
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('executeStatement')
             ->with('UPDATE system_config SET configuration_value = ? WHERE id = ?', ['{"_value":"v1.0.0"}', 'id']);
 
@@ -93,7 +95,7 @@ class ShopwareStateTest extends TestCase
     public function testDisableFRW(): void
     {
         $this->connection
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('executeStatement')
             ->with('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (0x0353f2502acd5dbdfe797c1cc4af9bfc, "core.frw.completedAt", ?, NULL, NOW())', ['{"_value":"2021-01-01 00:00:00"}']);
 
@@ -103,12 +105,12 @@ class ShopwareStateTest extends TestCase
     public function testSetVersionInsert(): void
     {
         $this->connection
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('fetchOne')
             ->willReturn(false);
 
         $this->connection
-            ->expects(static::once())
+            ->expects($this->once())
             ->method('executeStatement')
             ->with('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (0x0353f2502acd5dbdfe797c1cc4af9afc, "deployment.version", ?, NULL, NOW())', ['{"_value":"v1.0.0"}']);
 
@@ -147,5 +149,25 @@ class ShopwareStateTest extends TestCase
         static::assertSame('2.0.0', $this->state->getCurrentVersion());
 
         InstalledVersions::reload($before);
+    }
+
+    public function testIsSalesChannelExisting(): void
+    {
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn('id');
+
+        static::assertTrue($this->state->isSalesChannelExisting('http://localhost'));
+    }
+
+    public function testIsSalesChannelNotExisting(): void
+    {
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willReturn(false);
+
+        static::assertFalse($this->state->isSalesChannelExisting('http://localhost'));
     }
 }
