@@ -17,7 +17,7 @@ composer require shopware/deployment-helper
 The idea is that you build the source code in the pipeline and then use this script on the target system to install or update the Shopware instance.
 
 ```bash
-vendor/bin/deployment-helper run
+vendor/bin/shopware-deployment-helper run
 ```
 
 This will detect is Shopware installed, when not will install it, otherwise will update it.
