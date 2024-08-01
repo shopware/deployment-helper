@@ -49,6 +49,8 @@ class UpgradeManager
         }
 
         $this->processHelper->console(['plugin:refresh']);
+        $this->processHelper->console(['theme:refresh']);
+        $this->processHelper->console(['scheduled-task:register']);
 
         $this->pluginHelper->installPlugins($configuration->skipAssetInstall);
         $this->pluginHelper->updatePlugins($configuration->skipAssetInstall);
