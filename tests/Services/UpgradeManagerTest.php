@@ -112,7 +112,7 @@ class UpgradeManagerTest extends TestCase
 
         $manager->run(new RunConfiguration(true, true), $this->createMock(OutputInterface::class));
 
-        static::assertCount(2, $consoleCommands);
+        static::assertCount(4, $consoleCommands);
         static::assertSame(['system:update:finish', '--skip-asset-build'], $consoleCommands[0]);
     }
 
@@ -150,7 +150,7 @@ class UpgradeManagerTest extends TestCase
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
 
-        static::assertCount(3, $consoleCommands);
+        static::assertCount(5, $consoleCommands);
         static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://localhost'], $consoleCommands[0]);
     }
 }
