@@ -62,7 +62,7 @@ class AppHelper
                 continue;
             }
 
-            $this->processHelper->console(['app:update', $app['name']]);
+            $this->processHelper->console(['app:update', $app['name'], '--force']);
         }
     }
 }
