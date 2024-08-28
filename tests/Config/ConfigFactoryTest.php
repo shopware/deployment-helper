@@ -22,7 +22,13 @@ class ConfigFactoryTest extends TestCase
 
     public function testExistingConfig(): void
     {
-        $config = ConfigFactory::create(__DIR__ . '/_fixtures');
+        $this->runExistingConfigTest(__DIR__ . '/_fixtures/yml');
+        $this->runExistingConfigTest(__DIR__ . '/_fixtures/yaml');
+    }
+
+    private static function runExistingConfigTest(string $configDir): void
+    {
+        $config = ConfigFactory::create($configDir);
         static::assertTrue($config->extensionManagement->enabled);
         static::assertSame(['Name'], $config->extensionManagement->excluded);
         static::assertSame(['foo' => 'test'], $config->oneTimeTasks);
