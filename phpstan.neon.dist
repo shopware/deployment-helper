@@ -2,9 +2,14 @@ includes:
 	- phar://phpstan.phar/conf/bleedingEdge.neon
 
 parameters:
+	phpVersion: 80200
 	level: 8
 	treatPhpDocTypesAsCertain: false
+	checkMissingIterableValueType: true
+	inferPrivatePropertyTypeFromConstructor: true
+	tmpDir: var/cache/phpstan
 	paths:
 		- src
+		- tests
 	symfony:
 		containerXmlPath: var/cache/container.xml

@@ -30,7 +30,7 @@ class UpgradeManager
         $output->writeln('Shopware is installed, running update tools');
 
         if ($this->state->getPreviousVersion() !== $this->state->getCurrentVersion()) {
-            $output->writeln(sprintf('Updating Shopware from %s to %s', $this->state->getPreviousVersion(), $this->state->getCurrentVersion()));
+            $output->writeln(\sprintf('Updating Shopware from %s to %s', $this->state->getPreviousVersion(), $this->state->getCurrentVersion()));
 
             $additionalUpdateParameters = [];
 

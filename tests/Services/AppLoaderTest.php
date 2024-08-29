@@ -37,15 +37,17 @@ class AppLoaderTest extends TestCase
 
     public function testLoadFromComposer(): void
     {
-        $before = InstalledVersions::getAllRawData();
+        $before = InstalledVersions::getAllRawData()[0];
 
         InstalledVersions::reload([
+            'root' => $before['root'],
             'versions' => [
                 'foo/foo' => [
                     'name' => 'foo/foo',
                     'version' => '1.0.0',
                     'type' => 'shopware-app',
                     'install_path' => __DIR__ . '/_fixtures/correct/custom/apps/TestApp',
+                    'dev_requirement' => false,
                 ],
             ],
         ]);

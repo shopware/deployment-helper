@@ -13,7 +13,7 @@ use Shopware\Deployment\Command\RunCommand;
 #[CoversClass(Application::class)]
 class ApplicationTest extends TestCase
 {
-    #[BackupGlobals(enabled: true)]
+    #[BackupGlobals(true)]
     public function testCanBoot(): void
     {
         $_SERVER['PROJECT_ROOT'] = \dirname(__DIR__);

@@ -26,7 +26,7 @@ class ConfigFactoryTest extends TestCase
         $this->runExistingConfigTest(__DIR__ . '/_fixtures/yaml');
     }
 
-    private static function runExistingConfigTest(string $configDir): void
+    private function runExistingConfigTest(string $configDir): void
     {
         $config = ConfigFactory::create($configDir);
         static::assertTrue($config->extensionManagement->enabled);

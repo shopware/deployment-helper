@@ -22,7 +22,7 @@ class DotenvListenerTest extends TestCase
         static::assertSame($before, $_SERVER);
     }
 
-    #[BackupGlobals(enabled: true)]
+    #[BackupGlobals(true)]
     public function testFileExists(): void
     {
         $tmpDir = Path::join(sys_get_temp_dir(), uniqid('test', true));

@@ -7,9 +7,8 @@ use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 return (new Config())
     ->setRiskyAllowed(true)
     ->setParallelConfig(ParallelConfigFactory::detect())
+    ->setCacheFile(__DIR__ . '/var/cache/cs-fixer/.php-cs-fixer.cache')
     ->setRules([
-        '@PER-CS' => true,
-        '@PER-CS:risky' => true,
         '@PHP84Migration' => true,
         '@PHP80Migration:risky' => true,
         '@Symfony' => true,
@@ -20,6 +19,10 @@ return (new Config())
     ->setFinder(
         Finder::create()
             ->name('shopware-deployment-helper')
-            ->in(__DIR__),
+            ->in([
+                __DIR__ . '/bin',
+                __DIR__ . '/src',
+                __DIR__ . '/tests',
+            ]),
     )
 ;
