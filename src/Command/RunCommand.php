@@ -29,9 +29,10 @@ class RunCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption('skip-theme-compile', null, InputOption::VALUE_OPTIONAL, 'Skip theme compile (Should be used when the theme has been compiled before in the CI/CD)', false);
-        $this->addOption('skip-asset-install', null, InputOption::VALUE_OPTIONAL, 'Skip asset install (Should be used when the assets have been copied before in the CI/CD)', false);
-        $this->addOption('timeout', null, InputOption::VALUE_OPTIONAL, 'Set script execution timeout (in seconds). Set to null to disable timeout', 300);
+        $this->addOption('skip-theme-compile', null, InputOption::VALUE_NONE, 'Skip theme compile (Should be used when the theme has been compiled before in the CI/CD)');
+        $this->addOption('skip-asset-install', null, InputOption::VALUE_NONE, 'Deprecated - use --skip-assets-install instead');
+        $this->addOption('skip-assets-install', null, InputOption::VALUE_NONE, 'Skip asset install (Should be used when the assets have been copied before in the CI/CD)');
+        $this->addOption('timeout', null, InputOption::VALUE_REQUIRED, 'Set script execution timeout (in seconds). Set to null to disable timeout', 300);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -40,7 +41,7 @@ class RunCommand extends Command
 
         $config = new RunConfiguration(
             skipThemeCompile: (bool) $input->getOption('skip-theme-compile'),
-            skipAssetInstall: (bool) $input->getOption('skip-asset-install'),
+            skipAssetsInstall: ((bool) $input->getOption('skip-asset-install') || (bool) $input->getOption('skip-assets-install')),
             timeout: is_numeric($timeout) ? (float) $timeout : null,
         );
 

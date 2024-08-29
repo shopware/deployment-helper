@@ -8,7 +8,7 @@ readonly class RunConfiguration
 {
     public function __construct(
         public bool $skipThemeCompile = false,
-        public bool $skipAssetInstall = false,
+        public bool $skipAssetsInstall = false,
         public ?float $timeout = 60,
     ) {
     }

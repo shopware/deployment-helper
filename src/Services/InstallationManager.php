@@ -43,7 +43,7 @@ class InstallationManager
             $additionalInstallParameters[] = '--no-assign-theme';
         }
 
-        if ($configuration->skipAssetInstall) {
+        if ($configuration->skipAssetsInstall) {
             $additionalInstallParameters[] = '--skip-assets-install';
         }
 
@@ -72,8 +72,8 @@ class InstallationManager
         $this->state->setVersion($this->state->getCurrentVersion());
 
         $this->processHelper->console(['plugin:refresh']);
-        $this->pluginHelper->installPlugins($configuration->skipAssetInstall);
-        $this->pluginHelper->updatePlugins($configuration->skipAssetInstall);
+        $this->pluginHelper->installPlugins($configuration->skipAssetsInstall);
+        $this->pluginHelper->updatePlugins($configuration->skipAssetsInstall);
         $this->appHelper->installApps();
         $this->appHelper->updateApps();
 

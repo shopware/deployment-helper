@@ -32,7 +32,14 @@ class RunCommandTest extends TestCase
         $installationManager = $this->createMock(InstallationManager::class);
         $installationManager
             ->expects($this->once())
-            ->method('run');
+            ->method('run')
+            ->with(self::callback(function ($config) {
+                static::assertTrue($config->skipThemeCompile);
+                static::assertTrue($config->skipAssetsInstall);
+                static::assertEquals(300, $config->timeout);
+
+                return true;
+            }));
 
         $command = new RunCommand(
             $state,
@@ -42,7 +49,10 @@ class RunCommandTest extends TestCase
         );
 
         $tester = new CommandTester($command);
-        $tester->execute([]);
+        $tester->execute([
+            '--skip-theme-compile' => true,
+            '--skip-asset-install' => true,
+        ]);
     }
 
     public function testUpdate(): void
@@ -66,7 +76,14 @@ class RunCommandTest extends TestCase
         $upgradeManager = $this->createMock(UpgradeManager::class);
         $upgradeManager
             ->expects($this->once())
-            ->method('run');
+            ->method('run')
+            ->with(self::callback(function ($config) {
+                static::assertFalse($config->skipThemeCompile);
+                static::assertTrue($config->skipAssetsInstall);
+                static::assertEquals(600, $config->timeout);
+
+                return true;
+            }));
 
         $command = new RunCommand(
             $state,
@@ -76,6 +93,9 @@ class RunCommandTest extends TestCase
         );
 
         $tester = new CommandTester($command);
-        $tester->execute([]);
+        $tester->execute([
+            '--skip-assets-install' => true,
+            '--timeout' => 600,
+        ]);
     }
 }
