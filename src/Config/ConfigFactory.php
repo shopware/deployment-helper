@@ -12,6 +12,9 @@ class ConfigFactory
     public static function create(string $projectDir): ProjectConfiguration
     {
         $file = Path::join($projectDir, '.shopware-project.yml');
+        if (!file_exists($file)) {
+            $file = Path::join($projectDir, '.shopware-project.yaml');
+        }
 
         if (!file_exists($file)) {
             return new ProjectConfiguration();
