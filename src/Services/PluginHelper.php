@@ -16,11 +16,11 @@ class PluginHelper
     ) {
     }
 
-    public function installPlugins(bool $skipAssetInstall = false): void
+    public function installPlugins(bool $skipAssetsInstall = false): void
     {
         $additionalParameters = [];
 
-        if ($skipAssetInstall) {
+        if ($skipAssetsInstall) {
             $additionalParameters[] = '--skip-asset-build';
         }
 
@@ -44,11 +44,11 @@ class PluginHelper
         }
     }
 
-    public function updatePlugins(bool $skipAssetInstall = false): void
+    public function updatePlugins(bool $skipAssetsInstall = false): void
     {
         $additionalParameters = [];
 
-        if ($skipAssetInstall) {
+        if ($skipAssetsInstall) {
             $additionalParameters[] = '--skip-asset-build';
         }
 

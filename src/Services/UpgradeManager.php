@@ -34,7 +34,7 @@ class UpgradeManager
 
             $additionalUpdateParameters = [];
 
-            if ($configuration->skipAssetInstall) {
+            if ($configuration->skipAssetsInstall) {
                 $additionalUpdateParameters[] = '--skip-asset-build';
             }
 
@@ -52,8 +52,8 @@ class UpgradeManager
         $this->processHelper->console(['theme:refresh']);
         $this->processHelper->console(['scheduled-task:register']);
 
-        $this->pluginHelper->installPlugins($configuration->skipAssetInstall);
-        $this->pluginHelper->updatePlugins($configuration->skipAssetInstall);
+        $this->pluginHelper->installPlugins($configuration->skipAssetsInstall);
+        $this->pluginHelper->updatePlugins($configuration->skipAssetsInstall);
         $this->appHelper->installApps();
         $this->appHelper->updateApps();
 
