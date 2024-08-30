@@ -116,7 +116,7 @@ jobs:
         run: ./vendor/bin/shopware-deployment-helper run
 
       - name: Check that a major update was performed
-        run: ./bin/console --version | grep -v 6.5
+        run: ./bin/console --version | grep -v " 6.5."
 
       - name: Default Storefront should be available
         run: curl -q --fail http://localhost:8000

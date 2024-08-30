@@ -1,7 +1,5 @@
 /.idea
 /vendor
 /composer.lock
-/.php-cs-fixer.cache
-/.phpunit.cache
 /var/cache
 /build/coverage

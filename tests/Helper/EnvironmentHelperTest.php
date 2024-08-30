@@ -15,7 +15,7 @@ use Shopware\Deployment\Helper\EnvironmentHelper;
 #[CoversClass(EnvironmentHelper::class)]
 class EnvironmentHelperTest extends TestCase
 {
-    #[BackupGlobals(enabled: true)]
+    #[BackupGlobals(true)]
     public function testGet(): void
     {
         static::assertNull(EnvironmentHelper::getVariable('FOO'));
@@ -24,7 +24,7 @@ class EnvironmentHelperTest extends TestCase
         static::assertSame('bar', EnvironmentHelper::getVariable('FOO'));
     }
 
-    #[BackupGlobals(enabled: true)]
+    #[BackupGlobals(true)]
     public function testHas(): void
     {
         static::assertFalse(EnvironmentHelper::hasVariable('FOO'));

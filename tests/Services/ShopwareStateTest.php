@@ -43,12 +43,14 @@ class ShopwareStateTest extends TestCase
     {
         static::assertFalse($this->state->isStorefrontInstalled());
 
-        $before = InstalledVersions::getAllRawData();
+        $before = $this->getBefore();
 
         InstalledVersions::reload([
+            'root' => $before['root'],
             'versions' => [
                 'shopware/storefront' => [
                     'version' => '1.0.0',
+                    'dev_requirement' => false,
                 ],
             ],
         ]);
@@ -119,12 +121,14 @@ class ShopwareStateTest extends TestCase
 
     public function testGetCurrentVersion(): void
     {
-        $before = InstalledVersions::getAllRawData();
+        $before = $this->getBefore();
 
         InstalledVersions::reload([
+            'root' => $before['root'],
             'versions' => [
                 'shopware/platform' => [
                     'version' => '1.0.0',
+                    'dev_requirement' => false,
                 ],
             ],
         ]);
@@ -136,12 +140,14 @@ class ShopwareStateTest extends TestCase
 
     public function testGetCurrentVersionFromCore(): void
     {
-        $before = InstalledVersions::getAllRawData();
+        $before = $this->getBefore();
 
         InstalledVersions::reload([
+            'root' => $before['root'],
             'versions' => [
                 'shopware/core' => [
                     'version' => '2.0.0',
+                    'dev_requirement' => false,
                 ],
             ],
         ]);
@@ -169,5 +175,13 @@ class ShopwareStateTest extends TestCase
             ->willReturn(false);
 
         static::assertFalse($this->state->isSalesChannelExisting('http://localhost'));
+    }
+
+    /**
+     * @return array{root: array{name: string, pretty_version: string, version: string, reference: string|null, type: string, install_path: string, aliases: string[], dev: bool}, versions: array<string, array{pretty_version?: string, version?: string, reference?: string|null, type?: string, install_path?: string, aliases?: string[], dev_requirement: bool, replaced?: string[], provided?: string[]}>}
+     */
+    private function getBefore(): array
+    {
+        return InstalledVersions::getAllRawData()[0];
     }
 }
