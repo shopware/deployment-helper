@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
+use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Struct\RunConfiguration;
@@ -18,6 +19,7 @@ class UpgradeManager
         private readonly AppHelper $appHelper,
         private readonly HookExecutor $hookExecutor,
         private readonly OneTimeTasks $oneTimeTasks,
+        private readonly ProjectConfiguration $configuration,
     ) {
     }
 
@@ -26,6 +28,13 @@ class UpgradeManager
         $this->processHelper->setTimeout($configuration->timeout);
 
         $this->hookExecutor->execute(HookExecutor::HOOK_PRE_UPDATE);
+
+        if ($this->configuration->maintenance->enabled) {
+            $this->state->enableMaintenanceMode();
+
+            $output->writeln('Maintenance mode is enabled, clearing cache to make sure it is visible');
+            $this->processHelper->console(['cache:pool:clear', 'cache.http', 'cache.object']);
+        }
 
         $output->writeln('Shopware is installed, running update tools');
 
@@ -64,5 +73,12 @@ class UpgradeManager
         $this->oneTimeTasks->execute($output);
 
         $this->hookExecutor->execute(HookExecutor::HOOK_POST_UPDATE);
+
+        if ($this->configuration->maintenance->enabled) {
+            $this->state->disableMaintenanceMode();
+
+            $output->writeln('Disabling maintenance mode, clearing cache to make sure it is visible');
+            $this->processHelper->console(['cache:pool:clear', 'cache.http', 'cache.object']);
+        }
     }
 }

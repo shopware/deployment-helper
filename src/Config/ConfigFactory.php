@@ -35,6 +35,12 @@ class ConfigFactory
      */
     private static function fillConfig(ProjectConfiguration $projectConfiguration, array $deployment): void
     {
+        if (isset($deployment['maintenance']) && \is_array($deployment['maintenance'])) {
+            if (isset($deployment['maintenance']['enabled']) && \is_bool($deployment['maintenance']['enabled'])) {
+                $projectConfiguration->maintenance->enabled = $deployment['maintenance']['enabled'];
+            }
+        }
+
         if (isset($deployment['hooks']) && \is_array($deployment['hooks'])) {
             self::fillHooks($projectConfiguration->hooks, $deployment['hooks']);
         }

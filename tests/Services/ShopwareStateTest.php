@@ -184,4 +184,36 @@ class ShopwareStateTest extends TestCase
     {
         return InstalledVersions::getAllRawData()[0];
     }
+
+    public function testEnableMaintenanceMode(): void
+    {
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchAllKeyValue')
+            ->willReturn(['id' => 'maintenance']);
+
+        $this->connection
+            ->expects($this->once())
+            ->method('executeStatement')
+            ->with('UPDATE sales_channel SET maintenance = 1 WHERE type_id = 0x8a243080f92e4c719546314b577cf82b');
+
+        $this->state->enableMaintenanceMode();
+    }
+
+    public function testDisableMaintenanceMode(): void
+    {
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchAllKeyValue')
+            ->willReturn(['id' => 0]);
+
+        $this->state->enableMaintenanceMode();
+
+        $this->connection
+            ->expects($this->once())
+            ->method('executeStatement')
+            ->with('UPDATE sales_channel SET maintenance = ? WHERE id = UNHEX(?)', [0, 'id']);
+
+        $this->state->disableMaintenanceMode();
+    }
 }
