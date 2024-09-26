@@ -11,7 +11,7 @@ readonly class DotenvLoader
 {
     public function __construct(
         #[Autowire('%kernel.project_dir%')]
-        private string $projectDir
+        private string $projectDir,
     ) {
     }
 

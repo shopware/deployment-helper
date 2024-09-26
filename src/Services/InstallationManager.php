@@ -34,7 +34,7 @@ class InstallationManager
         $shopCurrency = EnvironmentHelper::getVariable('INSTALL_CURRENCY', 'EUR');
         $adminUser = EnvironmentHelper::getVariable('INSTALL_ADMIN_USERNAME', 'admin');
         $adminPassword = EnvironmentHelper::getVariable('INSTALL_ADMIN_PASSWORD', 'shopware');
-        $appUrl = EnvironmentHelper::getVariable('APP_URL', 'http://localhost');
+        $appUrl = EnvironmentHelper::getVariable('APP_URL');
         $salesChannelUrl = EnvironmentHelper::getVariable('SALES_CHANNEL_URL', $appUrl);
 
         $additionalInstallParameters = [];

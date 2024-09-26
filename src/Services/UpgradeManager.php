@@ -42,9 +42,9 @@ class UpgradeManager
             $this->state->setVersion($this->state->getCurrentVersion());
         }
 
-        $appUrl = EnvironmentHelper::getVariable('APP_URL', 'http://localhost');
-        $salesChannelUrl = EnvironmentHelper::getVariable('SALES_CHANNEL_URL', $appUrl);
-        if ($this->state->isStorefrontInstalled() && !$this->state->isSalesChannelExisting($salesChannelUrl)) {
+        $salesChannelUrl = EnvironmentHelper::getVariable('SALES_CHANNEL_URL');
+
+        if ($salesChannelUrl !== null && $this->state->isStorefrontInstalled() && !$this->state->isSalesChannelExisting($salesChannelUrl)) {
             $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $salesChannelUrl]);
         }
 
