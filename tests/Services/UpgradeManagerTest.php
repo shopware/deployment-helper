@@ -15,6 +15,7 @@ use Shopware\Deployment\Services\ShopwareState;
 use Shopware\Deployment\Services\UpgradeManager;
 use Shopware\Deployment\Struct\RunConfiguration;
 use Symfony\Component\Console\Output\OutputInterface;
+use Zalas\PHPUnit\Globals\Attribute\Env;
 
 #[CoversClass(UpgradeManager::class)]
 #[CoversClass(RunConfiguration::class)]
@@ -116,6 +117,7 @@ class UpgradeManagerTest extends TestCase
         static::assertSame(['system:update:finish', '--skip-asset-build'], $consoleCommands[0]);
     }
 
+    #[Env('SALES_CHANNEL_URL', 'http://foo.com')]
     public function testRunWithDifferentSalesChannelUrl(): void
     {
         $state = $this->createMock(ShopwareState::class);
@@ -127,7 +129,7 @@ class UpgradeManagerTest extends TestCase
         $state
             ->expects($this->once())
             ->method('isSalesChannelExisting')
-            ->with('http://localhost')
+            ->with('http://foo.com')
             ->willReturn(false);
 
         $processHelper = $this->createMock(ProcessHelper::class);
@@ -151,6 +153,6 @@ class UpgradeManagerTest extends TestCase
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
 
         static::assertCount(5, $consoleCommands);
-        static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://localhost'], $consoleCommands[0]);
+        static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://foo.com'], $consoleCommands[0]);
     }
 }
