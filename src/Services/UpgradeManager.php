@@ -77,7 +77,7 @@ class UpgradeManager
         if ($this->configuration->maintenance->enabled) {
             $this->state->disableMaintenanceMode();
 
-            $output->writeln('Disabling maintenance mode, clearing cache to make sure it is visible');
+            $output->writeln('Maintenance mode is disabled, clearing cache to make sure the storefront is visible again');
             $this->processHelper->console(['cache:pool:clear', 'cache.http', 'cache.object']);
         }
     }
