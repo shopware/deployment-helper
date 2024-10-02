@@ -10,6 +10,8 @@ class ProjectConfiguration
 
     public ProjectExtensionManagement $extensionManagement;
 
+    public ProjectMaintenance $maintenance;
+
     /**
      * @var array<string, string>
      */
@@ -19,6 +21,7 @@ class ProjectConfiguration
     {
         $this->hooks = new ProjectHooks();
         $this->extensionManagement = new ProjectExtensionManagement();
+        $this->maintenance = new ProjectMaintenance();
     }
 
     public function isExtensionManaged(string $name): bool

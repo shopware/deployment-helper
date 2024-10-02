@@ -6,6 +6,7 @@ namespace Shopware\Deployment\Tests\Services;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\AppHelper;
 use Shopware\Deployment\Services\HookExecutor;
@@ -40,6 +41,7 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(AppHelper::class),
             $hookExecutor,
             $oneTimeTasks,
+            new ProjectConfiguration()
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -70,6 +72,7 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(AppHelper::class),
             $this->createMock(HookExecutor::class),
             $this->createMock(OneTimeTasks::class),
+            new ProjectConfiguration()
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -109,6 +112,7 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(AppHelper::class),
             $this->createMock(HookExecutor::class),
             $this->createMock(OneTimeTasks::class),
+            new ProjectConfiguration()
         );
 
         $manager->run(new RunConfiguration(true, true), $this->createMock(OutputInterface::class));
@@ -148,11 +152,54 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(AppHelper::class),
             $this->createMock(HookExecutor::class),
             $this->createMock(OneTimeTasks::class),
+            new ProjectConfiguration()
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
 
         static::assertCount(5, $consoleCommands);
         static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://foo.com'], $consoleCommands[0]);
+    }
+
+    public function testRunWithMaintenanceMode(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+
+        $state
+            ->expects($this->once())
+            ->method('enableMaintenanceMode');
+
+        $state
+            ->expects($this->once())
+            ->method('disableMaintenanceMode');
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $config = new ProjectConfiguration();
+        $config->maintenance->enabled = true;
+
+        $manager = new UpgradeManager(
+            $state,
+            $processHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+            $config
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertCount(6, $consoleCommands);
+        static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[0]);
+        static::assertArrayHasKey(5, $consoleCommands);
+        static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[5]);
     }
 }

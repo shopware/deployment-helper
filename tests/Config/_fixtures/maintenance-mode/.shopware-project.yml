@@ -1,0 +1,28 @@
+deployment:
+  maintenance:
+    enabled: true
+  hooks:
+    pre: |
+      echo "Before deployment general"
+    post: |
+      echo "After deployment general"
+    pre-install: |
+      echo "Before running system:install"
+    post-install: |
+      echo "After running system:install"
+    pre-update: |
+      echo "Before running system:update"
+    post-update: |
+      echo "After running system:update"
+
+  # Automatically installs and updates all extensions
+  extension-management:
+    enabled: true
+
+    # These extensions are not managed, you should use one-time-tasks
+    exclude:
+      - Name
+
+  one-time-tasks:
+    - id: foo
+      script: test

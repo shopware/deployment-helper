@@ -9,6 +9,11 @@ use Doctrine\DBAL\Connection;
 
 class ShopwareState
 {
+    /**
+     * @var array<string, string>
+     */
+    private array $maintenanceMode = [];
+
     public function __construct(
         private readonly Connection $connection,
     ) {
@@ -73,5 +78,22 @@ class ShopwareState
     public function isSalesChannelExisting(?string $salesChannelUrl): bool
     {
         return (bool) $this->connection->fetchOne('SELECT id FROM sales_channel_domain WHERE url = ?', [$salesChannelUrl]);
+    }
+
+    public function enableMaintenanceMode(): void
+    {
+        // Make a copy, so we can restore the original state later
+        /** @var array<string, string> */
+        $data = $this->connection->fetchAllKeyValue('SELECT LOWER(HEX(id)), maintenance FROM sales_channel WHERE type_id = 0x8a243080f92e4c719546314b577cf82b');
+        $this->maintenanceMode = $data;
+
+        $this->connection->executeStatement('UPDATE sales_channel SET maintenance = 1 WHERE type_id = 0x8a243080f92e4c719546314b577cf82b');
+    }
+
+    public function disableMaintenanceMode(): void
+    {
+        foreach ($this->maintenanceMode as $id => $maintenance) {
+            $this->connection->executeStatement('UPDATE sales_channel SET maintenance = ? WHERE id = UNHEX(?)', [$maintenance, $id]);
+        }
     }
 }

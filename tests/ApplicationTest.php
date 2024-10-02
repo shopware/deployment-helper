@@ -4,20 +4,28 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests;
 
-use PHPUnit\Framework\Attributes\BackupGlobals;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Application;
 use Shopware\Deployment\Command\RunCommand;
+use Zalas\PHPUnit\Globals\Attribute\Env;
 
 #[CoversClass(Application::class)]
 class ApplicationTest extends TestCase
 {
-    #[BackupGlobals(true)]
+    #[Env('PROJECT_ROOT', __DIR__ . '/..')]
     public function testCanBoot(): void
     {
-        $_SERVER['PROJECT_ROOT'] = \dirname(__DIR__);
         $app = new Application();
         static::assertTrue($app->getContainer()->has(RunCommand::class));
+    }
+
+    #[Env('PROJECT_ROOT', __DIR__ . '/..')]
+    #[Env('DEV_MODE', '1')]
+    public function testWithDevMode(): void
+    {
+        $app = new Application();
+        static::assertTrue($app->getContainer()->has(RunCommand::class));
+        static::assertFileExists(\dirname(__DIR__) . '/var/cache/container.xml');
     }
 }
