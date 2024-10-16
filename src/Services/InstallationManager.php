@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Shopware\Deployment\Services;
 
 use Doctrine\DBAL\Connection;
+use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Struct\RunConfiguration;
+use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 class InstallationManager
 {
@@ -19,6 +22,8 @@ class InstallationManager
         private readonly PluginHelper $pluginHelper,
         private readonly AppHelper $appHelper,
         private readonly HookExecutor $hookExecutor,
+        private readonly ProjectConfiguration $configuration,
+        private readonly AccountService $accountService,
     ) {
     }
 
@@ -74,6 +79,11 @@ class InstallationManager
         $this->processHelper->console(['plugin:refresh']);
         $this->pluginHelper->installPlugins($configuration->skipAssetsInstall);
         $this->pluginHelper->updatePlugins($configuration->skipAssetsInstall);
+
+        if ($this->configuration->store->licenseDomain !== '') {
+            $this->accountService->refresh(new SymfonyStyle(new ArgvInput([]), $output), $this->state->getCurrentVersion(), $this->configuration->store->licenseDomain);
+        }
+
         $this->appHelper->installApps();
         $this->appHelper->updateApps();
 

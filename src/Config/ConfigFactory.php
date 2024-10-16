@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Config;
 
+use Shopware\Deployment\Helper\EnvironmentHelper;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Yaml\Yaml;
 
@@ -17,7 +18,7 @@ class ConfigFactory
         }
 
         if (!file_exists($file)) {
-            return new ProjectConfiguration();
+            return self::fillLicenseDomain(new ProjectConfiguration());
         }
 
         $projectConfiguration = new ProjectConfiguration();
@@ -27,7 +28,7 @@ class ConfigFactory
             self::fillConfig($projectConfiguration, $config['deployment']);
         }
 
-        return $projectConfiguration;
+        return self::fillLicenseDomain($projectConfiguration);
     }
 
     /**
@@ -47,6 +48,12 @@ class ConfigFactory
 
         if (isset($deployment['extension-management']) && \is_array($deployment['extension-management'])) {
             self::fillExtensionManagement($projectConfiguration->extensionManagement, $deployment['extension-management']);
+        }
+
+        if (isset($deployment['store']) && \is_array($deployment['store'])) {
+            if (isset($deployment['store']['licenseDomain']) && \is_string($deployment['store']['licenseDomain'])) {
+                $projectConfiguration->store->licenseDomain = $deployment['store']['licenseDomain'];
+            }
         }
 
         if (isset($deployment['one-time-tasks']) && \is_array($deployment['one-time-tasks'])) {
@@ -100,5 +107,14 @@ class ConfigFactory
         if (isset($config['exclude']) && \is_array($config['exclude'])) {
             $extensionManagement->excluded = $config['exclude'];
         }
+    }
+
+    public static function fillLicenseDomain(ProjectConfiguration $projectConfiguration): ProjectConfiguration
+    {
+        if (EnvironmentHelper::hasVariable('SHOPWARE_STORE_LICENSE_DOMAIN')) {
+            $projectConfiguration->store->licenseDomain = EnvironmentHelper::getVariable('SHOPWARE_STORE_LICENSE_DOMAIN', '');
+        }
+
+        return $projectConfiguration;
     }
 }
