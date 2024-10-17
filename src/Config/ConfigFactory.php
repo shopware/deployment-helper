@@ -51,8 +51,8 @@ class ConfigFactory
         }
 
         if (isset($deployment['store']) && \is_array($deployment['store'])) {
-            if (isset($deployment['store']['licenseDomain']) && \is_string($deployment['store']['licenseDomain'])) {
-                $projectConfiguration->store->licenseDomain = $deployment['store']['licenseDomain'];
+            if (isset($deployment['store']['license-domain']) && \is_string($deployment['store']['license-domain'])) {
+                $projectConfiguration->store->licenseDomain = $deployment['store']['license-domain'];
             }
         }
 
