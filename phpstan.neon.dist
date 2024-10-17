@@ -13,3 +13,7 @@ parameters:
 		- tests
 	symfony:
 		containerXmlPath: var/cache/container.xml
+	ignoreErrors:
+	    - message: '#does not call parent constructor from#'
+	      paths:
+	          - tests

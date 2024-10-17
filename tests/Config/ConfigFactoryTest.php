@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Config\ConfigFactory;
+use Zalas\PHPUnit\Globals\Attribute\Env;
 
 #[CoversClass(ConfigFactory::class)]
 class ConfigFactoryTest extends TestCase
@@ -47,5 +48,18 @@ class ConfigFactoryTest extends TestCase
     {
         $config = ConfigFactory::create(__DIR__ . '/_fixtures/maintenance-mode');
         static::assertTrue($config->maintenance->enabled);
+    }
+
+    #[Env('SHOPWARE_STORE_LICENSE_DOMAIN', 'test')]
+    public function testLicenseDomainPopulatedByEnv(): void
+    {
+        $config = ConfigFactory::create(__DIR__);
+        static::assertSame('test', $config->store->licenseDomain);
+    }
+
+    public function testExistingConfigWithStoreCOnfig(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/license-domain');
+        static::assertSame('example.com', $config->store->licenseDomain);
     }
 }

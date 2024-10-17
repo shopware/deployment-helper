@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\ProcessHelper;
+use Shopware\Deployment\Services\AccountService;
 use Shopware\Deployment\Services\AppHelper;
 use Shopware\Deployment\Services\HookExecutor;
 use Shopware\Deployment\Services\OneTimeTasks;
@@ -34,6 +35,9 @@ class UpgradeManagerTest extends TestCase
             ->expects($this->exactly(2))
             ->method('execute');
 
+        $accountService = $this->createMock(AccountService::class);
+        $accountService->expects(static::never())->method('refresh');
+
         $manager = new UpgradeManager(
             $this->createMock(ShopwareState::class),
             $this->createMock(ProcessHelper::class),
@@ -41,7 +45,8 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(AppHelper::class),
             $hookExecutor,
             $oneTimeTasks,
-            new ProjectConfiguration()
+            new ProjectConfiguration(),
+            $accountService,
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -72,7 +77,8 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(AppHelper::class),
             $this->createMock(HookExecutor::class),
             $this->createMock(OneTimeTasks::class),
-            new ProjectConfiguration()
+            new ProjectConfiguration(),
+            $this->createMock(AccountService::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -112,7 +118,8 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(AppHelper::class),
             $this->createMock(HookExecutor::class),
             $this->createMock(OneTimeTasks::class),
-            new ProjectConfiguration()
+            new ProjectConfiguration(),
+            $this->createMock(AccountService::class),
         );
 
         $manager->run(new RunConfiguration(true, true), $this->createMock(OutputInterface::class));
@@ -152,7 +159,8 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(AppHelper::class),
             $this->createMock(HookExecutor::class),
             $this->createMock(OneTimeTasks::class),
-            new ProjectConfiguration()
+            new ProjectConfiguration(),
+            $this->createMock(AccountService::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -192,7 +200,8 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(AppHelper::class),
             $this->createMock(HookExecutor::class),
             $this->createMock(OneTimeTasks::class),
-            $config
+            $config,
+            $this->createMock(AccountService::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -201,5 +210,37 @@ class UpgradeManagerTest extends TestCase
         static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[0]);
         static::assertArrayHasKey(5, $consoleCommands);
         static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[5]);
+    }
+
+    public function testRunWithLicenseDomain(): void
+    {
+        $oneTimeTasks = $this->createMock(OneTimeTasks::class);
+        $oneTimeTasks
+            ->expects($this->once())
+            ->method('execute');
+
+        $hookExecutor = $this->createMock(HookExecutor::class);
+        $hookExecutor
+            ->expects($this->exactly(2))
+            ->method('execute');
+
+        $accountService = $this->createMock(AccountService::class);
+        $accountService->expects(static::once())->method('refresh');
+
+        $configuration = new ProjectConfiguration();
+        $configuration->store->licenseDomain = 'example.com';
+
+        $manager = new UpgradeManager(
+            $this->createMock(ShopwareState::class),
+            $this->createMock(ProcessHelper::class),
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $hookExecutor,
+            $oneTimeTasks,
+            $configuration,
+            $accountService,
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
     }
 }
