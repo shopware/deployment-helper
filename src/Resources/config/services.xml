@@ -8,6 +8,8 @@
         <defaults autowire="true" autoconfigure="true" public="true"/>
 
         <service id="event_dispatcher" class="Symfony\Component\EventDispatcher\EventDispatcher"/>
+        <service id="Symfony\Contracts\EventDispatcher\EventDispatcherInterface" alias="event_dispatcher"/>
+
         <service id="Doctrine\DBAL\Connection">
             <factory class="Shopware\Deployment\DependencyInjection\MySQLFactory" method="createAndRetry"/>
         </service>
