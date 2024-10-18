@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Command;
 
+use Shopware\Deployment\Event\PostDeploy;
 use Shopware\Deployment\Services\HookExecutor;
 use Shopware\Deployment\Services\InstallationManager;
 use Shopware\Deployment\Services\ShopwareState;
@@ -14,6 +15,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 #[AsCommand('run', description: 'Install or Update Shopware')]
 class RunCommand extends Command
@@ -23,6 +25,7 @@ class RunCommand extends Command
         private readonly InstallationManager $installationManager,
         private readonly UpgradeManager $upgradeManager,
         private readonly HookExecutor $hookExecutor,
+        private readonly EventDispatcherInterface $eventDispatcher,
     ) {
         parent::__construct();
     }
@@ -54,6 +57,8 @@ class RunCommand extends Command
         } else {
             $this->installationManager->run($config, $output);
         }
+
+        $this->eventDispatcher->dispatch(new PostDeploy($config, $output));
 
         $this->hookExecutor->execute(HookExecutor::HOOK_POST);
 

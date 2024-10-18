@@ -12,6 +12,7 @@ use Shopware\Deployment\Services\InstallationManager;
 use Shopware\Deployment\Services\ShopwareState;
 use Shopware\Deployment\Services\UpgradeManager;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 #[CoversClass(RunCommand::class)]
 class RunCommandTest extends TestCase
@@ -46,6 +47,7 @@ class RunCommandTest extends TestCase
             $installationManager,
             $this->createMock(UpgradeManager::class),
             $hookExecutor,
+            new EventDispatcher()
         );
 
         $tester = new CommandTester($command);
@@ -90,6 +92,7 @@ class RunCommandTest extends TestCase
             $installationManager,
             $upgradeManager,
             $hookExecutor,
+            new EventDispatcher()
         );
 
         $tester = new CommandTester($command);
