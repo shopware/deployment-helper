@@ -100,7 +100,7 @@ class FastlyServiceUpdater
         if ($name === 'default') {
             $snippetName = 'shopware_' . $type;
         } else {
-            $snippetName = 'shopware_' . $type . '.' . $priority;
+            $snippetName = 'shopware_' . $type . '_' . $name;
         }
 
         if ($context->hasSnippet($snippetName)) {

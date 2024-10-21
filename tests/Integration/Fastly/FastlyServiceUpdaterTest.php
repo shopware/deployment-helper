@@ -109,7 +109,7 @@ class FastlyServiceUpdaterTest extends TestCase
         $fastlyAPIClient
             ->expects($this->once())
             ->method('createSnippet')
-            ->with('SERVICE_ID', 0, 'shopware_deliver.5', 'deliver', 'TEST', 5);
+            ->with('SERVICE_ID', 0, 'shopware_deliver_test', 'deliver', 'TEST', 5);
 
         $fs = new Filesystem();
         $tmpDir = $this->createProjectRoot('test.5.vcl');
