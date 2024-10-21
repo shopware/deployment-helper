@@ -15,6 +15,7 @@ use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Dumper\XmlDumper;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -40,6 +41,10 @@ class Application extends SymfonyApplication
         $container = new ContainerBuilder();
         $container->registerAttributeForAutoconfiguration(AsCommand::class, function (ChildDefinition $definition): void {
             $definition->addTag('console.command');
+        });
+
+        $container->registerAttributeForAutoconfiguration(AsEventListener::class, function (ChildDefinition $definition): void {
+            $definition->addTag('kernel.event_listener');
         });
 
         $container->addCompilerPass(new AddConsoleCommandPass());
