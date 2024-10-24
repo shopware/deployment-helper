@@ -19,6 +19,8 @@ class ProjectConfiguration
      */
     public array $oneTimeTasks = [];
 
+    public bool $alwaysClearCache = false;
+
     public function __construct()
     {
         $this->hooks = new ProjectHooks();

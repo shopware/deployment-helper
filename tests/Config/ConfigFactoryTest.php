@@ -62,4 +62,10 @@ class ConfigFactoryTest extends TestCase
         $config = ConfigFactory::create(__DIR__ . '/_fixtures/license-domain');
         static::assertSame('example.com', $config->store->licenseDomain);
     }
+
+    public function testExistingConfigWithAlwaysClearCache(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/always-clear-cache');
+        static::assertTrue($config->alwaysClearCache);
+    }
 }

@@ -42,6 +42,12 @@ class ConfigFactory
             }
         }
 
+        if (isset($deployment['cache']) && \is_array($deployment['cache'])) {
+            if (isset($deployment['cache']['always_clear']) && \is_bool($deployment['cache']['always_clear'])) {
+                $projectConfiguration->alwaysClearCache = $deployment['cache']['always_clear'];
+            }
+        }
+
         if (isset($deployment['hooks']) && \is_array($deployment['hooks'])) {
             self::fillHooks($projectConfiguration->hooks, $deployment['hooks']);
         }
