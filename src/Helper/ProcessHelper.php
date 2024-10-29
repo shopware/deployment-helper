@@ -22,6 +22,35 @@ class ProcessHelper
     }
 
     /**
+     * @param list<string> $command
+     */
+    public function shell(array $command): void
+    {
+        $process = new Process($command, $this->projectDir);
+        $process->setTimeout($this->timeout);
+
+        $startTime = $this->printPreStart($command);
+
+        if (\function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
+            $process->setTty(true);
+        }
+
+        $process->run(function (string $type, string $buffer): void {
+            if ($type === Process::ERR) {
+                fwrite(\STDERR, $buffer);
+            } else {
+                fwrite(\STDOUT, $buffer);
+            }
+        });
+
+        if (!$process->isSuccessful()) {
+            throw new \RuntimeException('Execution of ' . implode(' ', $command) . ' failed');
+        }
+
+        $this->printPostStart($command, $startTime);
+    }
+
+    /**
      * @param list<string> $args
      */
     public function run(array $args): void
