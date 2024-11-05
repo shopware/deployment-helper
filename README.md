@@ -12,19 +12,4 @@ It's independent of the Shopware version and can be used for all versions newer 
 composer require shopware/deployment-helper
 ```
 
-## Usage
-
-The idea is that you build the source code in the pipeline and then use this script on the target system to install or update the Shopware instance.
-
-```bash
-vendor/bin/shopware-deployment-helper run
-```
-
-This will detect is Shopware installed, when not will install it, otherwise will update it.
-
-The following tasks are executed:
-
-- Installation / Updates of Apps / Plugins
-- Compile the Theme (no Webpack, should happen before in the CI pipeline)
-- Check if a Shopware version changed and running Shopware upgrade scripts
-
+[For docs see here](https://developer.shopware.com/docs/guides/hosting/installation-updates/deployments/deployment-helper.html#configuration)
