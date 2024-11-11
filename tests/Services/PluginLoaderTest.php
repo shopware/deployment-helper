@@ -70,4 +70,49 @@ class PluginLoaderTest extends TestCase
             $plugins,
         );
     }
+
+    public function testLoadDependenciesInRightOrderWithReplaces(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+
+        $data = [
+            [
+                'name' => 'Plugin1',
+                'composerName' => 'store.shopware.com/plugin1',
+                'path' => 'plugin1',
+                'version' => '1.0.0',
+            ],
+            [
+                'name' => 'Plugin2',
+                'composerName' => 'store.shopware.com/plugin2',
+                'path' => 'plugin2',
+                'version' => '1.0.0',
+            ],
+        ];
+
+        $processHelper
+            ->method('getPluginList')
+            ->willReturn(json_encode($data, \JSON_THROW_ON_ERROR));
+
+        $plugins = (new PluginLoader(__DIR__ . '/_fixtures', $processHelper))->all();
+
+        static::assertCount(2, $plugins);
+        static::assertSame(
+            [
+                'Plugin2' => [
+                    'name' => 'Plugin2',
+                    'composerName' => 'store.shopware.com/plugin2',
+                    'path' => 'plugin2',
+                    'version' => '1.0.0',
+                ],
+                'Plugin1' => [
+                    'name' => 'Plugin1',
+                    'composerName' => 'store.shopware.com/plugin1',
+                    'path' => 'plugin1',
+                    'version' => '1.0.0',
+                ],
+            ],
+            $plugins,
+        );
+    }
 }

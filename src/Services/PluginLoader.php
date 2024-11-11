@@ -27,6 +27,21 @@ class PluginLoader
      */
     public function all(): array
     {
+        $projectLockPath = Path::join($this->projectDir, 'composer.lock');
+        $projectAliases = [];
+
+        if (file_exists($projectLockPath)) {
+            $lockData = json_decode((string) file_get_contents($projectLockPath), true, 512, \JSON_THROW_ON_ERROR);
+
+            foreach ($lockData['packages'] as $package) {
+                if (isset($package['replace'])) {
+                    foreach ($package['replace'] as $replace => $_) {
+                        $projectAliases[$replace] = $package['name'];
+                    }
+                }
+            }
+        }
+
         $data = json_decode($this->processHelper->getPluginList(), true, 512, \JSON_THROW_ON_ERROR);
 
         $graph = new DependencyGraph();
@@ -47,6 +62,10 @@ class PluginLoader
 
                 if (isset($composer['require'])) {
                     foreach ($composer['require'] as $require => $version) {
+                        if (isset($projectAliases[$require])) {
+                            $require = $projectAliases[$require];
+                        }
+
                         if (isset($nodes[$require])) {
                             $graph->addDependency($nodes[$item['composerName']], $nodes[$require]);
                         }
