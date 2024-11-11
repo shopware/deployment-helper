@@ -1,0 +1,16 @@
+{
+  "packages": [
+    {
+      "name": "store.shopware.com/plugin1",
+      "replace": {
+        "plugin/1": "self.version"
+      }
+    },
+    {
+      "name": "store.shopware.com/plugin2",
+      "replace": {
+        "plugin/2": "self.version"
+      }
+    }
+  ]
+}
