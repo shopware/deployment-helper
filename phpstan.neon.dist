@@ -5,7 +5,6 @@ parameters:
 	phpVersion: 80200
 	level: 8
 	treatPhpDocTypesAsCertain: false
-	checkMissingIterableValueType: true
 	inferPrivatePropertyTypeFromConstructor: true
 	tmpDir: var/cache/phpstan
 	paths:
