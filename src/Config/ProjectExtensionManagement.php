@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Shopware\Deployment\Config;
 
 /**
- * @phpstan-type ExtensionOverride array{state: 'inactive'|'remove'|'ignore', keepUserData?: bool}
+ * @phpstan-type ExtensionOverride array{state: self::LIFECYCLE_STATE_*, keepUserData?: bool}
  */
 class ProjectExtensionManagement
 {
