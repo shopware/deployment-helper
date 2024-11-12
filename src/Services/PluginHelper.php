@@ -105,13 +105,13 @@ class PluginHelper
 
             $keepUserData = $this->configuration->extensionManagement->overrides[$plugin['name']]['keepUserData'] ?? false;
 
-            $deleteParameters = [];
+            $uninstallParameters = [];
 
             if ($keepUserData) {
-                $deleteParameters[] = '--keep-user-data';
+                $uninstallParameters[] = '--keep-user-data';
             }
 
-            $this->processHelper->console(['plugin:uninstall', $plugin['name'], ...$deleteParameters, ...$additionalParameters]);
+            $this->processHelper->console(['plugin:uninstall', $plugin['name'], ...$uninstallParameters, ...$additionalParameters]);
         }
     }
 }
