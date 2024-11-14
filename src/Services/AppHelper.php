@@ -49,6 +49,8 @@ class AppHelper
     {
         $installed = $this->connection->fetchAllAssociativeIndexed('SELECT name, version, active FROM app');
 
+        $appNeedsToBeUpdated = false;
+
         foreach ($this->appLoader->all() as $app) {
             if (!$this->configuration->isExtensionManaged($app['name'])) {
                 continue;
@@ -62,7 +64,12 @@ class AppHelper
                 continue;
             }
 
-            $this->processHelper->console(['app:update', $app['name'], '--force']);
+            $appNeedsToBeUpdated = true;
+            break;
+        }
+
+        if ($appNeedsToBeUpdated) {
+            $this->processHelper->console(['app:refresh', '--force']);
         }
     }
 }
