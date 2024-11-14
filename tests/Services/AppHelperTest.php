@@ -156,7 +156,7 @@ class AppHelperTest extends TestCase
         $processHelper
             ->expects($this->once())
             ->method('console')
-            ->with(['app:update', 'TestApp', '--force']);
+            ->with(['app:refresh', '--force']);
 
         $connection = $this->createMock(Connection::class);
         $connection
