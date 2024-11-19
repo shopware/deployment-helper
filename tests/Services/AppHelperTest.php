@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Config\ProjectConfiguration;
+use Shopware\Deployment\Config\ProjectExtensionManagement;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\AppHelper;
 use Shopware\Deployment\Services\AppLoader;
@@ -173,6 +174,141 @@ class AppHelperTest extends TestCase
         );
 
         $appHelper->updateApps();
+    }
+
+    public function testDeactivate(): void
+    {
+        $config = new ProjectConfiguration();
+        $config->extensionManagement->overrides['TestApp'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_INACTIVE];
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper
+            ->expects($this->once())
+            ->method('console')
+            ->with(['app:deactivate', 'TestApp']);
+
+        $connection = $this->createMock(Connection::class);
+        $connection
+            ->method('fetchAllAssociative')
+            ->willReturn([
+                ['name' => 'TestApp', 'version' => '0.0.1', 'active' => true],
+            ]);
+
+        $appHelper = new AppHelper(
+            $this->createAppLoader(),
+            $processHelper,
+            $connection,
+            $config,
+        );
+
+        $appHelper->deactivateApps();
+    }
+
+    public function testDeactivateDoesNothingWhenDeactivated(): void
+    {
+        $config = new ProjectConfiguration();
+        $config->extensionManagement->overrides['TestApp'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_INACTIVE];
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper
+            ->expects($this->never())
+            ->method('console');
+
+        $connection = $this->createMock(Connection::class);
+        $connection
+            ->method('fetchAllAssociative')
+            ->willReturn([
+                ['name' => 'TestApp', 'version' => '0.0.1', 'active' => false],
+            ]);
+
+        $appHelper = new AppHelper(
+            $this->createAppLoader(),
+            $processHelper,
+            $connection,
+            $config,
+        );
+
+        $appHelper->deactivateApps();
+    }
+
+    public function testDeactivateDoesNothingWhenAppIsFine(): void
+    {
+        $config = new ProjectConfiguration();
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper
+            ->expects($this->never())
+            ->method('console');
+
+        $connection = $this->createMock(Connection::class);
+        $connection
+            ->method('fetchAllAssociative')
+            ->willReturn([
+                ['name' => 'TestApp', 'version' => '0.0.1', 'active' => true],
+            ]);
+
+        $appHelper = new AppHelper(
+            $this->createAppLoader(),
+            $processHelper,
+            $connection,
+            $config,
+        );
+
+        $appHelper->deactivateApps();
+    }
+
+    public function testUninstall(): void
+    {
+        $config = new ProjectConfiguration();
+        $config->extensionManagement->overrides['TestApp'] = ['state' => 'remove'];
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper
+            ->expects($this->once())
+            ->method('console')
+            ->with(['app:uninstall', 'TestApp']);
+
+        $connection = $this->createMock(Connection::class);
+        $connection
+            ->method('fetchAllAssociative')
+            ->willReturn([
+                ['name' => 'TestApp', 'version' => '0.0.1', 'active' => true],
+            ]);
+
+        $appHelper = new AppHelper(
+            $this->createAppLoader(),
+            $processHelper,
+            $connection,
+            $config,
+        );
+
+        $appHelper->removeApps();
+    }
+
+    public function testUninstallWhenNotMatching(): void
+    {
+        $config = new ProjectConfiguration();
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper
+            ->expects($this->never())
+            ->method('console');
+
+        $connection = $this->createMock(Connection::class);
+        $connection
+            ->method('fetchAllAssociative')
+            ->willReturn([
+                ['name' => 'TestApp', 'version' => '0.0.1', 'active' => true],
+            ]);
+
+        $appHelper = new AppHelper(
+            $this->createAppLoader(),
+            $processHelper,
+            $connection,
+            $config,
+        );
+
+        $appHelper->removeApps();
     }
 
     public function createAppLoader(): AppLoader&MockObject

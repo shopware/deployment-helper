@@ -28,17 +28,4 @@ class ProjectConfiguration
         $this->maintenance = new ProjectMaintenance();
         $this->store = new ProjectStore();
     }
-
-    public function isExtensionManaged(string $name): bool
-    {
-        if (!$this->extensionManagement->enabled) {
-            return false;
-        }
-
-        if (\in_array($name, $this->extensionManagement->excluded, true)) {
-            return false;
-        }
-
-        return true;
-    }
 }

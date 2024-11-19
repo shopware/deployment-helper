@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Config\ProjectConfiguration;
+use Shopware\Deployment\Config\ProjectExtensionManagement;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\PluginHelper;
 use Shopware\Deployment\Services\PluginLoader;
@@ -145,6 +146,123 @@ class PluginHelperTest extends TestCase
         );
 
         $helper->updatePlugins(true);
+    }
+
+    public function testInactive(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:deactivate', 'TestPlugin']);
+
+        $configuration = new ProjectConfiguration();
+        $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_INACTIVE];
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(),
+            $processHelper,
+            $configuration,
+        );
+
+        $helper->deactivatePlugins();
+    }
+
+    public function testInactiveWithDisabledAssets(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:deactivate', 'TestPlugin', '--skip-asset-build']);
+
+        $configuration = new ProjectConfiguration();
+        $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_INACTIVE];
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(),
+            $processHelper,
+            $configuration,
+        );
+
+        $helper->deactivatePlugins(true);
+    }
+
+    public function testInactiveNotMatching(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->never())->method('console');
+
+        $configuration = new ProjectConfiguration();
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(),
+            $processHelper,
+            $configuration,
+        );
+
+        $helper->deactivatePlugins();
+    }
+
+    public function testUninstall(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:uninstall', 'TestPlugin']);
+
+        $configuration = new ProjectConfiguration();
+        $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_REMOVE];
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(),
+            $processHelper,
+            $configuration,
+        );
+
+        $helper->removePlugins();
+    }
+
+    public function testUninstallWithDisabledAssets(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:uninstall', 'TestPlugin', '--skip-asset-build']);
+
+        $configuration = new ProjectConfiguration();
+        $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_REMOVE];
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(),
+            $processHelper,
+            $configuration,
+        );
+
+        $helper->removePlugins(true);
+    }
+
+    public function testUninstallWithDisabledAssetsKeepData(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:uninstall', 'TestPlugin', '--keep-user-data', '--skip-asset-build']);
+
+        $configuration = new ProjectConfiguration();
+        $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_REMOVE, 'keepUserData' => true];
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(),
+            $processHelper,
+            $configuration,
+        );
+
+        $helper->removePlugins(true);
+    }
+
+    public function testUninstallNotMatching(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->never())->method('console');
+
+        $configuration = new ProjectConfiguration();
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(),
+            $processHelper,
+            $configuration,
+        );
+
+        $helper->removePlugins(true);
     }
 
     public function getPluginLoader(bool $active = true, ?string $installedAt = 'test', ?string $upgradeVersion = null): PluginLoader&MockObject

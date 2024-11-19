@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Config\ConfigFactory;
+use Shopware\Deployment\Config\ProjectExtensionManagement;
 use Zalas\PHPUnit\Globals\Attribute\Env;
 
 #[CoversClass(ConfigFactory::class)]
@@ -18,7 +19,7 @@ class ConfigFactoryTest extends TestCase
         $config = ConfigFactory::create(__DIR__);
         static::assertFalse($config->maintenance->enabled);
         static::assertTrue($config->extensionManagement->enabled);
-        static::assertSame([], $config->extensionManagement->excluded);
+        static::assertSame([], $config->extensionManagement->overrides);
         static::assertSame([], $config->oneTimeTasks);
         static::assertSame('', $config->hooks->pre);
     }
@@ -34,7 +35,7 @@ class ConfigFactoryTest extends TestCase
     {
         $config = ConfigFactory::create($configDir);
         static::assertTrue($config->extensionManagement->enabled);
-        static::assertSame(['Name'], $config->extensionManagement->excluded);
+        static::assertSame('ignore', $config->extensionManagement->overrides['Name']['state']);
         static::assertSame(['foo' => 'test'], $config->oneTimeTasks);
         static::assertNotSame('', $config->hooks->pre);
         static::assertNotSame('', $config->hooks->post);
@@ -57,7 +58,7 @@ class ConfigFactoryTest extends TestCase
         static::assertSame('test', $config->store->licenseDomain);
     }
 
-    public function testExistingConfigWithStoreCOnfig(): void
+    public function testExistingConfigWithStoreConfig(): void
     {
         $config = ConfigFactory::create(__DIR__ . '/_fixtures/license-domain');
         static::assertSame('example.com', $config->store->licenseDomain);
@@ -67,5 +68,22 @@ class ConfigFactoryTest extends TestCase
     {
         $config = ConfigFactory::create(__DIR__ . '/_fixtures/always-clear-cache');
         static::assertTrue($config->alwaysClearCache);
+    }
+
+    public function testExistingConfigWithExtensionOverride(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/extension-override');
+        static::assertNotEmpty($config->extensionManagement->overrides);
+
+        // Test FroshTest (without keepUserData)
+        static::assertArrayHasKey('FroshTest', $config->extensionManagement->overrides);
+        static::assertSame(ProjectExtensionManagement::LIFECYCLE_STATE_REMOVE, $config->extensionManagement->overrides['FroshTest']['state']);
+        static::assertArrayHasKey('keepUserData', $config->extensionManagement->overrides['FroshTest']);
+
+        // Test FroshTest2 (with keepUserData)
+        static::assertArrayHasKey('FroshTest2', $config->extensionManagement->overrides);
+        static::assertSame(ProjectExtensionManagement::LIFECYCLE_STATE_REMOVE, $config->extensionManagement->overrides['FroshTest2']['state']);
+        static::assertArrayHasKey('keepUserData', $config->extensionManagement->overrides['FroshTest2']);
+        static::assertTrue($config->extensionManagement->overrides['FroshTest2']['keepUserData']);
     }
 }

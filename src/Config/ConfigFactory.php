@@ -111,7 +111,19 @@ class ConfigFactory
         }
 
         if (isset($config['exclude']) && \is_array($config['exclude'])) {
-            $extensionManagement->excluded = $config['exclude'];
+            foreach ($config['exclude'] as $excludeExtension) {
+                $extensionManagement->overrides[(string) $excludeExtension] = ['state' => 'ignore'];
+            }
+        }
+
+        if (isset($config['overrides']) && \is_array($config['overrides'])) {
+            foreach ($config['overrides'] as $extension => $override) {
+                if (isset($override['state']) && \is_string($override['state']) && \in_array($override['state'], ProjectExtensionManagement::ALLOWED_STATES, true)) {
+                    $keepUserData = \array_key_exists('keepUserData', $override) && \is_bool($override['keepUserData']) && $override['keepUserData'];
+
+                    $extensionManagement->overrides[(string) $extension] = ['state' => $override['state'], 'keepUserData' => $keepUserData];
+                }
+            }
         }
     }
 

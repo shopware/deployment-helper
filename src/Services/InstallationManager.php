@@ -79,6 +79,8 @@ class InstallationManager
         $this->processHelper->console(['plugin:refresh']);
         $this->pluginHelper->installPlugins($configuration->skipAssetsInstall);
         $this->pluginHelper->updatePlugins($configuration->skipAssetsInstall);
+        $this->pluginHelper->deactivatePlugins($configuration->skipAssetsInstall);
+        $this->pluginHelper->removePlugins($configuration->skipAssetsInstall);
 
         if ($this->configuration->store->licenseDomain !== '') {
             $this->accountService->refresh(new SymfonyStyle(new ArgvInput([]), $output), $this->state->getCurrentVersion(), $this->configuration->store->licenseDomain);
@@ -86,6 +88,8 @@ class InstallationManager
 
         $this->appHelper->installApps();
         $this->appHelper->updateApps();
+        $this->appHelper->deactivateApps();
+        $this->appHelper->removeApps();
 
         $this->hookExecutor->execute(HookExecutor::HOOK_POST_INSTALL);
     }
