@@ -55,6 +55,8 @@ class InstallationManager
         $this->processHelper->console(['system:install', '--create-database', '--shop-locale=' . $shopLocale, '--shop-currency=' . $shopCurrency, '--force', ...$additionalInstallParameters]);
         $this->processHelper->console(['user:create', $adminUser, '--password=' . $adminPassword]);
 
+        $this->processHelper->console(['messenger:setup-transports']);
+
         if ($this->state->isStorefrontInstalled()) {
             $this->removeExistingHeadlessSalesChannel();
             if (!$this->state->isSalesChannelExisting($salesChannelUrl)) {
