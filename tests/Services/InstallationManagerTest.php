@@ -99,7 +99,7 @@ class InstallationManagerTest extends TestCase
 
         $manager->run(new RunConfiguration(true, true), $this->createMock(OutputInterface::class));
 
-        static::assertCount(6, $consoleCommands);
+        static::assertCount(7, $consoleCommands);
         static::assertSame(['system:install', '--create-database', '--shop-locale=en-GB', '--shop-currency=EUR', '--force', '--no-assign-theme', '--skip-assets-install'], $consoleCommands[0]);
     }
 
