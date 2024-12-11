@@ -61,7 +61,11 @@ class UpgradeManager
         }
 
         $this->processHelper->console(['plugin:refresh']);
-        $this->processHelper->console(['theme:refresh']);
+
+        if ($this->state->isStorefrontInstalled()) {
+            $this->processHelper->console(['theme:refresh']);
+        }
+
         $this->processHelper->console(['scheduled-task:register']);
         $this->processHelper->console(['messenger:setup-transports']);
 

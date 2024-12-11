@@ -124,7 +124,7 @@ class UpgradeManagerTest extends TestCase
 
         $manager->run(new RunConfiguration(true, true), $this->createMock(OutputInterface::class));
 
-        static::assertCount(5, $consoleCommands);
+        static::assertCount(4, $consoleCommands);
         static::assertSame(['system:update:finish', '--skip-asset-build'], $consoleCommands[0]);
     }
 
@@ -133,7 +133,7 @@ class UpgradeManagerTest extends TestCase
     {
         $state = $this->createMock(ShopwareState::class);
         $state
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('isStorefrontInstalled')
             ->willReturn(true);
 
@@ -206,10 +206,10 @@ class UpgradeManagerTest extends TestCase
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
 
-        static::assertCount(7, $consoleCommands);
+        static::assertCount(6, $consoleCommands);
         static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[0]);
         static::assertArrayHasKey(5, $consoleCommands);
-        static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[6]);
+        static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[5]);
     }
 
     public function testRunWithLicenseDomain(): void
