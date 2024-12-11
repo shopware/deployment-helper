@@ -40,7 +40,7 @@ class InstallationManager
         $adminUser = EnvironmentHelper::getVariable('INSTALL_ADMIN_USERNAME', 'admin');
         $adminPassword = EnvironmentHelper::getVariable('INSTALL_ADMIN_PASSWORD', 'shopware');
         $appUrl = EnvironmentHelper::getVariable('APP_URL');
-        $salesChannelUrl = EnvironmentHelper::getVariable('SALES_CHANNEL_URL', $appUrl);
+        $salesChannelUrl = UrlHelper::normalizeSalesChannelUrl(EnvironmentHelper::getVariable('SALES_CHANNEL_URL', $appUrl) ?? '');
 
         $additionalInstallParameters = [];
 

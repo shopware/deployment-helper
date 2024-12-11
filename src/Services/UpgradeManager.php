@@ -57,7 +57,7 @@ class UpgradeManager
         $salesChannelUrl = EnvironmentHelper::getVariable('SALES_CHANNEL_URL');
 
         if ($salesChannelUrl !== null && $this->state->isStorefrontInstalled() && !$this->state->isSalesChannelExisting($salesChannelUrl)) {
-            $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $salesChannelUrl]);
+            $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . UrlHelper::normalizeSalesChannelUrl($salesChannelUrl)]);
         }
 
         $this->processHelper->console(['plugin:refresh']);

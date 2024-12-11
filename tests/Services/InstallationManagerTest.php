@@ -17,8 +17,10 @@ use Shopware\Deployment\Services\PluginHelper;
 use Shopware\Deployment\Services\ShopwareState;
 use Shopware\Deployment\Struct\RunConfiguration;
 use Symfony\Component\Console\Output\OutputInterface;
+use Zalas\PHPUnit\Globals\Attribute\Env;
 
 #[CoversClass(InstallationManager::class)]
+#[Env('APP_URL', 'http://localhost')]
 class InstallationManagerTest extends TestCase
 {
     public function testRun(): void
