@@ -155,4 +155,61 @@ class AccountServiceTest extends TestCase
         $this->expectExceptionMessage('Got invalid response from Shopware API: {"message":"Invalid credentials"}');
         $service->refresh($output, '6.4.0-dev', 'old.example.com');
     }
+
+    #[Env('SHOPWARE_STORE_SHOP_SECRET', 'some-key')]
+    public function testStaticShopSecretNotSetAsInvalid(): void
+    {
+        $output = $this->createMock(SymfonyStyle::class);
+        $output->expects($this->once())->method('warning');
+
+        $systemConfigHelper = new StaticSystemConfigHelper([
+            AccountService::CORE_STORE_LICENSE_HOST => 'old.example.com',
+        ]);
+
+        $mockHttpClient = new MockHttpClient(
+            new MockResponse('{"message": "Invalid credentials"}', ['http_code' => 500])
+        );
+
+        $service = new AccountService($systemConfigHelper, $this->createMock(ProcessHelper::class), $mockHttpClient);
+        $service->refresh($output, '6.4.0-dev', 'old.example.com');
+    }
+
+    #[Env('SHOPWARE_STORE_SHOP_SECRET', 'some-key')]
+    public function testStaticShopSecret(): void
+    {
+        $output = $this->createMock(SymfonyStyle::class);
+        $output->expects($this->never())->method('warning');
+
+        $systemConfigHelper = new StaticSystemConfigHelper([
+            AccountService::CORE_STORE_LICENSE_HOST => 'old.example.com',
+        ]);
+
+        $mockHttpClient = new MockHttpClient(
+            new MockResponse('{"message": "Invalid credentials"}', ['http_code' => 200])
+        );
+
+        $service = new AccountService($systemConfigHelper, $this->createMock(ProcessHelper::class), $mockHttpClient);
+        $service->refresh($output, '6.4.0-dev', 'old.example.com');
+        static::assertSame('some-key', $systemConfigHelper->get(AccountService::CORE_STORE_SHOP_SECRET));
+    }
+
+    #[Env('SHOPWARE_STORE_SHOP_SECRET', 'some-key')]
+    public function testStaticShopSecretSameKeyDoesNothing(): void
+    {
+        $output = $this->createMock(SymfonyStyle::class);
+        $output->expects($this->never())->method('warning');
+
+        $systemConfigHelper = new StaticSystemConfigHelper([
+            AccountService::CORE_STORE_LICENSE_HOST => 'old.example.com',
+            AccountService::CORE_STORE_SHOP_SECRET => 'some-key',
+        ]);
+
+        $mockHttpClient = new MockHttpClient(
+            new MockResponse('{"message": "Invalid credentials"}', ['http_code' => 200])
+        );
+
+        $service = new AccountService($systemConfigHelper, $this->createMock(ProcessHelper::class), $mockHttpClient);
+        $service->refresh($output, '6.4.0-dev', 'old.example.com');
+        static::assertSame('some-key', $systemConfigHelper->get(AccountService::CORE_STORE_SHOP_SECRET));
+    }
 }
