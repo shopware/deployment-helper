@@ -131,4 +131,35 @@ class InstallationManagerTest extends TestCase
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
     }
+
+    public function testRunWithForceReinstall(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $accountService = $this->createMock(AccountService::class);
+        $accountService->expects(static::never())->method('refresh');
+
+        $manager = new InstallationManager(
+            $this->createMock(ShopwareState::class),
+            $this->createMock(Connection::class),
+            $processHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            new ProjectConfiguration(),
+            $accountService,
+        );
+
+        $manager->run(new RunConfiguration(true, true, forceReinstallation: true), $this->createMock(OutputInterface::class));
+
+        static::assertCount(4, $consoleCommands);
+        static::assertSame(['system:install', '--create-database', '--shop-locale=en-GB', '--shop-currency=EUR', '--force', '--no-assign-theme', '--skip-assets-install', '--drop-database'], $consoleCommands[0]);
+    }
 }

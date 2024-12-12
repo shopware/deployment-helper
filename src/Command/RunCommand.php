@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopware\Deployment\Command;
 
 use Shopware\Deployment\Event\PostDeploy;
+use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Services\HookExecutor;
 use Shopware\Deployment\Services\InstallationManager;
 use Shopware\Deployment\Services\ShopwareState;
@@ -46,9 +47,14 @@ class RunCommand extends Command
             skipThemeCompile: (bool) $input->getOption('skip-theme-compile'),
             skipAssetsInstall: ((bool) $input->getOption('skip-asset-install') || (bool) $input->getOption('skip-assets-install')),
             timeout: is_numeric($timeout) ? (float) $timeout : null,
+            forceReinstallation: EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_FORCE_REINSTALL', '0') === '1',
         );
 
         $installed = $this->state->isInstalled();
+
+        if ($config->forceReinstallation && $this->state->getPreviousVersion() === 'unknown') {
+            $installed = false;
+        }
 
         $this->hookExecutor->execute(HookExecutor::HOOK_PRE);
 

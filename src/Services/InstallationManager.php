@@ -52,6 +52,10 @@ class InstallationManager
             $additionalInstallParameters[] = '--skip-assets-install';
         }
 
+        if ($configuration->forceReinstallation) {
+            $additionalInstallParameters[] = '--drop-database';
+        }
+
         $this->processHelper->console(['system:install', '--create-database', '--shop-locale=' . $shopLocale, '--shop-currency=' . $shopCurrency, '--force', ...$additionalInstallParameters]);
         $this->processHelper->console(['user:create', $adminUser, '--password=' . $adminPassword]);
 
@@ -76,7 +80,6 @@ class InstallationManager
         }
 
         $this->state->disableFirstRunWizard();
-        $this->state->setVersion($this->state->getCurrentVersion());
 
         $this->processHelper->console(['plugin:refresh']);
         $this->pluginHelper->installPlugins($configuration->skipAssetsInstall);
@@ -92,6 +95,8 @@ class InstallationManager
         $this->appHelper->updateApps();
         $this->appHelper->deactivateApps();
         $this->appHelper->removeApps();
+
+        $this->state->setVersion($this->state->getCurrentVersion());
 
         $this->hookExecutor->execute(HookExecutor::HOOK_POST_INSTALL);
     }
