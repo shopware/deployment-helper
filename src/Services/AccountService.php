@@ -36,8 +36,11 @@ readonly class AccountService
 
         $email = EnvironmentHelper::getVariable('SHOPWARE_STORE_ACCOUNT_EMAIL', '');
         $password = EnvironmentHelper::getVariable('SHOPWARE_STORE_ACCOUNT_PASSWORD', '');
+        $shopSecret = EnvironmentHelper::getVariable('SHOPWARE_STORE_SHOP_SECRET', '');
 
-        if ($email === '' || $password === '') {
+        if ($shopSecret !== '') {
+            $changed = $this->setManuallyConfiguredShopSecret($shopwareVersion, $licenseDomain, $shopSecret, $output);
+        } elseif ($email === '' || $password === '') {
             $output->warning('No store account credentials found, skipping store account login verification and login if needed. Set SHOPWARE_STORE_ACCOUNT_EMAIL and SHOPWARE_STORE_ACCOUNT_PASSWORD to refresh the store account on deployment');
         } elseif ($this->refreshShopToken($shopwareVersion, $licenseDomain, $email, $password)) {
             $output->info('Refreshed global shop token to communicate to store.shopware.com');
@@ -110,5 +113,22 @@ readonly class AccountService
         ]);
 
         return $response->getStatusCode() === 200;
+    }
+
+    private function setManuallyConfiguredShopSecret(string $shopwareVersion, string $licenseDomain, string $shopSecret, SymfonyStyle $output): bool
+    {
+        if (!$this->isShopSecretStillValid($shopSecret, $shopwareVersion, $licenseDomain)) {
+            $output->warning('Manually given shop secret is invalid, ignoring it');
+
+            return false;
+        }
+
+        if ($this->systemConfigHelper->get(self::CORE_STORE_SHOP_SECRET) === $shopSecret) {
+            return false;
+        }
+
+        $this->systemConfigHelper->set(self::CORE_STORE_SHOP_SECRET, $shopSecret);
+
+        return true;
     }
 }
