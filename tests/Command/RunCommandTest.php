@@ -13,6 +13,7 @@ use Shopware\Deployment\Services\ShopwareState;
 use Shopware\Deployment\Services\UpgradeManager;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Zalas\PHPUnit\Globals\Attribute\Env;
 
 #[CoversClass(RunCommand::class)]
 class RunCommandTest extends TestCase
@@ -100,5 +101,45 @@ class RunCommandTest extends TestCase
             '--skip-assets-install' => true,
             '--timeout' => 600,
         ]);
+    }
+
+    #[Env('SHOPWARE_DEPLOYMENT_FORCE_REINSTALL', '1')]
+    public function testRunWithoutFullyInstalled(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state
+            ->expects($this->once())
+            ->method('isInstalled')
+            ->willReturn(true);
+        $state
+            ->expects($this->once())
+            ->method('getPreviousVersion')
+            ->willReturn('unknown');
+
+        $hookExecutor = $this->createMock(HookExecutor::class);
+        $hookExecutor
+            ->expects($this->exactly(2))
+            ->method('execute');
+
+        $installationManager = $this->createMock(InstallationManager::class);
+        $installationManager
+            ->expects($this->once())
+            ->method('run')
+            ->with(self::callback(function ($config) {
+                static::assertTrue($config->forceReinstallation);
+
+                return true;
+            }));
+
+        $command = new RunCommand(
+            $state,
+            $installationManager,
+            $this->createMock(UpgradeManager::class),
+            $hookExecutor,
+            new EventDispatcher()
+        );
+
+        $tester = new CommandTester($command);
+        $tester->execute([]);
     }
 }

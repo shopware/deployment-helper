@@ -37,7 +37,11 @@ class ShopwareState
 
     public function getPreviousVersion(): string
     {
-        $data = $this->connection->fetchOne('SELECT configuration_value FROM system_config WHERE configuration_key = "deployment.version" AND sales_channel_id IS NULL');
+        try {
+            $data = $this->connection->fetchOne('SELECT configuration_value FROM system_config WHERE configuration_key = "deployment.version" AND sales_channel_id IS NULL');
+        } catch (\Throwable) {
+            return 'unknown';
+        }
 
         if ($data === false) {
             return 'unknown';

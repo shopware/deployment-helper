@@ -60,6 +60,15 @@ class ShopwareStateTest extends TestCase
         InstalledVersions::reload($before);
     }
 
+    public function testGetPreviousVersionTableDoesNotExistYet(): void
+    {
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->willThrowException(new \Exception());
+        static::assertSame('unknown', $this->state->getPreviousVersion());
+    }
+
     public function testGetPreviousVersionNotExisting(): void
     {
         $this->connection

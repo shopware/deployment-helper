@@ -10,6 +10,7 @@ readonly class RunConfiguration
         public bool $skipThemeCompile = false,
         public bool $skipAssetsInstall = false,
         public ?float $timeout = 60,
+        public bool $forceReinstallation = false,
     ) {
     }
 }

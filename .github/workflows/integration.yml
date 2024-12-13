@@ -51,7 +51,62 @@ jobs:
         run: ./vendor/bin/shopware-deployment-helper run
 
       - name: Start Webserver
-        run: symfony server:start -d
+        run: symfony server:start -d --no-tls --allow-all-ip
+
+      - name: PayPal plugin should be installed
+        run: ./bin/console plugin:list | grep SwagPayPal
+
+      - name: Default Storefront should be available
+        run: curl -q --fail http://localhost:8000
+
+  installation-with-retry:
+    name: Install a Shopware Shop with Retry
+    runs-on: ubuntu-latest
+    env:
+      SHOPWARE_DEPLOYMENT_FORCE_REINSTALL: 1
+    steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: symfony-cli
+
+      - name: Start Default MySQL
+        run: |
+          sudo mv /var/lib/mysql /var/lib/mysql-old
+          sudo mkdir /var/lib/mysql
+          sudo mount -t tmpfs tmpfs /var/lib/mysql -o size=1G
+          sudo -u mysql mysqld --datadir=/var/lib/mysql --default-time-zone=SYSTEM --initialize-insecure
+          sudo systemctl start mysql
+
+      - name: Create new Shopware Project
+        run: composer create-project shopware/production . --no-interaction
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ./custom/plugins/deployment-helper
+
+      - name: Set fake version into deployment helper
+        run: composer -d custom/plugins/deployment-helper config version 999.9.9
+
+      - name: Install Deployment Helper
+        run: composer require --dev 'shopware/deployment-helper:*'
+
+      - name: Install PayPal
+        run: composer require 'swag/paypal:*'
+
+      - name: Install Shopware and kill it after some seconds
+        run: timeout 10 ./vendor/bin/shopware-deployment-helper run || true
+
+      - name: Retry the Installation
+        run: ./vendor/bin/shopware-deployment-helper run
+
+      - name: Ensure the admin user exists
+        run: ./bin/console user:list | grep user@example.com
+
+      - name: Start Webserver
+        run: symfony server:start -d --no-tls --allow-all-ip
 
       - name: PayPal plugin should be installed
         run: ./bin/console plugin:list | grep SwagPayPal
@@ -98,7 +153,7 @@ jobs:
         run: ./vendor/bin/shopware-deployment-helper run
 
       - name: Start Webserver
-        run: symfony server:start -d
+        run: symfony server:start -d --no-tls --allow-all-ip
 
       - name: PayPal plugin should be installed
         run: ./bin/console plugin:list | grep SwagPayPal
