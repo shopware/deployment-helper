@@ -68,6 +68,7 @@ class UpgradeManager
 
         $this->processHelper->console(['scheduled-task:register']);
         $this->processHelper->console(['messenger:setup-transports']);
+        $this->processHelper->console(['messenger:stop-workers']);
 
         $this->pluginHelper->installPlugins($configuration->skipAssetsInstall);
         $this->pluginHelper->updatePlugins($configuration->skipAssetsInstall);
