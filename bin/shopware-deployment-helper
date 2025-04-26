@@ -4,6 +4,8 @@
 declare(strict_types=1);
 
 use Shopware\Deployment\Application;
+use Shopware\Deployment\ApplicationOutput;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 error_reporting(-1);
 ini_set('display_errors', 1);
@@ -28,4 +30,4 @@ foreach ($includables as $file) {
 }
 
 $app = new Application();
-$app->run();
+$app->run(output: new ApplicationOutput(new ConsoleOutput()));
