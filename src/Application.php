@@ -25,7 +25,7 @@ class Application extends SymfonyApplication
 
     public function __construct()
     {
-        parent::__construct('Shopware Deployment Helper', '__VERSION__');
+        parent::__construct('Shopware Deployment Helper', InstalledVersions::getPrettyVersion('shopware/deployment-helper'));
         $this->container = $this->createContainer();
         $this->setDispatcher($this->container->get('event_dispatcher'));
         $this->setCommandLoader($this->container->get('console.command_loader'));
