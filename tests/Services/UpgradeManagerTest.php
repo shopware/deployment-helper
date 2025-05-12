@@ -168,6 +168,7 @@ class UpgradeManagerTest extends TestCase
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
 
         static::assertCount(7, $consoleCommands);
+        static::assertArrayHasKey(1, $consoleCommands);
         static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://foo.com'], $consoleCommands[1]);
     }
 
