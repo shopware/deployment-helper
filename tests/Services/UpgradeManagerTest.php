@@ -126,6 +126,7 @@ class UpgradeManagerTest extends TestCase
 
         static::assertCount(5, $consoleCommands);
         static::assertSame(['messenger:setup-transports'], $consoleCommands[0]);
+        static::assertArrayHasKey(1, $consoleCommands);
         static::assertSame(['system:update:finish', '--skip-asset-build'], $consoleCommands[1]);
     }
 

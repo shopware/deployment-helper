@@ -41,6 +41,8 @@ class UpgradeManager
 
         $output->writeln('Shopware is installed, running update tools');
 
+        $this->processHelper->console(['messenger:setup-transports']);
+
         if ($this->state->getPreviousVersion() !== $this->state->getCurrentVersion()) {
             $output->writeln(\sprintf('Updating Shopware from %s to %s', $this->state->getPreviousVersion(), $this->state->getCurrentVersion()));
 
@@ -50,7 +52,6 @@ class UpgradeManager
                 $additionalUpdateParameters[] = '--skip-asset-build';
             }
 
-            $this->processHelper->console(['messenger:setup-transports']);
             $this->processHelper->console(['system:update:finish', ...$additionalUpdateParameters]);
             $this->state->setVersion($this->state->getCurrentVersion());
         }
