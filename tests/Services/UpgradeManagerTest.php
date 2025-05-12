@@ -167,8 +167,8 @@ class UpgradeManagerTest extends TestCase
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
 
-        static::assertCount(6, $consoleCommands);
-        static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://foo.com'], $consoleCommands[0]);
+        static::assertCount(7, $consoleCommands);
+        static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://foo.com'], $consoleCommands[1]);
     }
 
     public function testRunWithMaintenanceMode(): void
@@ -208,10 +208,10 @@ class UpgradeManagerTest extends TestCase
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
 
-        static::assertCount(6, $consoleCommands);
+        static::assertCount(7, $consoleCommands);
         static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[0]);
         static::assertArrayHasKey(5, $consoleCommands);
-        static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[5]);
+        static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[6]);
     }
 
     public function testRunWithLicenseDomain(): void
