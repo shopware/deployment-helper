@@ -146,6 +146,8 @@ class ProcessHelper
 
         fwrite(\STDOUT, \PHP_EOL);
         fwrite(\STDOUT, "=================================================\n");
+        fwrite(\STDOUT, "============== [deployment-helper] ==============\n");
+        fwrite(\STDOUT, "=================================================\n");
         fwrite(\STDOUT, \sprintf("Start: %s\n", $cmdString));
         fwrite(\STDOUT, \sprintf("Time limit: %s seconds\n", $this->timeout));
         fwrite(\STDOUT, "=================================================\n");
@@ -159,6 +161,8 @@ class ProcessHelper
      */
     private function printPostStart(array $cmd, float $startTime): void
     {
+        fwrite(\STDOUT, "=================================================\n");
+        fwrite(\STDOUT, "============== [deployment-helper] ==============\n");
         fwrite(\STDOUT, "=================================================\n");
         fwrite(\STDOUT, \sprintf("End: %s\n", implode(' ', $cmd)));
         fwrite(\STDOUT, \sprintf(
