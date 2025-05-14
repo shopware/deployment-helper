@@ -50,7 +50,7 @@ class PluginLoader
 
         foreach ($data as $item) {
             $byName[$item['name']] = $item;
-            $nodes[$item['composerName']] = new DependencyNode($item['name']);
+            $nodes[$item['composerName']] = new DependencyNode($item['name'], $item['name']);
             $graph->addNode($nodes[$item['composerName']]);
         }
 
