@@ -41,6 +41,8 @@ class UpgradeManager
 
         $output->writeln('Shopware is installed, running update tools');
 
+        $this->processHelper->console(['messenger:setup-transports']);
+
         if ($this->state->getPreviousVersion() !== $this->state->getCurrentVersion()) {
             $output->writeln(\sprintf('Updating Shopware from %s to %s', $this->state->getPreviousVersion(), $this->state->getCurrentVersion()));
 
@@ -67,7 +69,6 @@ class UpgradeManager
         }
 
         $this->processHelper->console(['scheduled-task:register']);
-        $this->processHelper->console(['messenger:setup-transports']);
         $this->processHelper->console(['messenger:stop-workers']);
 
         $this->pluginHelper->installPlugins($configuration->skipAssetsInstall);

@@ -149,6 +149,7 @@ class ProcessHelper
         fwrite(\STDOUT, "============== [deployment-helper] ==============\n");
         fwrite(\STDOUT, "=================================================\n");
         fwrite(\STDOUT, \sprintf("Start: %s\n", $cmdString));
+        fwrite(\STDOUT, \sprintf("Time limit: %s seconds\n", $this->timeout));
         fwrite(\STDOUT, "=================================================\n");
         fwrite(\STDOUT, \PHP_EOL);
 

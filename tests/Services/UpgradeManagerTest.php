@@ -125,7 +125,9 @@ class UpgradeManagerTest extends TestCase
         $manager->run(new RunConfiguration(true, true), $this->createMock(OutputInterface::class));
 
         static::assertCount(5, $consoleCommands);
-        static::assertSame(['system:update:finish', '--skip-asset-build'], $consoleCommands[0]);
+        static::assertSame(['messenger:setup-transports'], $consoleCommands[0]);
+        static::assertArrayHasKey(1, $consoleCommands);
+        static::assertSame(['system:update:finish', '--skip-asset-build'], $consoleCommands[1]);
     }
 
     #[Env('SALES_CHANNEL_URL', 'http://foo.com')]
@@ -166,7 +168,8 @@ class UpgradeManagerTest extends TestCase
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
 
         static::assertCount(7, $consoleCommands);
-        static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://foo.com'], $consoleCommands[0]);
+        static::assertArrayHasKey(1, $consoleCommands);
+        static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://foo.com'], $consoleCommands[1]);
     }
 
     public function testRunWithMaintenanceMode(): void
@@ -208,7 +211,7 @@ class UpgradeManagerTest extends TestCase
 
         static::assertCount(7, $consoleCommands);
         static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[0]);
-        static::assertArrayHasKey(6, $consoleCommands);
+        static::assertArrayHasKey(5, $consoleCommands);
         static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[6]);
     }
 
