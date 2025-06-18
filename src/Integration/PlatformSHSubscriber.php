@@ -44,7 +44,7 @@ class PlatformSHSubscriber
         }
 
         if (\PHP_OS === 'Linux') {
-            $this->processHelper->shell(['pkill', '-f', '-USR2', '-u', 'web', 'php-fpm']);
+            $this->processHelper->shell(['pkill', '-f', '-USR2', '-u', EnvironmentHelper::getVariable('USER', 'web'), 'php-fpm']);
         }
     }
 }
