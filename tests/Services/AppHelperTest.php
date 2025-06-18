@@ -149,6 +149,62 @@ class AppHelperTest extends TestCase
         $appHelper->updateApps();
     }
 
+    public function testForceUpdateHappensWhileSameVersion(): void
+    {
+        $config = new ProjectConfiguration();
+        $config->extensionManagement->forceUpdates = ['TestApp'];
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper
+            ->expects($this->once())
+            ->method('console')
+            ->with(['app:refresh', '--force']);
+
+        $version = '0.0.1';
+        $connection = $this->createMock(Connection::class);
+        $connection
+            ->method('fetchAllAssociativeIndexed')
+            ->willReturn([
+                'TestApp' => ['name' => 'TestApp', 'version' => $version, 'active' => false],
+            ]);
+
+        $appHelper = new AppHelper(
+            $this->createAppLoader($version),
+            $processHelper,
+            $connection,
+            $config,
+        );
+
+        $appHelper->updateApps();
+    }
+
+    public function testNoUpdateNotForcedWithSameVersion(): void
+    {
+        $config = new ProjectConfiguration();
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper
+            ->expects($this->never())
+            ->method('console');
+
+        $version = '0.0.1';
+        $connection = $this->createMock(Connection::class);
+        $connection
+            ->method('fetchAllAssociativeIndexed')
+            ->willReturn([
+                'TestApp' => ['name' => 'TestApp', 'version' => $version, 'active' => false],
+            ]);
+
+        $appHelper = new AppHelper(
+            $this->createAppLoader($version),
+            $processHelper,
+            $connection,
+            $config,
+        );
+
+        $appHelper->updateApps();
+    }
+
     public function testUpdate(): void
     {
         $config = new ProjectConfiguration();
@@ -311,14 +367,14 @@ class AppHelperTest extends TestCase
         $appHelper->removeApps();
     }
 
-    public function createAppLoader(): AppLoader&MockObject
+    public function createAppLoader(?string $version = '1.0.0'): AppLoader&MockObject
     {
         $appLoader = $this->createMock(AppLoader::class);
 
         $appLoader
             ->method('all')
             ->willReturn([
-                ['name' => 'TestApp', 'version' => '1.0.0'],
+                ['name' => 'TestApp', 'version' => $version],
             ]);
 
         return $appLoader;

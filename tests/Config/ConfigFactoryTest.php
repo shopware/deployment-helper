@@ -86,4 +86,13 @@ class ConfigFactoryTest extends TestCase
         static::assertArrayHasKey('keepUserData', $config->extensionManagement->overrides['FroshTest2']);
         static::assertTrue($config->extensionManagement->overrides['FroshTest2']['keepUserData']);
     }
+
+    public function testExistingConfigWithExtensionForceUpdates(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/force-updates');
+        static::assertNotEmpty($config->extensionManagement->forceUpdates);
+
+        // Test FroshTest
+        static::assertContains('FroshTest', $config->extensionManagement->forceUpdates);
+    }
 }

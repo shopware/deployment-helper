@@ -120,6 +120,39 @@ class PluginHelperTest extends TestCase
         $helper->updatePlugins();
     }
 
+    public function testUpdateWhenForcedButSameVersion(): void
+    {
+        $projectConfiguration = new ProjectConfiguration();
+        $projectConfiguration->extensionManagement->forceUpdates = ['TestPlugin'];
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:update', 'TestPlugin']);
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(upgradeVersion: '1.0.0'),
+            $processHelper,
+            $projectConfiguration,
+        );
+
+        $helper->updatePlugins();
+    }
+
+    public function testNoUpdateWhenNotForcedWithSameVersion(): void
+    {
+        $projectConfiguration = new ProjectConfiguration();
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->never())->method('console');
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(upgradeVersion: '1.0.0'),
+            $processHelper,
+            $projectConfiguration,
+        );
+
+        $helper->updatePlugins();
+    }
+
     public function testUpdate(): void
     {
         $processHelper = $this->createMock(ProcessHelper::class);

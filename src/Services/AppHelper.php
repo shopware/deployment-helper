@@ -60,6 +60,11 @@ class AppHelper
                 continue;
             }
 
+            if ($this->configuration->extensionManagement->shouldExtensionBeForceUpdated($app['name'])) {
+                $appNeedsToBeUpdated = true;
+                break;
+            }
+
             if (version_compare($installed[$app['name']]['version'], $app['version'], '>=')) {
                 continue;
             }
