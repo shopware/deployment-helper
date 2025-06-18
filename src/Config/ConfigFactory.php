@@ -116,6 +116,12 @@ class ConfigFactory
             }
         }
 
+        if (isset($config['forceUpdates']) && \is_array($config['forceUpdates'])) {
+            foreach ($config['forceUpdates'] as $forceUpdateExtension) {
+                $extensionManagement->forceUpdates[] = (string) $forceUpdateExtension;
+            }
+        }
+
         if (isset($config['overrides']) && \is_array($config['overrides'])) {
             foreach ($config['overrides'] as $extension => $override) {
                 if (isset($override['state']) && \is_string($override['state']) && \in_array($override['state'], ProjectExtensionManagement::ALLOWED_STATES, true)) {

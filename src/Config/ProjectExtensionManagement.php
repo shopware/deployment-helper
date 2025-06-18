@@ -18,6 +18,13 @@ class ProjectExtensionManagement
     public bool $enabled = true;
 
     /**
+     * The following extensions should be force updated.
+     *
+     * @var string[]
+     */
+    public array $forceUpdates = [];
+
+    /**
      * The following extensions should be inactive.
      *
      * @var array<string, ExtensionOverride>
@@ -33,6 +40,15 @@ class ProjectExtensionManagement
         $state = $this->getExtensionState($name);
 
         return !\in_array($state, [self::LIFECYCLE_STATE_REMOVE, self::LIFECYCLE_STATE_IGNORE], true);
+    }
+
+    public function shouldExtensionBeForceUpdated(string $name): bool
+    {
+        if (!$this->enabled) {
+            return false;
+        }
+
+        return \in_array($name, $this->forceUpdates, true);
     }
 
     public function canExtensionBeActivated(string $name): bool

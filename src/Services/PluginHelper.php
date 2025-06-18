@@ -65,6 +65,11 @@ class PluginHelper
                 continue;
             }
 
+            if ($this->configuration->extensionManagement->shouldExtensionBeForceUpdated($plugin['name'])) {
+                $this->processHelper->console(['plugin:update', $plugin['name'], ...$additionalParameters]);
+                continue;
+            }
+
             if ($plugin['upgradeVersion'] === null || $plugin['version'] === $plugin['upgradeVersion']) {
                 continue;
             }

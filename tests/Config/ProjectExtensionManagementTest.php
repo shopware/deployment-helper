@@ -29,6 +29,11 @@ class ProjectExtensionManagementTest extends TestCase
         self::assertEmpty($this->management->overrides);
     }
 
+    public function testDefaultForceUpdatesEmpty(): void
+    {
+        self::assertEmpty($this->management->forceUpdates);
+    }
+
     /**
      * @param array<string, array{state: 'ignore'|'inactive'|'remove', keepUserData?: bool}> $overrides
      */
@@ -142,5 +147,34 @@ class ProjectExtensionManagementTest extends TestCase
         /** @var array<string> $expectedStates */
         $expectedStates = ['ignore', 'inactive', 'remove'];
         self::assertSame($expectedStates, ProjectExtensionManagement::ALLOWED_STATES);
+    }
+
+    /**
+     * @param array<string> $forceUpdates
+     */
+    #[DataProvider('provideShouldExtensionBeForceUpdated')]
+    public function testShouldExtensionBeForceUpdated(
+        bool $enabled,
+        array $forceUpdates,
+        string $extensionName,
+        bool $expected,
+    ): void {
+        $this->management->enabled = $enabled;
+        $this->management->forceUpdates = $forceUpdates;
+
+        self::assertSame($expected, $this->management->shouldExtensionBeForceUpdated($extensionName));
+    }
+
+    /**
+     * @return array<string, array{bool, array<string>, string, bool}>
+     */
+    public static function provideShouldExtensionBeForceUpdated(): array
+    {
+        return [
+            'disabled_management' => [false, [], 'test', false],
+            'no_force_updates' => [true, [], 'test', false],
+            'with_force_updates' => [true, ['test'], 'test', true],
+            'unknown_extension' => [true, ['other'], 'test', false],
+        ];
     }
 }
