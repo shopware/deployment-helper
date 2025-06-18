@@ -149,12 +149,15 @@ class ProjectExtensionManagementTest extends TestCase
         self::assertSame($expectedStates, ProjectExtensionManagement::ALLOWED_STATES);
     }
 
-    #[DataProvider(methodName: 'provideShouldExtensionBeForceUpdated')]
+    /**
+     * @param array<string> $forceUpdates
+     */
+    #[DataProvider('provideShouldExtensionBeForceUpdated')]
     public function testShouldExtensionBeForceUpdated(
         bool $enabled,
         array $forceUpdates,
         string $extensionName,
-        bool $expected
+        bool $expected,
     ): void {
         $this->management->enabled = $enabled;
         $this->management->forceUpdates = $forceUpdates;
@@ -162,6 +165,9 @@ class ProjectExtensionManagementTest extends TestCase
         self::assertSame($expected, $this->management->shouldExtensionBeForceUpdated($extensionName));
     }
 
+    /**
+     * @return array<string, array{bool, array<string>, string, bool}>
+     */
     public static function provideShouldExtensionBeForceUpdated(): array
     {
         return [

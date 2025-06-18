@@ -118,7 +118,7 @@ class ConfigFactory
 
         if (isset($config['forceUpdates']) && \is_array($config['forceUpdates'])) {
             foreach ($config['forceUpdates'] as $forceUpdateExtension) {
-                $extensionManagement->forceUpdates[] = (string)$forceUpdateExtension;
+                $extensionManagement->forceUpdates[] = (string) $forceUpdateExtension;
             }
         }
 
