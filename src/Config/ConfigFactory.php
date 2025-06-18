@@ -4,17 +4,28 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Config;
 
+use Shopware\Deployment\Application;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Yaml\Yaml;
 
 class ConfigFactory
 {
-    public static function create(string $projectDir): ProjectConfiguration
+    public static function create(string $projectDir, Application $application): ProjectConfiguration
     {
-        $file = Path::join($projectDir, '.shopware-project.yml');
-        if (!file_exists($file)) {
-            $file = Path::join($projectDir, '.shopware-project.yaml');
+        $file = EnvironmentHelper::getVariable('SHOPWARE_PROJECT_CONFIG_FILE', $application->input->getOption('project-config'));
+
+        if ($file === null) {
+            $file = Path::join($projectDir, '.shopware-project.yml');
+
+            if (!file_exists($file)) {
+                $file = Path::join($projectDir, '.shopware-project.yaml');
+            }
+        } else {
+            // Handle relative paths by joining with project directory
+            if (!Path::isAbsolute($file)) {
+                $file = Path::join($projectDir, $file);
+            }
         }
 
         if (!file_exists($file)) {

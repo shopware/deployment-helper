@@ -11,6 +11,9 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Dumper\XmlDumper;
@@ -22,6 +25,7 @@ use Symfony\Component\Filesystem\Filesystem;
 class Application extends SymfonyApplication
 {
     private ContainerBuilder $container;
+    public InputInterface $input;
 
     public function __construct()
     {
@@ -29,6 +33,8 @@ class Application extends SymfonyApplication
         $this->container = $this->createContainer();
         $this->setDispatcher($this->container->get('event_dispatcher'));
         $this->setCommandLoader($this->container->get('console.command_loader'));
+
+        $this->getDefinition()->addOption(new InputOption('project-config', null, InputOption::VALUE_REQUIRED, 'Path to .shopware-project.yaml'));
     }
 
     public function getContainer(): ContainerBuilder
@@ -58,6 +64,7 @@ class Application extends SymfonyApplication
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/Resources/config'));
         $loader->load('services.xml');
         $container->compile();
+        $container->set(self::class, $this);
 
         if (EnvironmentHelper::hasVariable('DEV_MODE')) {
             (new Filesystem())->dumpFile(\dirname(__DIR__) . '/var/cache/container.xml', (new XmlDumper($container))->dump());
@@ -89,5 +96,12 @@ class Application extends SymfonyApplication
         }
 
         return $dir;
+    }
+
+    public function doRun(InputInterface $input, OutputInterface $output): int
+    {
+        $this->input = $input;
+
+        return parent::doRun($input, $output);
     }
 }
