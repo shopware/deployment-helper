@@ -7,16 +7,29 @@ namespace Shopware\Deployment\Tests\Config;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Shopware\Deployment\Application;
 use Shopware\Deployment\Config\ConfigFactory;
 use Shopware\Deployment\Config\ProjectExtensionManagement;
+use Symfony\Component\Console\Input\InputInterface;
 use Zalas\PHPUnit\Globals\Attribute\Env;
 
 #[CoversClass(ConfigFactory::class)]
 class ConfigFactoryTest extends TestCase
 {
+    private function createMockApplication(?string $projectConfig = null): Application
+    {
+        $input = $this->createMock(InputInterface::class);
+        $input->method('getOption')->with('project-config')->willReturn($projectConfig);
+
+        $application = $this->createMock(Application::class);
+        $application->input = $input;
+
+        return $application;
+    }
+
     public function testCreateConfigWithoutFile(): void
     {
-        $config = ConfigFactory::create(__DIR__);
+        $config = ConfigFactory::create(__DIR__, $this->createMockApplication());
         static::assertFalse($config->maintenance->enabled);
         static::assertTrue($config->extensionManagement->enabled);
         static::assertSame([], $config->extensionManagement->overrides);
@@ -33,7 +46,7 @@ class ConfigFactoryTest extends TestCase
     #[DataProvider('files')]
     public function testExistingConfigTest(string $configDir): void
     {
-        $config = ConfigFactory::create($configDir);
+        $config = ConfigFactory::create($configDir, $this->createMockApplication());
         static::assertTrue($config->extensionManagement->enabled);
         static::assertSame('ignore', $config->extensionManagement->overrides['Name']['state']);
         static::assertSame(['foo' => 'test'], $config->oneTimeTasks);
@@ -47,32 +60,32 @@ class ConfigFactoryTest extends TestCase
 
     public function testExistingConfigWithMaintenance(): void
     {
-        $config = ConfigFactory::create(__DIR__ . '/_fixtures/maintenance-mode');
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/maintenance-mode', $this->createMockApplication());
         static::assertTrue($config->maintenance->enabled);
     }
 
     #[Env('SHOPWARE_STORE_LICENSE_DOMAIN', 'test')]
     public function testLicenseDomainPopulatedByEnv(): void
     {
-        $config = ConfigFactory::create(__DIR__);
+        $config = ConfigFactory::create(__DIR__, $this->createMockApplication());
         static::assertSame('test', $config->store->licenseDomain);
     }
 
     public function testExistingConfigWithStoreConfig(): void
     {
-        $config = ConfigFactory::create(__DIR__ . '/_fixtures/license-domain');
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/license-domain', $this->createMockApplication());
         static::assertSame('example.com', $config->store->licenseDomain);
     }
 
     public function testExistingConfigWithAlwaysClearCache(): void
     {
-        $config = ConfigFactory::create(__DIR__ . '/_fixtures/always-clear-cache');
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/always-clear-cache', $this->createMockApplication());
         static::assertTrue($config->alwaysClearCache);
     }
 
     public function testExistingConfigWithExtensionOverride(): void
     {
-        $config = ConfigFactory::create(__DIR__ . '/_fixtures/extension-override');
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/extension-override', $this->createMockApplication());
         static::assertNotEmpty($config->extensionManagement->overrides);
 
         // Test FroshTest (without keepUserData)
@@ -89,10 +102,50 @@ class ConfigFactoryTest extends TestCase
 
     public function testExistingConfigWithExtensionForceUpdates(): void
     {
-        $config = ConfigFactory::create(__DIR__ . '/_fixtures/force-updates');
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/force-updates', $this->createMockApplication());
         static::assertNotEmpty($config->extensionManagement->forceUpdates);
 
         // Test FroshTest
         static::assertContains('FroshTest', $config->extensionManagement->forceUpdates);
+    }
+
+    public function testCreateWithProjectConfigOption(): void
+    {
+        // Test with absolute path
+        $customConfigPath = __DIR__ . '/_fixtures/yml/.shopware-project.yml';
+        $config = ConfigFactory::create(__DIR__, $this->createMockApplication($customConfigPath));
+
+        static::assertTrue($config->extensionManagement->enabled);
+        static::assertSame(['foo' => 'test'], $config->oneTimeTasks);
+    }
+
+    public function testCreateWithProjectConfigOptionRelativePath(): void
+    {
+        // Test with relative path - should be resolved relative to project dir
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures', $this->createMockApplication('yml/.shopware-project.yml'));
+
+        static::assertTrue($config->extensionManagement->enabled);
+        static::assertSame(['foo' => 'test'], $config->oneTimeTasks);
+    }
+
+    #[Env('SHOPWARE_PROJECT_CONFIG_FILE', '_fixtures/yml/.shopware-project.yml')]
+    public function testEnvironmentVariableOverridesProjectConfigOption(): void
+    {
+        // Environment variable should take precedence over CLI option
+        $config = ConfigFactory::create(__DIR__, $this->createMockApplication('some-other-config.yml'));
+
+        // Should load the config from environment variable, not the CLI option
+        static::assertSame(['foo' => 'test'], $config->oneTimeTasks);
+    }
+
+    public function testCreateWithNonExistentProjectConfig(): void
+    {
+        // Test with a config file that doesn't exist - should return default config
+        $config = ConfigFactory::create(__DIR__, $this->createMockApplication('non-existent-config.yml'));
+
+        static::assertFalse($config->maintenance->enabled);
+        static::assertTrue($config->extensionManagement->enabled);
+        static::assertSame([], $config->extensionManagement->overrides);
+        static::assertSame([], $config->oneTimeTasks);
     }
 }
