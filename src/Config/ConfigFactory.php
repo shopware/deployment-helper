@@ -13,7 +13,7 @@ class ConfigFactory
 {
     public static function create(string $projectDir, Application $application): ProjectConfiguration
     {
-        $file = EnvironmentHelper::getVariable('SHOPWARE_PROJECT_CONFIG_FILE', $application->input->getOption('project-config'));
+        $file = EnvironmentHelper::getVariable('SHOPWARE_PROJECT_CONFIG_FILE', $application->projectConfigFile);
 
         if ($file === null) {
             $file = Path::join($projectDir, '.shopware-project.yml');

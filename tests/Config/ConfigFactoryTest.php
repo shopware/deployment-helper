@@ -10,7 +10,6 @@ use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Application;
 use Shopware\Deployment\Config\ConfigFactory;
 use Shopware\Deployment\Config\ProjectExtensionManagement;
-use Symfony\Component\Console\Input\InputInterface;
 use Zalas\PHPUnit\Globals\Attribute\Env;
 
 #[CoversClass(ConfigFactory::class)]
@@ -18,11 +17,8 @@ class ConfigFactoryTest extends TestCase
 {
     private function createMockApplication(?string $projectConfig = null): Application
     {
-        $input = $this->createMock(InputInterface::class);
-        $input->method('getOption')->with('project-config')->willReturn($projectConfig);
-
         $application = $this->createMock(Application::class);
-        $application->input = $input;
+        $application->projectConfigFile = $projectConfig;
 
         return $application;
     }
