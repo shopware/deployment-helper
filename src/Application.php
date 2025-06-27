@@ -25,7 +25,7 @@ use Symfony\Component\Filesystem\Filesystem;
 class Application extends SymfonyApplication
 {
     private ContainerBuilder $container;
-    public InputInterface $input;
+    public ?string $projectConfigFile = null;
 
     public function __construct()
     {
@@ -100,7 +100,7 @@ class Application extends SymfonyApplication
 
     public function doRun(InputInterface $input, OutputInterface $output): int
     {
-        $this->input = $input;
+        $this->projectConfigFile = $input->getParameterOption(['--project-config'], null, true);
 
         return parent::doRun($input, $output);
     }
