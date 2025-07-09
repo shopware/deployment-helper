@@ -128,7 +128,14 @@ class ConfigFactory
         }
 
         if (isset($config['forceUpdates']) && \is_array($config['forceUpdates'])) {
+            @trigger_error('The config key "forceUpdates" is deprecated, use "force-update" instead.', \E_USER_DEPRECATED);
             foreach ($config['forceUpdates'] as $forceUpdateExtension) {
+                $extensionManagement->forceUpdates[] = (string) $forceUpdateExtension;
+            }
+        }
+
+        if (isset($config['force-update']) && \is_array($config['force-update'])) {
+            foreach ($config['force-update'] as $forceUpdateExtension) {
                 $extensionManagement->forceUpdates[] = (string) $forceUpdateExtension;
             }
         }
