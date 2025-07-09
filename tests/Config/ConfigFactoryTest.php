@@ -96,13 +96,33 @@ class ConfigFactoryTest extends TestCase
         static::assertTrue($config->extensionManagement->overrides['FroshTest2']['keepUserData']);
     }
 
-    public function testExistingConfigWithExtensionForceUpdates(): void
+    public function testExistingConfigWithExtensionForceUpdate(): void
     {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/force-update', $this->createMockApplication());
+        static::assertNotEmpty($config->extensionManagement->forceUpdates);
+
+        // Test FroshTest
+        static::assertContains('FroshTest', $config->extensionManagement->forceUpdates);
+    }
+
+    public function testExistingConfigWithExtensionForceUpdatesLegacy(): void
+    {
+        $deprecated = false;
+        set_error_handler(static function (int $errno, string $errstr) use (&$deprecated): bool {
+            if ($errno === E_USER_DEPRECATED && $errstr === 'The config key "forceUpdates" is deprecated, use "force-update" instead.') {
+                $deprecated = true;
+            }
+
+            return false;
+        });
+
         $config = ConfigFactory::create(__DIR__ . '/_fixtures/force-updates', $this->createMockApplication());
         static::assertNotEmpty($config->extensionManagement->forceUpdates);
 
         // Test FroshTest
         static::assertContains('FroshTest', $config->extensionManagement->forceUpdates);
+        static::assertTrue($deprecated, 'Deprecation was not triggered');
+        restore_error_handler();
     }
 
     public function testCreateWithProjectConfigOption(): void

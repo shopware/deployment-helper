@@ -1,0 +1,4 @@
+deployment:
+    extension-management:
+        force-update:
+            - FroshTest
