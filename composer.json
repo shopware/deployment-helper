@@ -1,66 +1,69 @@
 {
-    "name": "shopware/deployment-helper",
-    "type": "library",
-    "description": "Shopware deployment tools",
-    "keywords": ["shopware", "deployment"],
-    "license": "MIT",
-    "bin": [
-        "bin/shopware-deployment-helper"
-    ],
-    "require": {
-        "php": ">=8.2",
-        "ext-dom": "*",
-        "ext-pdo": "*",
-        "digilist/dependency-graph": ">=0.4.1",
-        "doctrine/dbal": "^3.0 || ^4.0",
-        "symfony/config": "^7.0 || ^6.0",
-        "symfony/console": "^7.0 || ^6.0",
-        "symfony/dependency-injection": "^7.0 || ^6.0",
-        "symfony/dotenv": "^7.0 || ^6.0",
-        "symfony/event-dispatcher": "^7.0 || ^6.0",
-        "symfony/filesystem": "^7.0 || ^6.0",
-        "symfony/finder": "^7.0 || ^6.0",
-        "symfony/process": "^7.0 || ^6.0",
-        "symfony/yaml": "^7.0 || ^6.0",
-        "symfony/http-client": "^7.0 || ^6.0"
-    },
-    "require-dev": {
-        "friendsofphp/php-cs-fixer": "v3.64.0",
-        "phpstan/extension-installer": "1.4.3",
-        "phpstan/phpstan": "2.0.1",
-        "phpstan/phpstan-deprecation-rules": "2.0.0",
-        "phpstan/phpstan-phpunit": "2.0.0",
-        "phpstan/phpstan-strict-rules": "2.0.0",
-        "phpstan/phpstan-symfony": "2.0.0",
-        "phpunit/phpunit": "~11.3",
-        "symfony/var-dumper": "^7.0 || ^6.0",
-        "zalas/phpunit-globals": "^3.3"
-    },
-    "autoload": {
-        "psr-4": {
-            "Shopware\\Deployment\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Shopware\\Deployment\\Tests\\": "tests/"
-        }
-    },
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "phpstan/extension-installer": true
-        }
-    },
-    "scripts": {
-        "cs-dry": "php-cs-fixer fix --dry-run --diff",
-        "cs-fix": "php-cs-fixer fix",
-        "phpstan": [
-            "DEV_MODE=true PROJECT_ROOT=. bin/shopware-deployment-helper -q",
-            "phpstan"
-        ],
-        "test": "phpunit",
-        "test-coverage-html": "phpunit --coverage-html=build/coverage",
-        "test-coverage-cobertura": "phpunit --coverage-cobertura coverage.xml"
+  "name": "shopware/deployment-helper",
+  "type": "library",
+  "description": "Shopware deployment tools",
+  "keywords": [
+    "shopware",
+    "deployment"
+  ],
+  "license": "MIT",
+  "bin": [
+    "bin/shopware-deployment-helper"
+  ],
+  "require": {
+    "php": ">=8.2",
+    "ext-dom": "*",
+    "ext-pdo": "*",
+    "digilist/dependency-graph": ">=0.4.1",
+    "doctrine/dbal": "^3.0 || ^4.0",
+    "symfony/config": "^7.0 || ^6.0",
+    "symfony/console": "^7.0 || ^6.0",
+    "symfony/dependency-injection": "^7.0 || ^6.0",
+    "symfony/dotenv": "^7.0 || ^6.0",
+    "symfony/event-dispatcher": "^7.0 || ^6.0",
+    "symfony/filesystem": "^7.0 || ^6.0",
+    "symfony/finder": "^7.0 || ^6.0",
+    "symfony/process": "^7.0 || ^6.0",
+    "symfony/yaml": "^7.0 || ^6.0",
+    "symfony/http-client": "^7.0 || ^6.0"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "v3.82.0",
+    "phpstan/extension-installer": "1.4.3",
+    "phpstan/phpstan": "2.0.1",
+    "phpstan/phpstan-deprecation-rules": "2.0.0",
+    "phpstan/phpstan-phpunit": "2.0.0",
+    "phpstan/phpstan-strict-rules": "2.0.0",
+    "phpstan/phpstan-symfony": "2.0.0",
+    "phpunit/phpunit": "~11.3",
+    "symfony/var-dumper": "^7.0 || ^6.0",
+    "zalas/phpunit-globals": "^3.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "Shopware\\Deployment\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Shopware\\Deployment\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "phpstan/extension-installer": true
+    }
+  },
+  "scripts": {
+    "cs-dry": "php-cs-fixer fix --dry-run --diff",
+    "cs-fix": "php-cs-fixer fix",
+    "phpstan": [
+      "DEV_MODE=true PROJECT_ROOT=. bin/shopware-deployment-helper -q",
+      "phpstan"
+    ],
+    "test": "phpunit",
+    "test-coverage-html": "phpunit --coverage-html=build/coverage",
+    "test-coverage-cobertura": "phpunit --coverage-cobertura coverage.xml"
+  }
 }

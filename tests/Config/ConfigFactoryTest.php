@@ -109,7 +109,7 @@ class ConfigFactoryTest extends TestCase
     {
         $deprecated = false;
         set_error_handler(static function (int $errno, string $errstr) use (&$deprecated): bool {
-            if ($errno === E_USER_DEPRECATED && $errstr === 'The config key "forceUpdates" is deprecated, use "force-update" instead.') {
+            if ($errno === \E_USER_DEPRECATED && $errstr === 'The config key "forceUpdates" is deprecated, use "force-update" instead.') {
                 $deprecated = true;
             }
 
