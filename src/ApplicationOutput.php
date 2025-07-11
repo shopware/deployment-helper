@@ -8,7 +8,7 @@ use Shopware\Deployment\Helper\EnvironmentHelper;
 use Symfony\Component\Console\Formatter\OutputFormatterInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final readonly class ApplicationOutput implements OutputInterface
+final class ApplicationOutput implements OutputInterface
 {
     private bool $jsonMode = false;
 
