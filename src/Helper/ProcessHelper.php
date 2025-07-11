@@ -14,11 +14,14 @@ use Symfony\Component\Process\Process;
  */
 class ProcessHelper
 {
+    private bool $jsonMode = false;
+
     public function __construct(
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
         private ?float $timeout = 60,
     ) {
+        $this->jsonMode = EnvironmentHelper::getVariable('DEPLOYMENT_JSON_OUTPUT', '0') === '1';
     }
 
     /**
@@ -101,6 +104,14 @@ class ProcessHelper
         }
 
         $process->run(function (string $type, string $buffer): void {
+            if ($this->jsonMode) {
+                fwrite(\STDOUT, json_encode([
+                    'datetime' => (new \DateTime())->format('Y-m-d H:i:s'),
+                    'message' => $buffer,
+                ]) . \PHP_EOL);
+                return;
+            }
+
             if ($type === Process::ERR) {
                 fwrite(\STDERR, $buffer);
             } else {
@@ -144,6 +155,15 @@ class ProcessHelper
         $cmdString = implode(' ', $cmd);
         $startTime = microtime(true);
 
+        if ($this->jsonMode) {
+            fwrite(\STDOUT, json_encode([
+                'datetime' => (new \DateTime())->format('Y-m-d H:i:s'),
+                'message' => sprintf("Start execution of %s", $cmdString),
+                'time_limit' => $this->timeout,
+            ]) . \PHP_EOL);
+            return $startTime;
+        }
+
         fwrite(\STDOUT, \PHP_EOL);
         fwrite(\STDOUT, "=================================================\n");
         fwrite(\STDOUT, "============== [deployment-helper] ==============\n");
@@ -161,6 +181,14 @@ class ProcessHelper
      */
     private function printPostStart(array $cmd, float $startTime): void
     {
+        if ($this->jsonMode) {
+            fwrite(\STDOUT, json_encode([
+                'datetime' => (new \DateTime())->format('Y-m-d H:i:s'),
+                'message' => sprintf("End execution of %s", implode(' ', $cmd)),
+            ]) . \PHP_EOL);
+            return;
+        }
+
         fwrite(\STDOUT, "=================================================\n");
         fwrite(\STDOUT, "============== [deployment-helper] ==============\n");
         fwrite(\STDOUT, "=================================================\n");
