@@ -103,8 +103,10 @@ class ProcessHelper
             $process->setTty(true);
         }
 
-        $process->run(function (string $type, string $buffer): void {
-            if ($this->jsonMode) {
+        $jsonMode = $this->jsonMode;
+
+        $process->run(function (string $type, string $buffer) use ($jsonMode): void {
+            if ($jsonMode) {
                 fwrite(\STDOUT, json_encode([
                     'datetime' => (new \DateTime())->format('Y-m-d H:i:s'),
                     'message' => $buffer,
