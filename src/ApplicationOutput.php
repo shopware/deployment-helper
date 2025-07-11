@@ -4,17 +4,25 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment;
 
+use Shopware\Deployment\Helper\EnvironmentHelper;
 use Symfony\Component\Console\Formatter\OutputFormatterInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 final readonly class ApplicationOutput implements OutputInterface
 {
+    private bool $jsonMode = false;
+
     public function __construct(private OutputInterface $decorated)
     {
+        $this->jsonMode = EnvironmentHelper::getVariable('DEPLOYMENT_JSON_OUTPUT', '0') === '1';
     }
 
     private function wrapMessage(string $message): string
     {
+        if ($this->jsonMode) {
+            return json_encode(['datetime' => (new \DateTime())->format('Y-m-d H:i:s'), 'message' => $message]);
+        }
+
         return preg_replace('#(^|\n)(.)#m', '$1[deployment-helper] $2', $message) ?? $message;
     }
 
