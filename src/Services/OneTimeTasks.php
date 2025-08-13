@@ -40,17 +40,15 @@ class OneTimeTasks
      */
     public function getExecutedTasks(): array
     {
-        try {
-            return $this->connection->fetchAllAssociativeIndexed('SELECT id, created_at FROM one_time_tasks');
-        } catch (\Throwable) {
-            $this->connection->executeStatement('CREATE TABLE one_time_tasks (id VARCHAR(255) PRIMARY KEY, created_at DATETIME NOT NULL)');
+        $this->ensureTableExists();
 
-            return [];
-        }
+        return $this->connection->fetchAllAssociativeIndexed('SELECT id, created_at FROM one_time_tasks');
     }
 
     public function markAsRun(string $id): void
     {
+        $this->ensureTableExists();
+
         $this->connection->executeStatement('INSERT INTO one_time_tasks (id, created_at) VALUES (:id, :created_at)', [
             'id' => $id,
             'created_at' => (new \DateTime())->format('Y-m-d H:i:s'),
@@ -60,5 +58,14 @@ class OneTimeTasks
     public function remove(string $id): void
     {
         $this->connection->executeStatement('DELETE FROM one_time_tasks WHERE id = ?', [$id]);
+    }
+
+    private function ensureTableExists(): void
+    {
+        try {
+            $this->connection->executeQuery('SELECT 1 FROM one_time_tasks LIMIT 1');
+        } catch (\Throwable) {
+            $this->connection->executeStatement('CREATE TABLE one_time_tasks (id VARCHAR(255) PRIMARY KEY, created_at DATETIME NOT NULL)');
+        }
     }
 }

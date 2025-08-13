@@ -41,9 +41,8 @@ class OneTimeTasksTest extends TestCase
         $processHelper->expects($this->never())->method('runAndTail');
 
         $connection = $this->createMock(Connection::class);
-        $connection->expects($this->once())->method('fetchAllAssociativeIndexed')->willThrowException(new \Exception('test'));
-
-        $connection->expects($this->once())->method('executeStatement')->with('CREATE TABLE one_time_tasks (id VARCHAR(255) PRIMARY KEY, created_at DATETIME NOT NULL)');
+        $connection->expects($this->once())->method('executeQuery')->with('SELECT 1 FROM one_time_tasks LIMIT 1');
+        $connection->expects($this->once())->method('fetchAllAssociativeIndexed')->willReturn([]);
 
         $configuration = new ProjectConfiguration();
 
