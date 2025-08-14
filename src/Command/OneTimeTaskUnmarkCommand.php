@@ -32,9 +32,18 @@ class OneTimeTaskUnmarkCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $this->oneTimeTasks->remove((string) $input->getArgument('id'));
+        $taskId = (string) $input->getArgument('id');
 
-        $io->success('One-time task mark has been removed, this script will be executed on next deployment.');
+        $tasks = $this->oneTimeTasks->getExecutedTasks();
+        if (!isset($tasks[$taskId])) {
+            $io->error('One-time task with ID ' . $input->getArgument('id') . ' has not been marked as executed before.');
+
+            return Command::FAILURE;
+        }
+
+        $this->oneTimeTasks->remove($taskId);
+
+        $io->success('One-time task with ID ' . $input->getArgument('id') . ' has been marked as not executed, this script will be executed on next deployment.');
 
         return Command::SUCCESS;
     }
