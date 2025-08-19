@@ -15,6 +15,7 @@ use Shopware\Deployment\Services\HookExecutor;
 use Shopware\Deployment\Services\InstallationManager;
 use Shopware\Deployment\Services\PluginHelper;
 use Shopware\Deployment\Services\ShopwareState;
+use Shopware\Deployment\Services\TrackingService;
 use Shopware\Deployment\Struct\RunConfiguration;
 use Symfony\Component\Console\Output\OutputInterface;
 use Zalas\PHPUnit\Globals\Attribute\Env;
@@ -39,6 +40,7 @@ class InstallationManagerTest extends TestCase
             $hookExecutor,
             new ProjectConfiguration(),
             $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -65,6 +67,7 @@ class InstallationManagerTest extends TestCase
             $this->createMock(HookExecutor::class),
             new ProjectConfiguration(),
             $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -97,6 +100,7 @@ class InstallationManagerTest extends TestCase
             $this->createMock(HookExecutor::class),
             new ProjectConfiguration(),
             $accountService,
+            $this->createMock(TrackingService::class),
         );
 
         $manager->run(new RunConfiguration(true, true), $this->createMock(OutputInterface::class));
@@ -127,6 +131,7 @@ class InstallationManagerTest extends TestCase
             $hookExecutor,
             $configuration,
             $accountService,
+            $this->createMock(TrackingService::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -155,6 +160,7 @@ class InstallationManagerTest extends TestCase
             $this->createMock(HookExecutor::class),
             new ProjectConfiguration(),
             $accountService,
+            $this->createMock(TrackingService::class),
         );
 
         $manager->run(new RunConfiguration(true, true, forceReinstallation: true), $this->createMock(OutputInterface::class));

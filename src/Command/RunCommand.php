@@ -9,6 +9,7 @@ use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Services\HookExecutor;
 use Shopware\Deployment\Services\InstallationManager;
 use Shopware\Deployment\Services\ShopwareState;
+use Shopware\Deployment\Services\TrackingService;
 use Shopware\Deployment\Services\UpgradeManager;
 use Shopware\Deployment\Struct\RunConfiguration;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -27,6 +28,7 @@ class RunCommand extends Command
         private readonly UpgradeManager $upgradeManager,
         private readonly HookExecutor $hookExecutor,
         private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly TrackingService $trackingService,
     ) {
         parent::__construct();
     }
@@ -41,6 +43,14 @@ class RunCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->trackingService->track('php_version', [
+            'php_version' => \PHP_MAJOR_VERSION . '.' . \PHP_MINOR_VERSION,
+        ]);
+
+        $this->trackingService->track('mysql_version', [
+            'mysql_version' => $this->state->getMySqlVersion(),
+        ]);
+
         $timeout = $input->getOption('timeout');
 
         $config = new RunConfiguration(
