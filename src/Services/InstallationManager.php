@@ -24,6 +24,7 @@ class InstallationManager
         private readonly HookExecutor $hookExecutor,
         private readonly ProjectConfiguration $configuration,
         private readonly AccountService $accountService,
+        private readonly TrackingService $trackingService,
     ) {
     }
 
@@ -56,7 +57,11 @@ class InstallationManager
             $additionalInstallParameters[] = '--drop-database';
         }
 
+        $took = microtime(true);
         $this->processHelper->console(['system:install', '--create-database', '--shop-locale=' . $shopLocale, '--shop-currency=' . $shopCurrency, '--force', ...$additionalInstallParameters]);
+
+        $this->trackingService->track('installed', ['took' => microtime(true) - $took]);
+
         $this->processHelper->console(['user:create', $adminUser, '--password=' . $adminPassword]);
 
         $this->processHelper->console(['messenger:setup-transports']);

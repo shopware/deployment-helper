@@ -23,6 +23,7 @@ class UpgradeManager
         private readonly OneTimeTasks $oneTimeTasks,
         private readonly ProjectConfiguration $configuration,
         private readonly AccountService $accountService,
+        private readonly TrackingService $trackingService,
     ) {
     }
 
@@ -43,8 +44,10 @@ class UpgradeManager
 
         $this->processHelper->console(['messenger:setup-transports']);
 
-        if ($this->state->getPreviousVersion() !== $this->state->getCurrentVersion()) {
-            $output->writeln(\sprintf('Updating Shopware from %s to %s', $this->state->getPreviousVersion(), $this->state->getCurrentVersion()));
+        $previousVersion = $this->state->getPreviousVersion();
+        $currentVersion = $this->state->getCurrentVersion();
+        if ($previousVersion !== $currentVersion) {
+            $output->writeln(\sprintf('Updating Shopware from %s to %s', $previousVersion, $currentVersion));
 
             $additionalUpdateParameters = [];
 
@@ -52,8 +55,16 @@ class UpgradeManager
                 $additionalUpdateParameters[] = '--skip-asset-build';
             }
 
+            $took = microtime(true);
+
             $this->processHelper->console(['system:update:finish', ...$additionalUpdateParameters]);
-            $this->state->setVersion($this->state->getCurrentVersion());
+
+            $this->state->setVersion($currentVersion);
+
+            $this->trackingService->track('upgrade', [
+                'took' => microtime(true) - $took,
+                'previous_shopware_version' => $previousVersion,
+            ]);
         }
 
         $salesChannelUrl = EnvironmentHelper::getVariable('SALES_CHANNEL_URL');
@@ -77,7 +88,7 @@ class UpgradeManager
         $this->pluginHelper->removePlugins($configuration->skipAssetsInstall);
 
         if ($this->configuration->store->licenseDomain !== '') {
-            $this->accountService->refresh(new SymfonyStyle(new ArgvInput([]), $output), $this->state->getCurrentVersion(), $this->configuration->store->licenseDomain);
+            $this->accountService->refresh(new SymfonyStyle(new ArgvInput([]), $output), $currentVersion, $this->configuration->store->licenseDomain);
         }
 
         $this->appHelper->installApps();
@@ -86,7 +97,9 @@ class UpgradeManager
         $this->appHelper->removeApps();
 
         if (!$configuration->skipThemeCompile) {
+            $took = microtime(true);
             $this->processHelper->console(['theme:compile', '--active-only']);
+            $this->trackingService->track('theme_compiled', ['took' => microtime(true) - $took]);
         }
 
         $this->oneTimeTasks->execute($output);
