@@ -14,6 +14,7 @@ use Shopware\Deployment\Services\HookExecutor;
 use Shopware\Deployment\Services\OneTimeTasks;
 use Shopware\Deployment\Services\PluginHelper;
 use Shopware\Deployment\Services\ShopwareState;
+use Shopware\Deployment\Services\TrackingService;
 use Shopware\Deployment\Services\UpgradeManager;
 use Shopware\Deployment\Struct\RunConfiguration;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -47,6 +48,7 @@ class UpgradeManagerTest extends TestCase
             $oneTimeTasks,
             new ProjectConfiguration(),
             $accountService,
+            $this->createMock(TrackingService::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -56,12 +58,12 @@ class UpgradeManagerTest extends TestCase
     {
         $state = $this->createMock(ShopwareState::class);
         $state
-            ->expects($this->exactly(3))
+            ->expects($this->once())
             ->method('getCurrentVersion')
             ->willReturn('1.0.0');
 
         $state
-            ->expects($this->exactly(2))
+            ->expects($this->once())
             ->method('getPreviousVersion')
             ->willReturn('0.0.0');
 
@@ -79,6 +81,7 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(OneTimeTasks::class),
             new ProjectConfiguration(),
             $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -88,12 +91,12 @@ class UpgradeManagerTest extends TestCase
     {
         $state = $this->createMock(ShopwareState::class);
         $state
-            ->expects($this->exactly(3))
+            ->expects($this->once())
             ->method('getCurrentVersion')
             ->willReturn('1.0.0');
 
         $state
-            ->expects($this->exactly(2))
+            ->expects($this->once())
             ->method('getPreviousVersion')
             ->willReturn('0.0.0');
 
@@ -120,6 +123,7 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(OneTimeTasks::class),
             new ProjectConfiguration(),
             $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
         );
 
         $manager->run(new RunConfiguration(true, true), $this->createMock(OutputInterface::class));
@@ -163,6 +167,7 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(OneTimeTasks::class),
             new ProjectConfiguration(),
             $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -205,6 +210,7 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(OneTimeTasks::class),
             $config,
             $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -242,6 +248,7 @@ class UpgradeManagerTest extends TestCase
             $oneTimeTasks,
             $configuration,
             $accountService,
+            $this->createMock(TrackingService::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
