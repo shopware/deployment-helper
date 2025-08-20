@@ -51,7 +51,6 @@ class TrackingService
         $tags += $this->getTags();
         $id = $this->getId();
 
-        // The variable is unused on purpose, otherwise __destruct on Response object is directly called, which makes this request synchronously
         $this->responses[] = $this->client->request('PUT', '/track', [
             'json' => [
                 'event' => 'deployment_helper.' . $eventName,
