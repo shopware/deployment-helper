@@ -47,11 +47,12 @@ class RunCommand extends Command
             'php_version' => \PHP_MAJOR_VERSION . '.' . \PHP_MINOR_VERSION,
         ]);
 
-        try {
+        $installed = $this->state->isInstalled();
+
+        if ($installed) {
             $this->trackingService->track('mysql_version', [
                 'mysql_version' => $this->state->getMySqlVersion(),
             ]);
-        } catch (\Throwable) {
         }
 
         $timeout = $input->getOption('timeout');
@@ -62,8 +63,6 @@ class RunCommand extends Command
             timeout: (float) (is_numeric($timeout) ? $timeout : EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_TIMEOUT', '300')),
             forceReinstallation: EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_FORCE_REINSTALL', '0') === '1',
         );
-
-        $installed = $this->state->isInstalled();
 
         if ($config->forceReinstallation && $this->state->getPreviousVersion() === 'unknown') {
             $installed = false;

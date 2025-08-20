@@ -26,10 +26,6 @@ class RunCommandTest extends TestCase
             ->expects($this->once())
             ->method('isInstalled')
             ->willReturn(false);
-        $state
-            ->expects($this->once())
-            ->method('getMySqlVersion')
-            ->willReturn('8.0.0');
 
         $hookExecutor = $this->createMock(HookExecutor::class);
         $hookExecutor
@@ -50,16 +46,11 @@ class RunCommandTest extends TestCase
 
         $trackingService = $this->createMock(TrackingService::class);
         $trackingService
-            ->expects($this->exactly(2))
+            ->expects($this->once())
             ->method('track')
             ->willReturnCallback(function ($event, $data): void {
-                if ($event === 'php_version') {
-                    static::assertArrayHasKey('php_version', $data);
-                    static::assertMatchesRegularExpression('/^\d+\.\d+$/', $data['php_version']);
-                } elseif ($event === 'mysql_version') {
-                    static::assertArrayHasKey('mysql_version', $data);
-                    static::assertEquals('8.0.0', $data['mysql_version']);
-                }
+                static::assertArrayHasKey('php_version', $data);
+                static::assertMatchesRegularExpression('/^\d+\.\d+$/', $data['php_version']);
             });
 
         $command = new RunCommand(
