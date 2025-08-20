@@ -69,7 +69,9 @@ class TrackingService
 
     public function persistId(): void
     {
-        $this->systemConfigHelper->set(self::DEPLOYMENT_HELPER_ID, $this->id);
+        if (isset($this->id)) {
+            $this->systemConfigHelper->set(self::DEPLOYMENT_HELPER_ID, $this->id);
+        }
     }
 
     /**
