@@ -275,4 +275,18 @@ class ShopwareStateTest extends TestCase
             ],
         ];
     }
+
+    public function testGetMySqlVersionWithInvalidMariaDBVersion(): void
+    {
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with('SELECT VERSION()')
+            ->willReturn('mariadb-invalid');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Invalid version string: mariadb-invalid');
+
+        $this->state->getMySqlVersion();
+    }
 }

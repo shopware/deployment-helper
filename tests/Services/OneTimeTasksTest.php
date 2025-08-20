@@ -105,4 +105,29 @@ class OneTimeTasksTest extends TestCase
         $tasks = new OneTimeTasks($processHelper, $connection, new ProjectConfiguration());
         $tasks->remove('test');
     }
+
+    public function testGetExecutedTasksCreatesTable(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection->expects($this->once())
+            ->method('executeQuery')
+            ->with('SELECT 1 FROM one_time_tasks LIMIT 1')
+            ->willThrowException(new \Exception());
+
+        $connection->expects($this->once())
+            ->method('executeStatement')
+            ->with('CREATE TABLE one_time_tasks (id VARCHAR(255) PRIMARY KEY, created_at DATETIME NOT NULL)');
+
+        $connection->expects($this->once())
+            ->method('fetchAllAssociativeIndexed')
+            ->with('SELECT id, created_at FROM one_time_tasks')
+            ->willReturn(['task1' => ['created_at' => '2021-01-01 00:00:00']]);
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+
+        $tasks = new OneTimeTasks($processHelper, $connection, new ProjectConfiguration());
+        $result = $tasks->getExecutedTasks();
+
+        static::assertSame(['task1' => ['created_at' => '2021-01-01 00:00:00']], $result);
+    }
 }
