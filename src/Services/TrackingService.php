@@ -26,7 +26,7 @@ class TrackingService
     /**
      * @var list<\Symfony\Contracts\HttpClient\ResponseInterface>
      */
-    private array $responses;
+    private array $responses = [];
 
     public function __construct(
         private readonly SystemConfigHelper $systemConfigHelper,
