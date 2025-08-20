@@ -19,7 +19,8 @@
 		}
 	},
 	"containerEnv": {
-		"PROJECT_ROOT": "/var/www/html"
+		"PROJECT_ROOT": "/var/www/html",
+		"PHP_PROFILER": "xdebug"
 	},
 	"mounts": [
 		"source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
