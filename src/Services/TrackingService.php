@@ -101,7 +101,7 @@ class TrackingService
         }
 
         if ($id === null) {
-            $id = bin2hex(random_bytes(16));
+            $this->id = $id = bin2hex(random_bytes(16));
             $this->systemConfigHelper->set(self::DEPLOYMENT_HELPER_ID, $id);
         }
 
