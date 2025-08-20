@@ -21,8 +21,6 @@ class TrackingService
 
     private string $id;
 
-    private bool $idNeedsToBePersisted = false;
-
     private HttpClientInterface $client;
 
     /**
@@ -70,6 +68,11 @@ class TrackingService
         ]);
     }
 
+    public function persistId(): void
+    {
+        $this->systemConfigHelper->set(self::DEPLOYMENT_HELPER_ID, $this->id);
+    }
+
     /**
      * @return array<string, string>
      */
@@ -96,7 +99,6 @@ class TrackingService
             $id = $this->systemConfigHelper->get(self::DEPLOYMENT_HELPER_ID);
         } catch (\Throwable) {
             $this->id = $id = bin2hex(random_bytes(16));
-            $this->idNeedsToBePersisted = true;
         }
 
         if ($id === null) {
@@ -109,13 +111,6 @@ class TrackingService
 
     private function shutdown(): void
     {
-        if ($this->idNeedsToBePersisted) {
-            try {
-                $this->systemConfigHelper->set(self::DEPLOYMENT_HELPER_ID, $this->id);
-            } catch (\Throwable) {
-            }
-        }
-
         usleep(100);
         foreach ($this->responses as $response) {
             $response->cancel();

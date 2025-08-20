@@ -151,6 +151,9 @@ class InstallationManagerTest extends TestCase
         $accountService = $this->createMock(AccountService::class);
         $accountService->expects(static::never())->method('refresh');
 
+        $trackingService = $this->createMock(TrackingService::class);
+        $trackingService->expects(static::once())->method('persistId');
+
         $manager = new InstallationManager(
             $this->createMock(ShopwareState::class),
             $this->createMock(Connection::class),
@@ -160,7 +163,7 @@ class InstallationManagerTest extends TestCase
             $this->createMock(HookExecutor::class),
             new ProjectConfiguration(),
             $accountService,
-            $this->createMock(TrackingService::class),
+            $trackingService,
         );
 
         $manager->run(new RunConfiguration(true, true, forceReinstallation: true), $this->createMock(OutputInterface::class));

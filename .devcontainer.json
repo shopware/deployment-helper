@@ -21,7 +21,8 @@
 	"containerEnv": {
 		"PROJECT_ROOT": "/var/www/html",
 		"PHP_PROFILER": "xdebug",
-		"CLAUDE_CONFIG_DIR": "/home/www-data/.claude/claude/"
+		"CLAUDE_CONFIG_DIR": "/home/www-data/.claude/claude/",
+		"RW_DIRECTORIES": "/home/www-data/.claude"
 	},
 	"mounts": [
 		"source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
