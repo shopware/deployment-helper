@@ -59,19 +59,21 @@ class RunCommand extends Command
 
         $this->hookExecutor->execute(HookExecutor::HOOK_PRE);
 
-        if ($installed) {
-            $this->upgradeManager->run($config, $output);
-        } else {
-            $this->installationManager->run($config, $output);
+        try {
+            if ($installed) {
+                $this->upgradeManager->run($config, $output);
+            } else {
+                $this->installationManager->run($config, $output);
+            }
+        } finally {
+            $this->trackingService->track('php_version', [
+                'php_version' => \PHP_MAJOR_VERSION . '.' . \PHP_MINOR_VERSION,
+            ]);
+
+            $this->trackingService->track('mysql_version', [
+                'mysql_version' => $this->state->getMySqlVersion(),
+            ]);
         }
-
-        $this->trackingService->track('php_version', [
-            'php_version' => \PHP_MAJOR_VERSION . '.' . \PHP_MINOR_VERSION,
-        ]);
-
-        $this->trackingService->track('mysql_version', [
-            'mysql_version' => $this->state->getMySqlVersion(),
-        ]);
 
         $this->eventDispatcher->dispatch(new PostDeploy($config, $output));
 

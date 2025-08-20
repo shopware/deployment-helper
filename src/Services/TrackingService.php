@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Shopware\Deployment\Services;
 
 use Shopware\Deployment\Helper\EnvironmentHelper;
-use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class TrackingService
 {
-    private const API_ENDPOINT = 'https://usage.shopware.io';
-
     private const DEPLOYMENT_HELPER_ID = 'core.deployment_helper.id';
+
+    private const DEFAULT_TRACKING_DOMAIN = 'udp.usage.shopware.io';
 
     /**
      * @var array<string, string>
@@ -21,22 +19,16 @@ class TrackingService
 
     private string $id;
 
-    private HttpClientInterface $client;
+    private \Socket|false $socket;
 
-    /**
-     * @var list<\Symfony\Contracts\HttpClient\ResponseInterface>
-     */
-    private array $responses = [];
+    private string $domain;
 
     public function __construct(
         private readonly SystemConfigHelper $systemConfigHelper,
         private readonly ShopwareState $shopwareState,
     ) {
-        $this->client = HttpClient::create([
-            'base_uri' => EnvironmentHelper::getVariable('SHOPWARE_TRACKING_ENDPOINT', self::API_ENDPOINT),
-        ]);
-
-        register_shutdown_function([$this, 'shutdown']);
+        $this->socket = @socket_create(\AF_INET, \SOCK_DGRAM, \SOL_UDP);
+        $this->domain = EnvironmentHelper::getVariable('SHOPWARE_TRACKING_DOMAIN', self::DEFAULT_TRACKING_DOMAIN);
     }
 
     /**
@@ -51,20 +43,18 @@ class TrackingService
         $tags += $this->getTags();
         $id = $this->getId();
 
-        $this->responses[] = $this->client->request('PUT', '/track', [
-            'json' => [
-                'event' => 'deployment_helper.' . $eventName,
-                'tags' => $tags,
-                'user_id' => $id,
-                'timestamp' => (new \DateTime())->format(\DateTime::ISO8601),
-            ],
-            'timeout' => 0.8,
-            'max_duration' => 0.8,
-            'headers' => [
-                'User-Agent' => 'shopware-deployment-helper',
-                'Accept' => 'application/json',
-            ],
-        ]);
+        if ($this->socket === false) {
+            return;
+        }
+
+        $payload = json_encode([
+            'event' => 'deployment_helper.' . $eventName,
+            'tags' => $tags,
+            'user_id' => $id,
+            'timestamp' => (new \DateTime())->format(\DateTimeInterface::ATOM),
+        ], \JSON_THROW_ON_ERROR);
+
+        @socket_sendto($this->socket, $payload, \strlen($payload), 0, $this->domain, 9000);
     }
 
     public function persistId(): void
@@ -108,13 +98,5 @@ class TrackingService
         }
 
         return $this->id = $id;
-    }
-
-    private function shutdown(): void
-    {
-        usleep(100);
-        foreach ($this->responses as $response) {
-            $response->cancel();
-        }
     }
 }

@@ -61,7 +61,7 @@ class InstallationManager
         $this->processHelper->console(['system:install', '--create-database', '--shop-locale=' . $shopLocale, '--shop-currency=' . $shopCurrency, '--force', ...$additionalInstallParameters]);
 
         $this->trackingService->persistId();
-        $this->trackingService->track('installed', ['took' => microtime(true) - $took]);
+        $this->trackingService->track('installed', ['took' => microtime(true) - $took, 'shopware_version' => $this->state->getCurrentVersion()]);
 
         $this->processHelper->console(['user:create', $adminUser, '--password=' . $adminPassword]);
 
