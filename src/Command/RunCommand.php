@@ -47,9 +47,12 @@ class RunCommand extends Command
             'php_version' => \PHP_MAJOR_VERSION . '.' . \PHP_MINOR_VERSION,
         ]);
 
-        $this->trackingService->track('mysql_version', [
-            'mysql_version' => $this->state->getMySqlVersion(),
-        ]);
+        try {
+            $this->trackingService->track('mysql_version', [
+                'mysql_version' => $this->state->getMySqlVersion(),
+            ]);
+        } catch (\Throwable) {
+        }
 
         $timeout = $input->getOption('timeout');
 

@@ -90,7 +90,11 @@ class TrackingService
             return $this->id;
         }
 
-        $id = $this->systemConfigHelper->get(self::DEPLOYMENT_HELPER_ID);
+        try {
+            $id = $this->systemConfigHelper->get(self::DEPLOYMENT_HELPER_ID);
+        } catch (\Throwable) {
+            $this->id = $id = bin2hex(random_bytes(16));
+        }
 
         if ($id === null) {
             $id = bin2hex(random_bytes(16));
