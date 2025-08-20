@@ -51,7 +51,7 @@ class TrackingService
         $tags += $this->getTags();
         $id = $this->getId();
 
-        $this->responses[] = $this->client->request('PUT', '/track', [
+        $this->responses[] = $this->client->request('PUT', '/deployment-helper', [
             'json' => [
                 'event' => 'deployment_helper.' . $eventName,
                 'tags' => $tags,
