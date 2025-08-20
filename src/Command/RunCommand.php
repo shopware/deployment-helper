@@ -43,18 +43,7 @@ class RunCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->trackingService->track('php_version', [
-            'php_version' => \PHP_MAJOR_VERSION . '.' . \PHP_MINOR_VERSION,
-        ]);
-
         $installed = $this->state->isInstalled();
-
-        if ($installed) {
-            $this->trackingService->track('mysql_version', [
-                'mysql_version' => $this->state->getMySqlVersion(),
-            ]);
-        }
-
         $timeout = $input->getOption('timeout');
 
         $config = new RunConfiguration(
@@ -75,6 +64,14 @@ class RunCommand extends Command
         } else {
             $this->installationManager->run($config, $output);
         }
+
+        $this->trackingService->track('php_version', [
+            'php_version' => \PHP_MAJOR_VERSION . '.' . \PHP_MINOR_VERSION,
+        ]);
+
+        $this->trackingService->track('mysql_version', [
+            'mysql_version' => $this->state->getMySqlVersion(),
+        ]);
 
         $this->eventDispatcher->dispatch(new PostDeploy($config, $output));
 
