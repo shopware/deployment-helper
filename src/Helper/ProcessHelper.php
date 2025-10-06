@@ -17,8 +17,9 @@ class ProcessHelper
     public function __construct(
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
-        private ?float $timeout = 60,
+        private ?float $timeout = null,
     ) {
+        $this->timeout = $this->validateTimeout($timeout ?? (float) EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_TIMEOUT', '60'));
     }
 
     /**
