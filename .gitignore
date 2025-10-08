@@ -1,5 +1,7 @@
 /.idea
+/.claude
 /vendor
 /composer.lock
 /var/cache
 /build/coverage
+/coverage
