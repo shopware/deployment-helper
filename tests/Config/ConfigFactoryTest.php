@@ -45,7 +45,11 @@ class ConfigFactoryTest extends TestCase
         $config = ConfigFactory::create($configDir, $this->createMockApplication());
         static::assertTrue($config->extensionManagement->enabled);
         static::assertSame('ignore', $config->extensionManagement->overrides['Name']['state']);
-        static::assertSame(['foo' => 'test'], $config->oneTimeTasks);
+        static::assertArrayHasKey('foo', $config->oneTimeTasks);
+        static::assertInstanceOf(\Shopware\Deployment\Struct\OneTimeTask::class, $config->oneTimeTasks['foo']);
+        static::assertSame('foo', $config->oneTimeTasks['foo']->id);
+        static::assertSame('test', $config->oneTimeTasks['foo']->script);
+        static::assertSame('last', $config->oneTimeTasks['foo']->when);
         static::assertNotSame('', $config->hooks->pre);
         static::assertNotSame('', $config->hooks->post);
         static::assertNotSame('', $config->hooks->preInstall);
@@ -132,7 +136,9 @@ class ConfigFactoryTest extends TestCase
         $config = ConfigFactory::create(__DIR__, $this->createMockApplication($customConfigPath));
 
         static::assertTrue($config->extensionManagement->enabled);
-        static::assertSame(['foo' => 'test'], $config->oneTimeTasks);
+        static::assertArrayHasKey('foo', $config->oneTimeTasks);
+        static::assertInstanceOf(\Shopware\Deployment\Struct\OneTimeTask::class, $config->oneTimeTasks['foo']);
+        static::assertSame('test', $config->oneTimeTasks['foo']->script);
     }
 
     public function testCreateWithProjectConfigOptionRelativePath(): void
@@ -141,7 +147,9 @@ class ConfigFactoryTest extends TestCase
         $config = ConfigFactory::create(__DIR__ . '/_fixtures', $this->createMockApplication('yml/.shopware-project.yml'));
 
         static::assertTrue($config->extensionManagement->enabled);
-        static::assertSame(['foo' => 'test'], $config->oneTimeTasks);
+        static::assertArrayHasKey('foo', $config->oneTimeTasks);
+        static::assertInstanceOf(\Shopware\Deployment\Struct\OneTimeTask::class, $config->oneTimeTasks['foo']);
+        static::assertSame('test', $config->oneTimeTasks['foo']->script);
     }
 
     #[Env('SHOPWARE_PROJECT_CONFIG_FILE', '_fixtures/yml/.shopware-project.yml')]
@@ -151,7 +159,9 @@ class ConfigFactoryTest extends TestCase
         $config = ConfigFactory::create(__DIR__, $this->createMockApplication('some-other-config.yml'));
 
         // Should load the config from environment variable, not the CLI option
-        static::assertSame(['foo' => 'test'], $config->oneTimeTasks);
+        static::assertArrayHasKey('foo', $config->oneTimeTasks);
+        static::assertInstanceOf(\Shopware\Deployment\Struct\OneTimeTask::class, $config->oneTimeTasks['foo']);
+        static::assertSame('test', $config->oneTimeTasks['foo']->script);
     }
 
     public function testCreateWithNonExistentProjectConfig(): void
@@ -163,5 +173,19 @@ class ConfigFactoryTest extends TestCase
         static::assertTrue($config->extensionManagement->enabled);
         static::assertSame([], $config->extensionManagement->overrides);
         static::assertSame([], $config->oneTimeTasks);
+    }
+
+    public function testOneTimeTasksWithWhenField(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/maintenance-mode', $this->createMockApplication());
+
+        static::assertArrayHasKey('foo', $config->oneTimeTasks);
+        static::assertSame('last', $config->oneTimeTasks['foo']->when);
+
+        static::assertArrayHasKey('early-task', $config->oneTimeTasks);
+        static::assertSame('first', $config->oneTimeTasks['early-task']->when);
+
+        static::assertArrayHasKey('late-task', $config->oneTimeTasks);
+        static::assertSame('last', $config->oneTimeTasks['late-task']->when);
     }
 }

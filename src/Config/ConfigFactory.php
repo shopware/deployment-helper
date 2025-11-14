@@ -76,7 +76,16 @@ class ConfigFactory
         if (isset($deployment['one-time-tasks']) && \is_array($deployment['one-time-tasks'])) {
             foreach ($deployment['one-time-tasks'] as $task) {
                 if (isset($task['id'], $task['script']) && \is_string($task['id']) && \is_string($task['script'])) {
-                    $projectConfiguration->oneTimeTasks[$task['id']] = $task['script'];
+                    $when = \Shopware\Deployment\Struct\OneTimeTask::WHEN_LAST;
+                    if (isset($task['when']) && \is_string($task['when'])) {
+                        $when = $task['when'];
+                    }
+
+                    $projectConfiguration->oneTimeTasks[$task['id']] = new \Shopware\Deployment\Struct\OneTimeTask(
+                        $task['id'],
+                        $task['script'],
+                        $when
+                    );
                 }
             }
         }

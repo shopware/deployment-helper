@@ -68,7 +68,7 @@ class OneTimeTasksTest extends TestCase
 
         $configuration = new ProjectConfiguration();
         $configuration->oneTimeTasks = [
-            'test' => 'echo "test"',
+            'test' => new \Shopware\Deployment\Struct\OneTimeTask('test', 'echo "test"', 'last'),
         ];
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
@@ -88,7 +88,7 @@ class OneTimeTasksTest extends TestCase
 
         $configuration = new ProjectConfiguration();
         $configuration->oneTimeTasks = [
-            'test' => 'echo "test"',
+            'test' => new \Shopware\Deployment\Struct\OneTimeTask('test', 'echo "test"', 'last'),
         ];
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
@@ -104,5 +104,71 @@ class OneTimeTasksTest extends TestCase
 
         $tasks = new OneTimeTasks($processHelper, $connection, new ProjectConfiguration());
         $tasks->remove('test');
+    }
+
+    public function testTaskWithWhenFirst(): void
+    {
+        $output = $this->createMock(OutputInterface::class);
+        $output->expects($this->once())->method('writeln')->with('Running one-time task first-task');
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())->method('runAndTail')->with('echo "first"');
+
+        $connection = $this->createMock(Connection::class);
+        $connection->expects($this->once())->method('fetchAllAssociativeIndexed')->willReturn([]);
+        $connection->expects($this->once())->method('executeStatement');
+
+        $configuration = new ProjectConfiguration();
+        $configuration->oneTimeTasks = [
+            'first-task' => new \Shopware\Deployment\Struct\OneTimeTask('first-task', 'echo "first"', 'first'),
+            'last-task' => new \Shopware\Deployment\Struct\OneTimeTask('last-task', 'echo "last"', 'last'),
+        ];
+
+        $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
+        $tasks->execute($output, 'first');
+    }
+
+    public function testTaskWithWhenLast(): void
+    {
+        $output = $this->createMock(OutputInterface::class);
+        $output->expects($this->once())->method('writeln')->with('Running one-time task last-task');
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())->method('runAndTail')->with('echo "last"');
+
+        $connection = $this->createMock(Connection::class);
+        $connection->expects($this->once())->method('fetchAllAssociativeIndexed')->willReturn([]);
+        $connection->expects($this->once())->method('executeStatement');
+
+        $configuration = new ProjectConfiguration();
+        $configuration->oneTimeTasks = [
+            'first-task' => new \Shopware\Deployment\Struct\OneTimeTask('first-task', 'echo "first"', 'first'),
+            'last-task' => new \Shopware\Deployment\Struct\OneTimeTask('last-task', 'echo "last"', 'last'),
+        ];
+
+        $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
+        $tasks->execute($output, 'last');
+    }
+
+    public function testTaskWithoutWhenFilterExecutesAll(): void
+    {
+        $output = $this->createMock(OutputInterface::class);
+        $output->expects($this->exactly(2))->method('writeln');
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->exactly(2))->method('runAndTail');
+
+        $connection = $this->createMock(Connection::class);
+        $connection->expects($this->once())->method('fetchAllAssociativeIndexed')->willReturn([]);
+        $connection->expects($this->exactly(2))->method('executeStatement');
+
+        $configuration = new ProjectConfiguration();
+        $configuration->oneTimeTasks = [
+            'first-task' => new \Shopware\Deployment\Struct\OneTimeTask('first-task', 'echo "first"', 'first'),
+            'last-task' => new \Shopware\Deployment\Struct\OneTimeTask('last-task', 'echo "last"', 'last'),
+        ];
+
+        $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
+        $tasks->execute($output, null);
     }
 }

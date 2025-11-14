@@ -14,7 +14,7 @@
             <factory class="Shopware\Deployment\DependencyInjection\MySQLFactory" method="createAndRetry"/>
         </service>
 
-        <prototype namespace="Shopware\Deployment\" resource="../../" exclude="../../Application{,Output}.php"/>
+        <prototype namespace="Shopware\Deployment\" resource="../../" exclude="../../{Application{,Output}.php,Struct}"/>
 
         <service id="Shopware\Deployment\Application" synthetic="true"/>
 

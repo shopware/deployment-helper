@@ -18,18 +18,23 @@ class OneTimeTasks
     ) {
     }
 
-    public function execute(OutputInterface $output): void
+    public function execute(OutputInterface $output, ?string $when = null): void
     {
         $executed = $this->getExecutedTasks();
 
-        foreach ($this->configuration->oneTimeTasks as $id => $script) {
+        foreach ($this->configuration->oneTimeTasks as $id => $task) {
+            // Filter by when if specified
+            if ($when !== null && $task->when !== $when) {
+                continue;
+            }
+
             if (isset($executed[$id])) {
                 continue;
             }
 
             $output->writeln('Running one-time task ' . $id);
 
-            $this->processHelper->runAndTail($script);
+            $this->processHelper->runAndTail($task->script);
 
             $this->markAsRun($id);
         }
