@@ -133,8 +133,15 @@ jobs:
           sudo -u mysql mysqld --datadir=/var/lib/mysql --default-time-zone=SYSTEM --initialize-insecure
           sudo systemctl start mysql
 
+      - name: Install shopware-cli
+        uses: shopware/shopware-cli-action@v2
+
       - name: Create new Shopware Project
-        run: composer create-project shopware/production:6.5.8.8 . --no-interaction
+        run: |
+          shopware-cli project create shop 6.5.8.8 --no-audit
+          mv shop/* .
+          mv shop/.* . || true
+          rm -rf shop
 
       - name: Checkout
         uses: actions/checkout@v4
