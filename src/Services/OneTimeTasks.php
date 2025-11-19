@@ -24,7 +24,7 @@ class OneTimeTasks
         $executed = $this->getExecutedTasks();
 
         foreach ($this->configuration->oneTimeTasks as $id => $task) {
-            if ($when !== null && $task->when !== $when) {
+            if ($task->when !== $when) {
                 continue;
             }
 
