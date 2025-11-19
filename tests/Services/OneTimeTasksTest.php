@@ -10,6 +10,8 @@ use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\OneTimeTasks;
+use Shopware\Deployment\Struct\OneTimeTask;
+use Shopware\Deployment\Struct\OneTimeTaskWhen;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[CoversClass(OneTimeTasks::class)]
@@ -29,7 +31,7 @@ class OneTimeTasksTest extends TestCase
         $configuration = new ProjectConfiguration();
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output);
+        $tasks->execute($output, OneTimeTaskWhen::LAST);
     }
 
     public function testNoTasksNoTable(): void
@@ -47,7 +49,7 @@ class OneTimeTasksTest extends TestCase
         $configuration = new ProjectConfiguration();
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output);
+        $tasks->execute($output, OneTimeTaskWhen::FIRST);
     }
 
     public function testTask(): void
@@ -68,11 +70,11 @@ class OneTimeTasksTest extends TestCase
 
         $configuration = new ProjectConfiguration();
         $configuration->oneTimeTasks = [
-            'test' => new \Shopware\Deployment\Struct\OneTimeTask('test', 'echo "test"', 'last'),
+            'test' => new OneTimeTask('test', 'echo "test"', OneTimeTaskWhen::LAST),
         ];
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output);
+        $tasks->execute($output, OneTimeTaskWhen::LAST);
     }
 
     public function testTaskAlreadyExecuted(): void
@@ -88,11 +90,11 @@ class OneTimeTasksTest extends TestCase
 
         $configuration = new ProjectConfiguration();
         $configuration->oneTimeTasks = [
-            'test' => new \Shopware\Deployment\Struct\OneTimeTask('test', 'echo "test"', 'last'),
+            'test' => new OneTimeTask('test', 'echo "test"', OneTimeTaskWhen::LAST),
         ];
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output);
+        $tasks->execute($output, OneTimeTaskWhen::LAST);
     }
 
     public function testRemove(): void
@@ -120,12 +122,12 @@ class OneTimeTasksTest extends TestCase
 
         $configuration = new ProjectConfiguration();
         $configuration->oneTimeTasks = [
-            'first-task' => new \Shopware\Deployment\Struct\OneTimeTask('first-task', 'echo "first"', 'first'),
-            'last-task' => new \Shopware\Deployment\Struct\OneTimeTask('last-task', 'echo "last"', 'last'),
+            'first-task' => new OneTimeTask('first-task', 'echo "first"', OneTimeTaskWhen::FIRST),
+            'last-task' => new OneTimeTask('last-task', 'echo "last"', OneTimeTaskWhen::LAST),
         ];
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output, 'first');
+        $tasks->execute($output, OneTimeTaskWhen::FIRST);
     }
 
     public function testTaskWithWhenLast(): void
@@ -142,33 +144,33 @@ class OneTimeTasksTest extends TestCase
 
         $configuration = new ProjectConfiguration();
         $configuration->oneTimeTasks = [
-            'first-task' => new \Shopware\Deployment\Struct\OneTimeTask('first-task', 'echo "first"', 'first'),
-            'last-task' => new \Shopware\Deployment\Struct\OneTimeTask('last-task', 'echo "last"', 'last'),
+            'first-task' => new OneTimeTask('first-task', 'echo "first"', OneTimeTaskWhen::FIRST),
+            'last-task' => new OneTimeTask('last-task', 'echo "last"', OneTimeTaskWhen::LAST),
         ];
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output, 'last');
+        $tasks->execute($output, OneTimeTaskWhen::LAST);
     }
 
     public function testTaskWithoutWhenFilterExecutesAll(): void
     {
         $output = $this->createMock(OutputInterface::class);
-        $output->expects($this->exactly(2))->method('writeln');
+        $output->expects($this->exactly(1))->method('writeln');
 
         $processHelper = $this->createMock(ProcessHelper::class);
-        $processHelper->expects($this->exactly(2))->method('runAndTail');
+        $processHelper->expects($this->exactly(1))->method('runAndTail');
 
         $connection = $this->createMock(Connection::class);
         $connection->expects($this->once())->method('fetchAllAssociativeIndexed')->willReturn([]);
-        $connection->expects($this->exactly(2))->method('executeStatement');
+        $connection->expects($this->exactly(1))->method('executeStatement');
 
         $configuration = new ProjectConfiguration();
         $configuration->oneTimeTasks = [
-            'first-task' => new \Shopware\Deployment\Struct\OneTimeTask('first-task', 'echo "first"', 'first'),
-            'last-task' => new \Shopware\Deployment\Struct\OneTimeTask('last-task', 'echo "last"', 'last'),
+            'first-task' => new OneTimeTask('first-task', 'echo "first"', OneTimeTaskWhen::FIRST),
+            'last-task' => new OneTimeTask('last-task', 'echo "last"', OneTimeTaskWhen::LAST),
         ];
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output, null);
+        $tasks->execute($output, OneTimeTaskWhen::FIRST);
     }
 }

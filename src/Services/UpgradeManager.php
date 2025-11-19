@@ -7,6 +7,7 @@ namespace Shopware\Deployment\Services;
 use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Helper\ProcessHelper;
+use Shopware\Deployment\Struct\OneTimeTaskWhen;
 use Shopware\Deployment\Struct\RunConfiguration;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -33,7 +34,7 @@ class UpgradeManager
         $this->hookExecutor->execute(HookExecutor::HOOK_PRE_UPDATE);
 
         // Execute one-time tasks that should run first
-        $this->oneTimeTasks->execute($output, \Shopware\Deployment\Struct\OneTimeTask::WHEN_FIRST);
+        $this->oneTimeTasks->execute($output, OneTimeTaskWhen::FIRST);
 
         if ($this->configuration->maintenance->enabled) {
             $this->state->enableMaintenanceMode();
@@ -93,7 +94,7 @@ class UpgradeManager
         }
 
         // Execute one-time tasks that should run last
-        $this->oneTimeTasks->execute($output, \Shopware\Deployment\Struct\OneTimeTask::WHEN_LAST);
+        $this->oneTimeTasks->execute($output, OneTimeTaskWhen::LAST);
 
         $this->hookExecutor->execute(HookExecutor::HOOK_POST_UPDATE);
 

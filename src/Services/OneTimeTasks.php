@@ -7,6 +7,7 @@ namespace Shopware\Deployment\Services;
 use Doctrine\DBAL\Connection;
 use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\ProcessHelper;
+use Shopware\Deployment\Struct\OneTimeTaskWhen;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class OneTimeTasks
@@ -18,12 +19,11 @@ class OneTimeTasks
     ) {
     }
 
-    public function execute(OutputInterface $output, ?string $when = null): void
+    public function execute(OutputInterface $output, OneTimeTaskWhen $when): void
     {
         $executed = $this->getExecutedTasks();
 
         foreach ($this->configuration->oneTimeTasks as $id => $task) {
-            // Filter by when if specified
             if ($when !== null && $task->when !== $when) {
                 continue;
             }
