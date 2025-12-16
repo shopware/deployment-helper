@@ -15,7 +15,7 @@ class ProjectConfiguration
     public ProjectStore $store;
 
     /**
-     * @var array<string, string>
+     * @var array<string, \Shopware\Deployment\Struct\OneTimeTask>
      */
     public array $oneTimeTasks = [];
 

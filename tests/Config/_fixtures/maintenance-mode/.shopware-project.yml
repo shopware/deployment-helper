@@ -26,3 +26,9 @@ deployment:
   one-time-tasks:
     - id: foo
       script: test
+    - id: early-task
+      script: echo "Running early"
+      when: before
+    - id: late-task
+      script: echo "Running late"
+      when: after

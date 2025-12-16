@@ -6,6 +6,8 @@ namespace Shopware\Deployment\Config;
 
 use Shopware\Deployment\Application;
 use Shopware\Deployment\Helper\EnvironmentHelper;
+use Shopware\Deployment\Struct\OneTimeTask;
+use Shopware\Deployment\Struct\OneTimeTaskWhen;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Yaml\Yaml;
 
@@ -76,7 +78,16 @@ class ConfigFactory
         if (isset($deployment['one-time-tasks']) && \is_array($deployment['one-time-tasks'])) {
             foreach ($deployment['one-time-tasks'] as $task) {
                 if (isset($task['id'], $task['script']) && \is_string($task['id']) && \is_string($task['script'])) {
-                    $projectConfiguration->oneTimeTasks[$task['id']] = $task['script'];
+                    $when = OneTimeTaskWhen::AFTER;
+                    if (isset($task['when']) && \is_string($task['when'])) {
+                        $when = OneTimeTaskWhen::from($task['when']);
+                    }
+
+                    $projectConfiguration->oneTimeTasks[$task['id']] = new OneTimeTask(
+                        $task['id'],
+                        $task['script'],
+                        $when
+                    );
                 }
             }
         }

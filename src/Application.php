@@ -17,7 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Dumper\XmlDumper;
-use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
 use Symfony\Component\Filesystem\Filesystem;
@@ -61,8 +61,8 @@ class Application extends SymfonyApplication
         InstalledVersions::reload(include $projectDir . '/vendor/composer/installed.php');
         (new DotenvLoader($projectDir))->load();
 
-        $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/Resources/config'));
-        $loader->load('services.xml');
+        $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/Resources/config'));
+        $loader->load('services.php');
         $container->compile();
         $container->set(self::class, $this);
 

@@ -27,7 +27,7 @@ class UpgradeManagerTest extends TestCase
     {
         $oneTimeTasks = $this->createMock(OneTimeTasks::class);
         $oneTimeTasks
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('execute');
 
         $hookExecutor = $this->createMock(HookExecutor::class);
@@ -219,7 +219,7 @@ class UpgradeManagerTest extends TestCase
     {
         $oneTimeTasks = $this->createMock(OneTimeTasks::class);
         $oneTimeTasks
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('execute');
 
         $hookExecutor = $this->createMock(HookExecutor::class);

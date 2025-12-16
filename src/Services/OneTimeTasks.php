@@ -7,6 +7,7 @@ namespace Shopware\Deployment\Services;
 use Doctrine\DBAL\Connection;
 use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\ProcessHelper;
+use Shopware\Deployment\Struct\OneTimeTaskWhen;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class OneTimeTasks
@@ -18,18 +19,22 @@ class OneTimeTasks
     ) {
     }
 
-    public function execute(OutputInterface $output): void
+    public function execute(OutputInterface $output, OneTimeTaskWhen $when): void
     {
         $executed = $this->getExecutedTasks();
 
-        foreach ($this->configuration->oneTimeTasks as $id => $script) {
+        foreach ($this->configuration->oneTimeTasks as $id => $task) {
+            if ($task->when !== $when) {
+                continue;
+            }
+
             if (isset($executed[$id])) {
                 continue;
             }
 
             $output->writeln('Running one-time task ' . $id);
 
-            $this->processHelper->runAndTail($script);
+            $this->processHelper->runAndTail($task->script);
 
             $this->markAsRun($id);
         }
