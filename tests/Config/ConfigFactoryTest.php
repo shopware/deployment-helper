@@ -50,7 +50,7 @@ class ConfigFactoryTest extends TestCase
         static::assertInstanceOf(\Shopware\Deployment\Struct\OneTimeTask::class, $config->oneTimeTasks['foo']);
         static::assertSame('foo', $config->oneTimeTasks['foo']->id);
         static::assertSame('test', $config->oneTimeTasks['foo']->script);
-        static::assertSame(OneTimeTaskWhen::LAST, $config->oneTimeTasks['foo']->when);
+        static::assertSame(OneTimeTaskWhen::AFTER, $config->oneTimeTasks['foo']->when);
         static::assertNotSame('', $config->hooks->pre);
         static::assertNotSame('', $config->hooks->post);
         static::assertNotSame('', $config->hooks->preInstall);
@@ -181,12 +181,12 @@ class ConfigFactoryTest extends TestCase
         $config = ConfigFactory::create(__DIR__ . '/_fixtures/maintenance-mode', $this->createMockApplication());
 
         static::assertArrayHasKey('foo', $config->oneTimeTasks);
-        static::assertSame(OneTimeTaskWhen::LAST, $config->oneTimeTasks['foo']->when);
+        static::assertSame(OneTimeTaskWhen::AFTER, $config->oneTimeTasks['foo']->when);
 
         static::assertArrayHasKey('early-task', $config->oneTimeTasks);
-        static::assertSame(OneTimeTaskWhen::FIRST, $config->oneTimeTasks['early-task']->when);
+        static::assertSame(OneTimeTaskWhen::BEFORE, $config->oneTimeTasks['early-task']->when);
 
         static::assertArrayHasKey('late-task', $config->oneTimeTasks);
-        static::assertSame(OneTimeTaskWhen::LAST, $config->oneTimeTasks['late-task']->when);
+        static::assertSame(OneTimeTaskWhen::AFTER, $config->oneTimeTasks['late-task']->when);
     }
 }

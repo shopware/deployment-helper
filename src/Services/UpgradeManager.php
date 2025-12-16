@@ -33,8 +33,8 @@ class UpgradeManager
 
         $this->hookExecutor->execute(HookExecutor::HOOK_PRE_UPDATE);
 
-        // Execute one-time tasks that should run first
-        $this->oneTimeTasks->execute($output, OneTimeTaskWhen::FIRST);
+        // Execute one-time tasks that should run before the update
+        $this->oneTimeTasks->execute($output, OneTimeTaskWhen::BEFORE);
 
         if ($this->configuration->maintenance->enabled) {
             $this->state->enableMaintenanceMode();
@@ -93,8 +93,8 @@ class UpgradeManager
             $this->processHelper->console(['theme:compile', '--active-only']);
         }
 
-        // Execute one-time tasks that should run last
-        $this->oneTimeTasks->execute($output, OneTimeTaskWhen::LAST);
+        // Execute one-time tasks that should run after the update
+        $this->oneTimeTasks->execute($output, OneTimeTaskWhen::AFTER);
 
         $this->hookExecutor->execute(HookExecutor::HOOK_POST_UPDATE);
 

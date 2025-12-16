@@ -9,7 +9,7 @@ readonly class OneTimeTask
     public function __construct(
         public string $id,
         public string $script,
-        public OneTimeTaskWhen $when = OneTimeTaskWhen::LAST,
+        public OneTimeTaskWhen $when = OneTimeTaskWhen::AFTER,
     ) {
     }
 }

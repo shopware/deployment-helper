@@ -78,7 +78,7 @@ class ConfigFactory
         if (isset($deployment['one-time-tasks']) && \is_array($deployment['one-time-tasks'])) {
             foreach ($deployment['one-time-tasks'] as $task) {
                 if (isset($task['id'], $task['script']) && \is_string($task['id']) && \is_string($task['script'])) {
-                    $when = OneTimeTaskWhen::LAST;
+                    $when = OneTimeTaskWhen::AFTER;
                     if (isset($task['when']) && \is_string($task['when'])) {
                         $when = OneTimeTaskWhen::from($task['when']);
                     }

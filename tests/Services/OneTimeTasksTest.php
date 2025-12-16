@@ -31,7 +31,7 @@ class OneTimeTasksTest extends TestCase
         $configuration = new ProjectConfiguration();
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output, OneTimeTaskWhen::LAST);
+        $tasks->execute($output, OneTimeTaskWhen::AFTER);
     }
 
     public function testNoTasksNoTable(): void
@@ -49,7 +49,7 @@ class OneTimeTasksTest extends TestCase
         $configuration = new ProjectConfiguration();
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output, OneTimeTaskWhen::FIRST);
+        $tasks->execute($output, OneTimeTaskWhen::BEFORE);
     }
 
     public function testTask(): void
@@ -70,11 +70,11 @@ class OneTimeTasksTest extends TestCase
 
         $configuration = new ProjectConfiguration();
         $configuration->oneTimeTasks = [
-            'test' => new OneTimeTask('test', 'echo "test"', OneTimeTaskWhen::LAST),
+            'test' => new OneTimeTask('test', 'echo "test"', OneTimeTaskWhen::AFTER),
         ];
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output, OneTimeTaskWhen::LAST);
+        $tasks->execute($output, OneTimeTaskWhen::AFTER);
     }
 
     public function testTaskAlreadyExecuted(): void
@@ -90,11 +90,11 @@ class OneTimeTasksTest extends TestCase
 
         $configuration = new ProjectConfiguration();
         $configuration->oneTimeTasks = [
-            'test' => new OneTimeTask('test', 'echo "test"', OneTimeTaskWhen::LAST),
+            'test' => new OneTimeTask('test', 'echo "test"', OneTimeTaskWhen::AFTER),
         ];
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output, OneTimeTaskWhen::LAST);
+        $tasks->execute($output, OneTimeTaskWhen::AFTER);
     }
 
     public function testRemove(): void
@@ -108,13 +108,13 @@ class OneTimeTasksTest extends TestCase
         $tasks->remove('test');
     }
 
-    public function testTaskWithWhenFirst(): void
+    public function testTaskWithWhenBefore(): void
     {
         $output = $this->createMock(OutputInterface::class);
-        $output->expects($this->once())->method('writeln')->with('Running one-time task first-task');
+        $output->expects($this->once())->method('writeln')->with('Running one-time task before-task');
 
         $processHelper = $this->createMock(ProcessHelper::class);
-        $processHelper->expects($this->once())->method('runAndTail')->with('echo "first"');
+        $processHelper->expects($this->once())->method('runAndTail')->with('echo "before"');
 
         $connection = $this->createMock(Connection::class);
         $connection->expects($this->once())->method('fetchAllAssociativeIndexed')->willReturn([]);
@@ -122,21 +122,21 @@ class OneTimeTasksTest extends TestCase
 
         $configuration = new ProjectConfiguration();
         $configuration->oneTimeTasks = [
-            'first-task' => new OneTimeTask('first-task', 'echo "first"', OneTimeTaskWhen::FIRST),
-            'last-task' => new OneTimeTask('last-task', 'echo "last"', OneTimeTaskWhen::LAST),
+            'before-task' => new OneTimeTask('before-task', 'echo "before"', OneTimeTaskWhen::BEFORE),
+            'after-task' => new OneTimeTask('after-task', 'echo "after"', OneTimeTaskWhen::AFTER),
         ];
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output, OneTimeTaskWhen::FIRST);
+        $tasks->execute($output, OneTimeTaskWhen::BEFORE);
     }
 
-    public function testTaskWithWhenLast(): void
+    public function testTaskWithWhenAfter(): void
     {
         $output = $this->createMock(OutputInterface::class);
-        $output->expects($this->once())->method('writeln')->with('Running one-time task last-task');
+        $output->expects($this->once())->method('writeln')->with('Running one-time task after-task');
 
         $processHelper = $this->createMock(ProcessHelper::class);
-        $processHelper->expects($this->once())->method('runAndTail')->with('echo "last"');
+        $processHelper->expects($this->once())->method('runAndTail')->with('echo "after"');
 
         $connection = $this->createMock(Connection::class);
         $connection->expects($this->once())->method('fetchAllAssociativeIndexed')->willReturn([]);
@@ -144,15 +144,15 @@ class OneTimeTasksTest extends TestCase
 
         $configuration = new ProjectConfiguration();
         $configuration->oneTimeTasks = [
-            'first-task' => new OneTimeTask('first-task', 'echo "first"', OneTimeTaskWhen::FIRST),
-            'last-task' => new OneTimeTask('last-task', 'echo "last"', OneTimeTaskWhen::LAST),
+            'before-task' => new OneTimeTask('before-task', 'echo "before"', OneTimeTaskWhen::BEFORE),
+            'after-task' => new OneTimeTask('after-task', 'echo "after"', OneTimeTaskWhen::AFTER),
         ];
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output, OneTimeTaskWhen::LAST);
+        $tasks->execute($output, OneTimeTaskWhen::AFTER);
     }
 
-    public function testTaskWithoutWhenFilterExecutesAll(): void
+    public function testTaskWithWhenFilterExecutesOnlyMatchingTasks(): void
     {
         $output = $this->createMock(OutputInterface::class);
         $output->expects($this->exactly(1))->method('writeln');
@@ -166,11 +166,11 @@ class OneTimeTasksTest extends TestCase
 
         $configuration = new ProjectConfiguration();
         $configuration->oneTimeTasks = [
-            'first-task' => new OneTimeTask('first-task', 'echo "first"', OneTimeTaskWhen::FIRST),
-            'last-task' => new OneTimeTask('last-task', 'echo "last"', OneTimeTaskWhen::LAST),
+            'before-task' => new OneTimeTask('before-task', 'echo "before"', OneTimeTaskWhen::BEFORE),
+            'after-task' => new OneTimeTask('after-task', 'echo "after"', OneTimeTaskWhen::AFTER),
         ];
 
         $tasks = new OneTimeTasks($processHelper, $connection, $configuration);
-        $tasks->execute($output, OneTimeTaskWhen::FIRST);
+        $tasks->execute($output, OneTimeTaskWhen::BEFORE);
     }
 }
