@@ -92,7 +92,10 @@ class ProcessHelper
 
     public function runAndTail(string $code): void
     {
-        $start = $this->printPreStart([$code]);
+        $originalCode = $code;
+        $code = $this->replaceVariables($code);
+
+        $start = $this->printPreStart([$originalCode]);
 
         $process = new Process(['sh', '-c', $code], $this->projectDir);
         $process->setTimeout($this->timeout);
@@ -110,10 +113,10 @@ class ProcessHelper
         });
 
         if (!$process->isSuccessful()) {
-            throw new \RuntimeException('Execution of ' . $code . ' failed');
+            throw new \RuntimeException('Execution of ' . $originalCode . ' failed');
         }
 
-        $this->printPostStart([$code], $start);
+        $this->printPostStart([$originalCode], $start);
     }
 
     public function getPluginList(): string
@@ -193,5 +196,16 @@ class ProcessHelper
         }
 
         return $timeout;
+    }
+
+    /**
+     * Replaces placeholders in hook/script commands with actual values.
+     *
+     * Supported placeholders:
+     * - %php.bin%: The path to the PHP binary that started the current process
+     */
+    private function replaceVariables(string $code): string
+    {
+        return str_replace('%php.bin%', escapeshellarg(\PHP_BINARY), $code);
     }
 }
