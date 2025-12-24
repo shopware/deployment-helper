@@ -11,6 +11,8 @@ env:
   APP_ENV: prod
   SALES_CHANNEL_URL: http://localhost:8000
   DATABASE_URL: mysql://root@127.0.0.1/shopware
+  # Disable our own telemetry to not fill test runs
+  DO_NOT_TRACK: 1
 
 jobs:
   installation:
