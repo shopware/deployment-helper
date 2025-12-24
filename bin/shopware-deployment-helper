@@ -17,7 +17,7 @@ $includables = [
     __DIR__ . '/vendor/autoload.php',
 ];
 
-if (str_contains(__DIR__, 'custom/plugins')) {
+if (str_contains(__DIR__, 'custom/plugins') || str_contains(__DIR__, 'custom/static-plugins')) {
     $includables[] = __DIR__ . '/../../../../vendor/autoload.php';
 }
 

@@ -7,6 +7,7 @@ namespace Shopware\Deployment\Tests\Services;
 use Composer\InstalledVersions;
 use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Services\ShopwareState;
@@ -224,5 +225,68 @@ class ShopwareStateTest extends TestCase
             ->with('UPDATE sales_channel SET maintenance = ? WHERE id = UNHEX(?)', [0, 'id']);
 
         $this->state->disableMaintenanceMode();
+    }
+
+    #[DataProvider('mysqlVersionProvider')]
+    public function testGetMySqlVersion(string $versionString, string $expectedResult): void
+    {
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with('SELECT VERSION()')
+            ->willReturn($versionString);
+
+        static::assertSame($expectedResult, $this->state->getMySqlVersion());
+    }
+
+    /**
+     * @return array<string, array{versionString: string, expectedResult: string}>
+     */
+    public static function mysqlVersionProvider(): array
+    {
+        return [
+            'MySQL 8.0' => [
+                'versionString' => '8.0.23',
+                'expectedResult' => 'mysql-8.0.23',
+            ],
+            'MySQL 5.7 with Ubuntu suffix' => [
+                'versionString' => '5.7.33-0ubuntu0.18.04.1',
+                'expectedResult' => 'mysql-5.7.33',
+            ],
+            'MariaDB 10.5' => [
+                'versionString' => '10.5.9-MariaDB',
+                'expectedResult' => 'mariadb-10.5',
+            ],
+            'MariaDB with complex version string' => [
+                'versionString' => '5.5.5-10.6.7-MariaDB-1:10.6.7+maria~focal',
+                'expectedResult' => 'mariadb-10.6',
+            ],
+            'MariaDB alternative format' => [
+                'versionString' => 'mariadb-10.11.2',
+                'expectedResult' => 'mariadb-10.11',
+            ],
+            'MariaDB uppercase' => [
+                'versionString' => '10.3.31-MARIADB-0ubuntu0.20.04.1',
+                'expectedResult' => 'mariadb-10.3',
+            ],
+            'Percona Server' => [
+                'versionString' => '8.0.25-15',
+                'expectedResult' => 'mysql-8.0.25',
+            ],
+        ];
+    }
+
+    public function testGetMySqlVersionWithInvalidMariaDBVersion(): void
+    {
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchOne')
+            ->with('SELECT VERSION()')
+            ->willReturn('mariadb-invalid');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Invalid version string: mariadb-invalid');
+
+        $this->state->getMySqlVersion();
     }
 }

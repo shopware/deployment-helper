@@ -100,4 +100,50 @@ class ShopwareState
             $this->connection->executeStatement('UPDATE sales_channel SET maintenance = ? WHERE id = UNHEX(?)', [$maintenance, $id]);
         }
     }
+
+    public function getMySqlVersion(): string
+    {
+        $version = $this->extractMySQLVersion($this->connection->fetchOne('SELECT VERSION()'));
+
+        if (isset($version['mariadb'])) {
+            return 'mariadb-' . $version['mariadb'];
+        }
+
+        if (isset($version['mysql'])) {
+            return 'mysql-' . $version['mysql'];
+        }
+
+        return 'unknown';
+    }
+
+    /**
+     * @return array{mysql?: string, mariadb?: string}
+     */
+    private function extractMySQLVersion(string $versionString): array
+    {
+        if (stripos($versionString, 'mariadb') === false) {
+            $pos = strpos($versionString, '-');
+            if (\is_int($pos)) {
+                $versionString = substr($versionString, 0, $pos);
+            }
+
+            return ['mysql' => $versionString];
+        }
+
+        return ['mariadb' => self::getVersionNumber($versionString)];
+    }
+
+    private static function getVersionNumber(string $versionString): string
+    {
+        $match = preg_match(
+            '/^(?:5\.5\.5-)?(mariadb-)?(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)/i',
+            $versionString,
+            $versionParts,
+        );
+        if ($match === 0 || \is_bool($match)) {
+            throw new \RuntimeException(\sprintf('Invalid version string: %s', $versionString));
+        }
+
+        return $versionParts['major'] . '.' . $versionParts['minor'];
+    }
 }

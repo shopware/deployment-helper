@@ -18,6 +18,7 @@ class ProcessHelper
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
         private ?float $timeout = null,
+        private readonly ConsoleOutputInterface $output = new DefaultConsoleOutput(),
     ) {
         $this->timeout = $this->validateTimeout($timeout ?? (float) EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_TIMEOUT', '60'));
     }
@@ -32,17 +33,11 @@ class ProcessHelper
 
         $startTime = $this->printPreStart($command);
 
-        if (\function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
+        if ($this->output instanceof DefaultConsoleOutput && \function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
             $process->setTty(true);
         }
 
-        $process->run(function (string $type, string $buffer): void {
-            if ($type === Process::ERR) {
-                fwrite(\STDERR, $buffer);
-            } else {
-                fwrite(\STDOUT, $buffer);
-            }
-        });
+        $process->run($this->output(...));
 
         if (!$process->isSuccessful()) {
             throw new \RuntimeException('Execution of ' . implode(' ', $command) . ' failed');
@@ -63,17 +58,11 @@ class ProcessHelper
 
         $startTime = $this->printPreStart($completeCmd);
 
-        if (\function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
+        if ($this->output instanceof DefaultConsoleOutput && \function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
             $process->setTty(true);
         }
 
-        $process->run(function (string $type, string $buffer): void {
-            if ($type === Process::ERR) {
-                fwrite(\STDERR, $buffer);
-            } else {
-                fwrite(\STDOUT, $buffer);
-            }
-        });
+        $process->run($this->output(...));
 
         if (!$process->isSuccessful()) {
             throw new \RuntimeException('Execution of ' . implode(' ', $args) . ' failed');
@@ -100,17 +89,11 @@ class ProcessHelper
         $process = new Process(['sh', '-c', $code], $this->projectDir);
         $process->setTimeout($this->timeout);
 
-        if (\function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
+        if ($this->output instanceof DefaultConsoleOutput && \function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
             $process->setTty(true);
         }
 
-        $process->run(function (string $type, string $buffer): void {
-            if ($type === Process::ERR) {
-                fwrite(\STDERR, $buffer);
-            } else {
-                fwrite(\STDOUT, $buffer);
-            }
-        });
+        $process->run($this->output(...));
 
         if (!$process->isSuccessful()) {
             throw new \RuntimeException('Execution of ' . $originalCode . ' failed');
@@ -140,6 +123,15 @@ class ProcessHelper
         return $this;
     }
 
+    private function output(string $type, string $buffer): void
+    {
+        if ($type === Process::ERR) {
+            $this->output->writeStderr($buffer);
+        } else {
+            $this->output->writeStdout($buffer);
+        }
+    }
+
     /**
      * @param array<string> $cmd
      */
@@ -148,14 +140,14 @@ class ProcessHelper
         $cmdString = implode(' ', $cmd);
         $startTime = microtime(true);
 
-        fwrite(\STDOUT, \PHP_EOL);
-        fwrite(\STDOUT, "=================================================\n");
-        fwrite(\STDOUT, "============== [deployment-helper] ==============\n");
-        fwrite(\STDOUT, "=================================================\n");
-        fwrite(\STDOUT, \sprintf("Start: %s\n", $cmdString));
-        fwrite(\STDOUT, \sprintf("Time limit: %s seconds\n", $this->timeout));
-        fwrite(\STDOUT, "=================================================\n");
-        fwrite(\STDOUT, \PHP_EOL);
+        $this->output->writeStdout(\PHP_EOL);
+        $this->output->writeStdout("=================================================\n");
+        $this->output->writeStdout("============== [deployment-helper] ==============\n");
+        $this->output->writeStdout("=================================================\n");
+        $this->output->writeStdout(\sprintf("Start: %s\n", $cmdString));
+        $this->output->writeStdout(\sprintf("Time limit: %s seconds\n", $this->timeout));
+        $this->output->writeStdout("=================================================\n");
+        $this->output->writeStdout(\PHP_EOL);
 
         return $startTime;
     }
@@ -165,17 +157,17 @@ class ProcessHelper
      */
     private function printPostStart(array $cmd, float $startTime): void
     {
-        fwrite(\STDOUT, "=================================================\n");
-        fwrite(\STDOUT, "============== [deployment-helper] ==============\n");
-        fwrite(\STDOUT, "=================================================\n");
-        fwrite(\STDOUT, \sprintf("End: %s\n", implode(' ', $cmd)));
-        fwrite(\STDOUT, \sprintf(
+        $this->output->writeStdout("=================================================\n");
+        $this->output->writeStdout("============== [deployment-helper] ==============\n");
+        $this->output->writeStdout("=================================================\n");
+        $this->output->writeStdout(\sprintf("End: %s\n", implode(' ', $cmd)));
+        $this->output->writeStdout(\sprintf(
             "> Time: %sms\n",
             number_format((microtime(true) - $startTime) * 1000, 2, '.', ''),
         ));
 
-        fwrite(\STDOUT, "=================================================\n");
-        fwrite(\STDOUT, \PHP_EOL);
+        $this->output->writeStdout("=================================================\n");
+        $this->output->writeStdout(\PHP_EOL);
     }
 
     /**

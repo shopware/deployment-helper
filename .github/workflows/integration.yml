@@ -11,6 +11,8 @@ env:
   APP_ENV: prod
   SALES_CHANNEL_URL: http://localhost:8000
   DATABASE_URL: mysql://root@127.0.0.1/shopware
+  # Disable our own telemetry to not fill test runs
+  DO_NOT_TRACK: 1
 
 jobs:
   installation:
@@ -37,10 +39,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-         path: ./custom/plugins/deployment-helper
+         path: ./custom/static-plugins/deployment-helper
 
       - name: Set fake version into deployment helper
-        run: composer -d custom/plugins/deployment-helper config version 999.9.9
+        run: composer -d custom/static-plugins/deployment-helper config version 999.9.9
 
       - name: Install Deployment Helper
         run: composer require --dev 'shopware/deployment-helper:*'
@@ -86,10 +88,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          path: ./custom/plugins/deployment-helper
+          path: ./custom/static-plugins/deployment-helper
 
       - name: Set fake version into deployment helper
-        run: composer -d custom/plugins/deployment-helper config version 999.9.9
+        run: composer -d custom/static-plugins/deployment-helper config version 999.9.9
 
       - name: Install Deployment Helper
         run: composer require --dev 'shopware/deployment-helper:*'
@@ -146,10 +148,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          path: ./custom/plugins/deployment-helper
+          path: ./custom/static-plugins/deployment-helper
 
       - name: Set fake version into deployment helper
-        run: composer -d custom/plugins/deployment-helper config version 999.9.9
+        run: composer -d custom/static-plugins/deployment-helper config version 999.9.9
 
       - name: Install Deployment Helper
         run: composer require --dev 'shopware/deployment-helper:*'
