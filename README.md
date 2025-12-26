@@ -13,3 +13,7 @@ composer require shopware/deployment-helper
 ```
 
 [For docs see here](https://developer.shopware.com/docs/guides/hosting/installation-updates/deployments/deployment-helper.html#configuration)
+
+## Telemetry
+
+The Shopware Deployment Helper collects anonymous usage data to help us improve the tool. See [TELEMETRY.md](TELEMETRY.md) for more information and how to disable it.
