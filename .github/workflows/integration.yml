@@ -172,7 +172,7 @@ jobs:
         run: curl -q --fail http://localhost:8000
 
       - name: Update to latest version
-        run: composer require "shopware/core:*" "swag/paypal:*"  -W --no-interaction --no-scripts
+        run: composer require "shopware/core:*" "shopware/storefront:*" "shopware/elasticsearch:*" "shopware/administration:*" "swag/paypal:*"  -W --no-interaction --no-scripts --no-audit
 
       - name: Update recipes
         run: yes | composer recipes:install --force --reset
