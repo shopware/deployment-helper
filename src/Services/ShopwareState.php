@@ -127,7 +127,7 @@ class ShopwareState
                 $versionString = substr($versionString, 0, $pos);
             }
 
-            return ['mysql' => $versionString];
+            return ['mysql' => self::getVersionNumber($versionString)];
         }
 
         return ['mariadb' => self::getVersionNumber($versionString)];
