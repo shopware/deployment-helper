@@ -247,11 +247,11 @@ class ShopwareStateTest extends TestCase
         return [
             'MySQL 8.0' => [
                 'versionString' => '8.0.23',
-                'expectedResult' => 'mysql-8.0.23',
+                'expectedResult' => 'mysql-8.0',
             ],
             'MySQL 5.7 with Ubuntu suffix' => [
                 'versionString' => '5.7.33-0ubuntu0.18.04.1',
-                'expectedResult' => 'mysql-5.7.33',
+                'expectedResult' => 'mysql-5.7',
             ],
             'MariaDB 10.5' => [
                 'versionString' => '10.5.9-MariaDB',
@@ -271,7 +271,7 @@ class ShopwareStateTest extends TestCase
             ],
             'Percona Server' => [
                 'versionString' => '8.0.25-15',
-                'expectedResult' => 'mysql-8.0.25',
+                'expectedResult' => 'mysql-8.0',
             ],
         ];
     }
