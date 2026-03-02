@@ -12,6 +12,7 @@ use Shopware\Deployment\Config\ProjectExtensionManagement;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\PluginHelper;
 use Shopware\Deployment\Services\PluginLoader;
+use Symfony\Component\Console\Output\BufferedOutput;
 
 #[CoversClass(PluginHelper::class)]
 class PluginHelperTest extends TestCase
@@ -30,7 +31,7 @@ class PluginHelperTest extends TestCase
             $configuration,
         );
 
-        $helper->installPlugins();
+        $helper->installPlugins(new BufferedOutput());
     }
 
     public function testInstallActiveSkipped(): void
@@ -44,7 +45,7 @@ class PluginHelperTest extends TestCase
             new ProjectConfiguration(),
         );
 
-        $helper->installPlugins();
+        $helper->installPlugins(new BufferedOutput());
     }
 
     public function testInstallNotInstalled(): void
@@ -58,7 +59,7 @@ class PluginHelperTest extends TestCase
             new ProjectConfiguration(),
         );
 
-        $helper->installPlugins();
+        $helper->installPlugins(new BufferedOutput());
     }
 
     public function testInstallNotInstalledSkipAssets(): void
@@ -72,7 +73,7 @@ class PluginHelperTest extends TestCase
             new ProjectConfiguration(),
         );
 
-        $helper->installPlugins(true);
+        $helper->installPlugins(new BufferedOutput(), true);
     }
 
     public function testInstalledButNotActive(): void
@@ -86,7 +87,7 @@ class PluginHelperTest extends TestCase
             new ProjectConfiguration(),
         );
 
-        $helper->installPlugins();
+        $helper->installPlugins(new BufferedOutput());
     }
 
     public function testUpdateSkipped(): void
@@ -103,7 +104,7 @@ class PluginHelperTest extends TestCase
             $configuration,
         );
 
-        $helper->updatePlugins();
+        $helper->updatePlugins(new BufferedOutput());
     }
 
     public function testUpdateNoUpgrade(): void
@@ -117,7 +118,7 @@ class PluginHelperTest extends TestCase
             new ProjectConfiguration(),
         );
 
-        $helper->updatePlugins();
+        $helper->updatePlugins(new BufferedOutput());
     }
 
     public function testUpdateWhenForcedButSameVersion(): void
@@ -134,7 +135,7 @@ class PluginHelperTest extends TestCase
             $projectConfiguration,
         );
 
-        $helper->updatePlugins();
+        $helper->updatePlugins(new BufferedOutput());
     }
 
     public function testNoUpdateWhenNotForcedWithSameVersion(): void
@@ -150,7 +151,7 @@ class PluginHelperTest extends TestCase
             $projectConfiguration,
         );
 
-        $helper->updatePlugins();
+        $helper->updatePlugins(new BufferedOutput());
     }
 
     public function testUpdate(): void
@@ -164,7 +165,7 @@ class PluginHelperTest extends TestCase
             new ProjectConfiguration(),
         );
 
-        $helper->updatePlugins();
+        $helper->updatePlugins(new BufferedOutput());
     }
 
     public function testUpdateDisableAssetBuild(): void
@@ -178,7 +179,7 @@ class PluginHelperTest extends TestCase
             new ProjectConfiguration(),
         );
 
-        $helper->updatePlugins(true);
+        $helper->updatePlugins(new BufferedOutput(), true);
     }
 
     public function testInactive(): void
@@ -195,7 +196,7 @@ class PluginHelperTest extends TestCase
             $configuration,
         );
 
-        $helper->deactivatePlugins();
+        $helper->deactivatePlugins(new BufferedOutput());
     }
 
     public function testInactiveWithDisabledAssets(): void
@@ -212,7 +213,7 @@ class PluginHelperTest extends TestCase
             $configuration,
         );
 
-        $helper->deactivatePlugins(true);
+        $helper->deactivatePlugins(new BufferedOutput(), true);
     }
 
     public function testInactiveNotMatching(): void
@@ -228,7 +229,7 @@ class PluginHelperTest extends TestCase
             $configuration,
         );
 
-        $helper->deactivatePlugins();
+        $helper->deactivatePlugins(new BufferedOutput());
     }
 
     public function testUninstall(): void
@@ -245,7 +246,7 @@ class PluginHelperTest extends TestCase
             $configuration,
         );
 
-        $helper->removePlugins();
+        $helper->removePlugins(new BufferedOutput());
     }
 
     public function testUninstallWithDisabledAssets(): void
@@ -262,7 +263,7 @@ class PluginHelperTest extends TestCase
             $configuration,
         );
 
-        $helper->removePlugins(true);
+        $helper->removePlugins(new BufferedOutput(), true);
     }
 
     public function testUninstallWithDisabledAssetsKeepData(): void
@@ -279,7 +280,7 @@ class PluginHelperTest extends TestCase
             $configuration,
         );
 
-        $helper->removePlugins(true);
+        $helper->removePlugins(new BufferedOutput(), true);
     }
 
     public function testUninstallNotMatching(): void
@@ -295,7 +296,7 @@ class PluginHelperTest extends TestCase
             $configuration,
         );
 
-        $helper->removePlugins(true);
+        $helper->removePlugins(new BufferedOutput(), true);
     }
 
     public function getPluginLoader(bool $active = true, ?string $installedAt = 'test', ?string $upgradeVersion = null): PluginLoader&MockObject

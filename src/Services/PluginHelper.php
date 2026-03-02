@@ -6,6 +6,7 @@ namespace Shopware\Deployment\Services;
 
 use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\ProcessHelper;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class PluginHelper
 {
@@ -16,7 +17,7 @@ class PluginHelper
     ) {
     }
 
-    public function installPlugins(bool $skipAssetsInstall = false): void
+    public function installPlugins(OutputInterface $output, bool $skipAssetsInstall = false): void
     {
         $additionalParameters = [];
 
@@ -24,7 +25,7 @@ class PluginHelper
             $additionalParameters[] = '--skip-asset-build';
         }
 
-        foreach ($this->pluginLoader->all() as $plugin) {
+        foreach ($this->pluginLoader->all($output) as $plugin) {
             if (!$this->configuration->extensionManagement->canExtensionBeInstalled($plugin['name'])) {
                 continue;
             }
@@ -52,7 +53,7 @@ class PluginHelper
         }
     }
 
-    public function updatePlugins(bool $skipAssetsInstall = false): void
+    public function updatePlugins(OutputInterface $output, bool $skipAssetsInstall = false): void
     {
         $additionalParameters = [];
 
@@ -60,7 +61,7 @@ class PluginHelper
             $additionalParameters[] = '--skip-asset-build';
         }
 
-        foreach ($this->pluginLoader->all() as $plugin) {
+        foreach ($this->pluginLoader->all($output) as $plugin) {
             if (!$this->configuration->extensionManagement->canExtensionBeInstalled($plugin['name'])) {
                 continue;
             }
@@ -78,7 +79,7 @@ class PluginHelper
         }
     }
 
-    public function deactivatePlugins(bool $skipAssetsInstall = false): void
+    public function deactivatePlugins(OutputInterface $output, bool $skipAssetsInstall = false): void
     {
         $additionalParameters = [];
 
@@ -86,7 +87,7 @@ class PluginHelper
             $additionalParameters[] = '--skip-asset-build';
         }
 
-        foreach ($this->pluginLoader->all() as $plugin) {
+        foreach ($this->pluginLoader->all($output) as $plugin) {
             if ($plugin['installedAt'] === null || !$plugin['active'] || !$this->configuration->extensionManagement->canExtensionBeDeactivated($plugin['name'])) {
                 continue;
             }
@@ -95,7 +96,7 @@ class PluginHelper
         }
     }
 
-    public function removePlugins(bool $skipAssetsInstall = false): void
+    public function removePlugins(OutputInterface $output, bool $skipAssetsInstall = false): void
     {
         $additionalParameters = [];
 
@@ -103,7 +104,7 @@ class PluginHelper
             $additionalParameters[] = '--skip-asset-build';
         }
 
-        foreach ($this->pluginLoader->all() as $plugin) {
+        foreach ($this->pluginLoader->all($output) as $plugin) {
             if ($plugin['installedAt'] === null || !$this->configuration->extensionManagement->canExtensionBeRemoved($plugin['name'])) {
                 continue;
             }
