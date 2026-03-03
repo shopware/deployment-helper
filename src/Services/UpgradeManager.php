@@ -86,10 +86,10 @@ class UpgradeManager
         $this->processHelper->console(['scheduled-task:register']);
         $this->processHelper->console(['messenger:stop-workers']);
 
-        $this->pluginHelper->installPlugins($configuration->skipAssetsInstall);
-        $this->pluginHelper->updatePlugins($configuration->skipAssetsInstall);
-        $this->pluginHelper->deactivatePlugins($configuration->skipAssetsInstall);
-        $this->pluginHelper->removePlugins($configuration->skipAssetsInstall);
+        $this->pluginHelper->installPlugins($output, $configuration->skipAssetsInstall);
+        $this->pluginHelper->updatePlugins($output, $configuration->skipAssetsInstall);
+        $this->pluginHelper->deactivatePlugins($output, $configuration->skipAssetsInstall);
+        $this->pluginHelper->removePlugins($output, $configuration->skipAssetsInstall);
 
         if ($this->configuration->store->licenseDomain !== '') {
             $this->accountService->refresh(new SymfonyStyle(new ArgvInput([]), $output), $currentVersion, $this->configuration->store->licenseDomain);

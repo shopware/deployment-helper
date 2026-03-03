@@ -7,6 +7,7 @@ namespace Shopware\Deployment\Services;
 use Digilist\DependencyGraph\DependencyGraph;
 use Digilist\DependencyGraph\DependencyNode;
 use Shopware\Deployment\Helper\ProcessHelper;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Path;
 
@@ -25,13 +26,13 @@ class PluginLoader
     /**
      * @return array<string, Plugin>
      */
-    public function all(): array
+    public function all(OutputInterface $output): array
     {
         $projectLockPath = Path::join($this->projectDir, 'composer.lock');
         $projectAliases = [];
 
-        if (file_exists($projectLockPath)) {
-            $lockData = json_decode((string) file_get_contents($projectLockPath), true, 512, \JSON_THROW_ON_ERROR);
+        if (is_file($projectLockPath)) {
+            $lockData = json_decode((string) file_get_contents($projectLockPath), true, flags: \JSON_THROW_ON_ERROR);
 
             foreach ($lockData['packages'] as $package) {
                 if (isset($package['replace'])) {
@@ -42,7 +43,15 @@ class PluginLoader
             }
         }
 
-        $data = json_decode($this->processHelper->getPluginList(), true, 512, \JSON_THROW_ON_ERROR);
+        $pluginJsonString = $this->processHelper->getPluginList();
+        try {
+            $data = json_decode($pluginJsonString, true, flags: \JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            $output->writeln('<error>Unable to parse plugin list. Error: ' . $e->getMessage() . '</error>');
+            $output->writeln('<error>Invalid JSON string: ' . $pluginJsonString . '</error>');
+
+            return [];
+        }
 
         $graph = new DependencyGraph();
         $byName = [];
@@ -57,8 +66,8 @@ class PluginLoader
         foreach ($data as $item) {
             $composerJson = Path::join($this->projectDir, $item['path'], 'composer.json');
 
-            if (file_exists($composerJson)) {
-                $composer = json_decode((string) file_get_contents($composerJson), true, 512, \JSON_THROW_ON_ERROR);
+            if (is_file($composerJson)) {
+                $composer = json_decode((string) file_get_contents($composerJson), true, flags: \JSON_THROW_ON_ERROR);
 
                 if (isset($composer['require'])) {
                     foreach ($composer['require'] as $require => $version) {

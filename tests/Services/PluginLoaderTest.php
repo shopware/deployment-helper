@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\PluginLoader;
+use Symfony\Component\Console\Output\BufferedOutput;
 
 #[CoversClass(PluginLoader::class)]
 class PluginLoaderTest extends TestCase
@@ -20,10 +21,27 @@ class PluginLoaderTest extends TestCase
             ->method('getPluginList')
             ->willReturn('[{"name":"TestPlugin", "version": "1.0.0", "composerName": "test/test-plugin", "path": "custom/plugins/TestPlugin", "active": true, "installedAt": "2021-01-01 00:00:00", "upgradeVersion": "1.0.1"}]');
 
-        $plugins = (new PluginLoader(__DIR__, $processHelper))->all();
+        $plugins = (new PluginLoader(__DIR__, $processHelper))->all(new BufferedOutput());
 
         static::assertCount(1, $plugins);
         static::assertArrayHasKey('TestPlugin', $plugins);
+    }
+
+    public function testLoadWithInvalidPluginJson(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+
+        $processHelper
+            ->method('getPluginList')
+            ->willReturn('This is not a JSON string');
+
+        $output = new BufferedOutput();
+        $plugins = (new PluginLoader(__DIR__, $processHelper))->all($output);
+        self::assertSame([], $plugins);
+
+        $fetchedOutput = $output->fetch();
+        self::assertStringContainsString('Unable to parse plugin list. Error: Syntax error', $fetchedOutput);
+        self::assertStringContainsString('Invalid JSON string: This is not a JSON string', $fetchedOutput);
     }
 
     public function testLoadDependenciesInRightOrder(): void
@@ -49,7 +67,7 @@ class PluginLoaderTest extends TestCase
             ->method('getPluginList')
             ->willReturn(json_encode($data, \JSON_THROW_ON_ERROR));
 
-        $plugins = (new PluginLoader(__DIR__, $processHelper))->all();
+        $plugins = (new PluginLoader(__DIR__, $processHelper))->all(new BufferedOutput());
 
         static::assertCount(2, $plugins);
         static::assertSame(
@@ -94,7 +112,7 @@ class PluginLoaderTest extends TestCase
             ->method('getPluginList')
             ->willReturn(json_encode($data, \JSON_THROW_ON_ERROR));
 
-        $plugins = (new PluginLoader(__DIR__ . '/_fixtures', $processHelper))->all();
+        $plugins = (new PluginLoader(__DIR__ . '/_fixtures', $processHelper))->all(new BufferedOutput());
 
         static::assertCount(2, $plugins);
         static::assertSame(
