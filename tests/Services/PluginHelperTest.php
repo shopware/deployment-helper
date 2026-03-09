@@ -61,6 +61,7 @@ class PluginHelperTest extends TestCase
 
         $helper->installPlugins(new BufferedOutput());
     }
+
     public function testInstallNotInstalledNotActive(): void
     {
         $configuration = new ProjectConfiguration();
@@ -192,7 +193,6 @@ class PluginHelperTest extends TestCase
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper->expects($this->once())->method('console')->with(['plugin:update', 'TestPlugin']);
 
-
         $helper = new PluginHelper(
             $this->getPluginLoader(active: false, upgradeVersion: '1.0.1'),
             $processHelper,
@@ -209,7 +209,6 @@ class PluginHelperTest extends TestCase
 
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper->expects($this->once())->method('console')->with(['plugin:update', 'TestPlugin']);
-
 
         $helper = new PluginHelper(
             $this->getPluginLoader(upgradeVersion: '1.0.1'),
