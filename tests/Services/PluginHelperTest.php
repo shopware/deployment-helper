@@ -61,6 +61,22 @@ class PluginHelperTest extends TestCase
 
         $helper->installPlugins(new BufferedOutput());
     }
+    public function testInstallNotInstalledNotActive(): void
+    {
+        $configuration = new ProjectConfiguration();
+        $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_INSTALLED];
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:install', 'TestPlugin']);
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(active: false, installedAt: null),
+            $processHelper,
+            $configuration,
+        );
+
+        $helper->installPlugins(new BufferedOutput());
+    }
 
     public function testInstallNotInstalledSkipAssets(): void
     {
@@ -163,6 +179,42 @@ class PluginHelperTest extends TestCase
             $this->getPluginLoader(upgradeVersion: '1.0.1'),
             $processHelper,
             new ProjectConfiguration(),
+        );
+
+        $helper->updatePlugins(new BufferedOutput());
+    }
+
+    public function testUpdateInstalledNotActive(): void
+    {
+        $configuration = new ProjectConfiguration();
+        $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_INSTALLED];
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:update', 'TestPlugin']);
+
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(active: false, upgradeVersion: '1.0.1'),
+            $processHelper,
+            $configuration,
+        );
+
+        $helper->updatePlugins(new BufferedOutput());
+    }
+
+    public function testUpdateInstalledActive(): void
+    {
+        $configuration = new ProjectConfiguration();
+        $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_INSTALLED];
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:update', 'TestPlugin']);
+
+
+        $helper = new PluginHelper(
+            $this->getPluginLoader(upgradeVersion: '1.0.1'),
+            $processHelper,
+            $configuration,
         );
 
         $helper->updatePlugins(new BufferedOutput());

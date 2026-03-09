@@ -145,7 +145,7 @@ class ProjectExtensionManagementTest extends TestCase
     public function testAllowedStatesConstant(): void
     {
         /** @var array<string> $expectedStates */
-        $expectedStates = ['ignore', 'inactive', 'remove'];
+        $expectedStates = ['ignore', 'inactive', 'remove', 'installed'];
         self::assertSame($expectedStates, ProjectExtensionManagement::ALLOWED_STATES);
     }
 
