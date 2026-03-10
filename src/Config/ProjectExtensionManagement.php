@@ -12,8 +12,9 @@ class ProjectExtensionManagement
     public const LIFECYCLE_STATE_INACTIVE = 'inactive';
     public const LIFECYCLE_STATE_REMOVE = 'remove';
     public const LIFECYCLE_STATE_IGNORE = 'ignore';
+    public const LIFECYCLE_STATE_INSTALLED = 'installed';
 
-    public const ALLOWED_STATES = [self::LIFECYCLE_STATE_IGNORE, self::LIFECYCLE_STATE_INACTIVE, self::LIFECYCLE_STATE_REMOVE];
+    public const ALLOWED_STATES = [self::LIFECYCLE_STATE_IGNORE, self::LIFECYCLE_STATE_INACTIVE, self::LIFECYCLE_STATE_REMOVE, self::LIFECYCLE_STATE_INSTALLED];
 
     public bool $enabled = true;
 
@@ -59,7 +60,7 @@ class ProjectExtensionManagement
 
         $state = $this->getExtensionState($name);
 
-        return !\in_array($state, [self::LIFECYCLE_STATE_INACTIVE, self::LIFECYCLE_STATE_REMOVE, self::LIFECYCLE_STATE_IGNORE], true);
+        return !\in_array($state, [self::LIFECYCLE_STATE_INACTIVE, self::LIFECYCLE_STATE_REMOVE, self::LIFECYCLE_STATE_IGNORE, self::LIFECYCLE_STATE_INSTALLED], true);
     }
 
     public function canExtensionBeRemoved(string $name): bool
