@@ -8,9 +8,9 @@ use Shopware\Deployment\Helper\EnvironmentHelper;
 
 class TrackingService
 {
-    private const TELEMETRY_ID = 'core.telemetry.id';
+    public const TELEMETRY_ID = 'core.telemetry.id';
 
-    private const LEGACY_DEPLOYMENT_HELPER_ID = 'core.deployment_helper.id';
+    public const LEGACY_DEPLOYMENT_HELPER_ID = 'core.deployment_helper.id';
 
     private const DEFAULT_TRACKING_DOMAIN = 'udp.usage.shopware.io';
 
@@ -100,6 +100,7 @@ class TrackingService
 
                 if ($id !== null) {
                     $this->systemConfigHelper->set(self::TELEMETRY_ID, $id);
+                    $this->systemConfigHelper->delete(self::LEGACY_DEPLOYMENT_HELPER_ID);
                 }
             }
         } catch (\Throwable) {
