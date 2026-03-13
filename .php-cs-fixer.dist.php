@@ -9,7 +9,7 @@ return (new Config())
     ->setParallelConfig(ParallelConfigFactory::detect())
     ->setCacheFile(__DIR__ . '/var/cache/cs-fixer/.php-cs-fixer.cache')
     ->setRules([
-        '@PHP84Migration' => true,
+        '@PHP82Migration' => true,
         '@PHP80Migration:risky' => true,
         '@Symfony' => true,
         '@Symfony:risky' => true,
