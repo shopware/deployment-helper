@@ -8,7 +8,9 @@ use Shopware\Deployment\Helper\EnvironmentHelper;
 
 class TrackingService
 {
-    private const DEPLOYMENT_HELPER_ID = 'core.deployment_helper.id';
+    private const TELEMETRY_ID = 'core.telemetry.id';
+
+    private const LEGACY_DEPLOYMENT_HELPER_ID = 'core.deployment_helper.id';
 
     private const DEFAULT_TRACKING_DOMAIN = 'udp.usage.shopware.io';
 
@@ -63,7 +65,7 @@ class TrackingService
     public function persistId(): void
     {
         if (isset($this->id)) {
-            $this->systemConfigHelper->set(self::DEPLOYMENT_HELPER_ID, $this->id);
+            $this->systemConfigHelper->set(self::TELEMETRY_ID, $this->id);
         }
     }
 
@@ -90,14 +92,23 @@ class TrackingService
         }
 
         try {
-            $id = $this->systemConfigHelper->get(self::DEPLOYMENT_HELPER_ID);
+            $id = $this->systemConfigHelper->get(self::TELEMETRY_ID);
+
+            // Migrate from legacy key
+            if ($id === null) {
+                $id = $this->systemConfigHelper->get(self::LEGACY_DEPLOYMENT_HELPER_ID);
+
+                if ($id !== null) {
+                    $this->systemConfigHelper->set(self::TELEMETRY_ID, $id);
+                }
+            }
         } catch (\Throwable) {
             $this->id = $id = bin2hex(random_bytes(16));
         }
 
         if ($id === null) {
             $this->id = $id = bin2hex(random_bytes(16));
-            $this->systemConfigHelper->set(self::DEPLOYMENT_HELPER_ID, $id);
+            $this->systemConfigHelper->set(self::TELEMETRY_ID, $id);
         }
 
         return $this->id = $id;
