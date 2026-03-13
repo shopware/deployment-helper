@@ -84,7 +84,7 @@ class InstallationManagerTest extends TestCase
 
         $processHelper
             ->method('console')
-            ->willReturnCallback(function (array $command) use (&$consoleCommands): void {
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
                 $consoleCommands[] = $command;
             });
 
@@ -144,7 +144,7 @@ class InstallationManagerTest extends TestCase
 
         $processHelper
             ->method('console')
-            ->willReturnCallback(function (array $command) use (&$consoleCommands): void {
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
                 $consoleCommands[] = $command;
             });
 

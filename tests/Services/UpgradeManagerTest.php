@@ -110,7 +110,7 @@ class UpgradeManagerTest extends TestCase
 
         $processHelper
             ->method('console')
-            ->willReturnCallback(function (array $command) use (&$consoleCommands): void {
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
                 $consoleCommands[] = $command;
             });
 
@@ -154,7 +154,7 @@ class UpgradeManagerTest extends TestCase
 
         $processHelper
             ->method('console')
-            ->willReturnCallback(function (array $command) use (&$consoleCommands): void {
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
                 $consoleCommands[] = $command;
             });
 
@@ -194,7 +194,7 @@ class UpgradeManagerTest extends TestCase
 
         $processHelper
             ->method('console')
-            ->willReturnCallback(function (array $command) use (&$consoleCommands): void {
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
                 $consoleCommands[] = $command;
             });
 

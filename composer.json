@@ -29,13 +29,13 @@
     "symfony/http-client": "^7.0 || ^6.0"
   },
   "require-dev": {
-    "friendsofphp/php-cs-fixer": "v3.82.0",
+    "friendsofphp/php-cs-fixer": "v3.94.2",
     "phpstan/extension-installer": "1.4.3",
-    "phpstan/phpstan": "2.0.1",
-    "phpstan/phpstan-deprecation-rules": "2.0.0",
-    "phpstan/phpstan-phpunit": "2.0.0",
-    "phpstan/phpstan-strict-rules": "2.0.0",
-    "phpstan/phpstan-symfony": "2.0.0",
+    "phpstan/phpstan": "2.1.40",
+    "phpstan/phpstan-deprecation-rules": "2.0.4",
+    "phpstan/phpstan-phpunit": "2.0.16",
+    "phpstan/phpstan-strict-rules": "2.0.10",
+    "phpstan/phpstan-symfony": "2.0.15",
     "phpunit/phpunit": "~11.3",
     "symfony/var-dumper": "^7.0 || ^6.0",
     "zalas/phpunit-globals": "^3.3"

@@ -41,7 +41,7 @@ class RunCommandTest extends TestCase
         $installationManager
             ->expects($this->once())
             ->method('run')
-            ->with(self::callback(function ($config) {
+            ->with(self::callback(static function ($config) {
                 static::assertTrue($config->skipThemeCompile);
                 static::assertTrue($config->skipAssetsInstall);
                 static::assertEquals(300, $config->timeout);
@@ -53,7 +53,7 @@ class RunCommandTest extends TestCase
         $trackingService
             ->expects($this->exactly(2))
             ->method('track')
-            ->willReturnCallback(function ($event, $data): void {
+            ->willReturnCallback(static function ($event, $data): void {
                 if ($event === 'php_version') {
                     static::assertArrayHasKey('php_version', $data);
                     static::assertMatchesRegularExpression('/^\d+\.\d+$/', $data['php_version']);
@@ -105,7 +105,7 @@ class RunCommandTest extends TestCase
         $upgradeManager
             ->expects($this->once())
             ->method('run')
-            ->with(self::callback(function ($config) {
+            ->with(self::callback(static function ($config) {
                 static::assertFalse($config->skipThemeCompile);
                 static::assertTrue($config->skipAssetsInstall);
                 static::assertEquals(600, $config->timeout);
@@ -117,7 +117,7 @@ class RunCommandTest extends TestCase
         $trackingService
             ->expects($this->exactly(2))
             ->method('track')
-            ->willReturnCallback(function ($event, $data): void {
+            ->willReturnCallback(static function ($event, $data): void {
                 if ($event === 'php_version') {
                     static::assertArrayHasKey('php_version', $data);
                     static::assertMatchesRegularExpression('/^\d+\.\d+$/', $data['php_version']);
@@ -169,7 +169,7 @@ class RunCommandTest extends TestCase
         $installationManager
             ->expects($this->once())
             ->method('run')
-            ->with(self::callback(function ($config) {
+            ->with(self::callback(static function ($config) {
                 static::assertTrue($config->forceReinstallation);
 
                 return true;
@@ -179,7 +179,7 @@ class RunCommandTest extends TestCase
         $trackingService
             ->expects($this->exactly(2))
             ->method('track')
-            ->willReturnCallback(function ($event, $data): void {
+            ->willReturnCallback(static function ($event, $data): void {
                 if ($event === 'php_version') {
                     static::assertArrayHasKey('php_version', $data);
                     static::assertMatchesRegularExpression('/^\d+\.\d+$/', $data['php_version']);
