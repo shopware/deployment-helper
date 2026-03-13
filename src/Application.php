@@ -45,11 +45,11 @@ class Application extends SymfonyApplication
     private function createContainer(): ContainerBuilder
     {
         $container = new ContainerBuilder();
-        $container->registerAttributeForAutoconfiguration(AsCommand::class, function (ChildDefinition $definition): void {
+        $container->registerAttributeForAutoconfiguration(AsCommand::class, static function (ChildDefinition $definition): void {
             $definition->addTag('console.command');
         });
 
-        $container->registerAttributeForAutoconfiguration(AsEventListener::class, function (ChildDefinition $definition): void {
+        $container->registerAttributeForAutoconfiguration(AsEventListener::class, static function (ChildDefinition $definition): void {
             $definition->addTag('kernel.event_listener');
         });
 

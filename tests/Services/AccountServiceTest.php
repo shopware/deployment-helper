@@ -69,7 +69,7 @@ class AccountServiceTest extends TestCase
         $service = new AccountService($systemConfigHelper, $this->createMock(ProcessHelper::class), $mockHttpClient);
         $service->refresh($output, '6.4.0-dev', 'old.example.com');
 
-        static::assertEquals('new-shop-secret', $systemConfigHelper->get(AccountService::CORE_STORE_SHOP_SECRET));
+        static::assertSame('new-shop-secret', $systemConfigHelper->get(AccountService::CORE_STORE_SHOP_SECRET));
     }
 
     #[Env(name: 'SHOPWARE_STORE_ACCOUNT_EMAIL', value: 'test@exaple.com')]
@@ -112,7 +112,7 @@ class AccountServiceTest extends TestCase
         $service = new AccountService($systemConfigHelper, $this->createMock(ProcessHelper::class), $mockHttpClient);
         $service->refresh($output, '6.4.0-dev', 'old.example.com');
 
-        static::assertEquals('new-shop', $systemConfigHelper->get(AccountService::CORE_STORE_SHOP_SECRET));
+        static::assertSame('new-shop', $systemConfigHelper->get(AccountService::CORE_STORE_SHOP_SECRET));
     }
 
     #[Env(name: 'SHOPWARE_STORE_ACCOUNT_EMAIL', value: 'test@exaple.com')]

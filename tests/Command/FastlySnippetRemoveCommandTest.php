@@ -35,7 +35,7 @@ class FastlySnippetRemoveCommandTest extends TestCase
 
         $tester->execute(['snippetName' => 'test']);
 
-        static::assertEquals(Command::FAILURE, $tester->getStatusCode());
+        static::assertSame(Command::FAILURE, $tester->getStatusCode());
         static::assertStringContainsString('FASTLY_API_TOKEN or FASTLY_SERVICE_ID is not set.', $tester->getDisplay());
     }
 
@@ -75,6 +75,6 @@ class FastlySnippetRemoveCommandTest extends TestCase
 
         $tester->execute(['snippetName' => 'test']);
 
-        static::assertEquals(Command::SUCCESS, $tester->getStatusCode());
+        static::assertSame(Command::SUCCESS, $tester->getStatusCode());
     }
 }
