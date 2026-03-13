@@ -40,4 +40,9 @@ class SystemConfigHelper
             $this->connection->executeStatement('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (?, ?, ?, NULL, NOW())', [random_bytes(16), $key, $payload]);
         }
     }
+
+    public function delete(string $key): void
+    {
+        $this->connection->executeStatement('DELETE FROM system_config WHERE configuration_key = ? AND sales_channel_id IS NULL', [$key]);
+    }
 }

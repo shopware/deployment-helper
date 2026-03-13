@@ -24,4 +24,9 @@ class StaticSystemConfigHelper extends SystemConfigHelper
     {
         $this->config[$key] = $value;
     }
+
+    public function delete(string $key): void
+    {
+        unset($this->config[$key]);
+    }
 }

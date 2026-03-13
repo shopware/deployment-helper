@@ -24,7 +24,7 @@ class TrackingServiceTest extends TestCase
         $service = new TrackingService($systemConfigHelper, $shopwareState);
         $service->track('test_event');
 
-        $id = $systemConfigHelper->get('core.deployment_helper.id');
+        $id = $systemConfigHelper->get(TrackingService::TELEMETRY_ID);
         static::assertNotNull($id);
         static::assertMatchesRegularExpression('/^[a-f0-9]{32}$/', $id);
     }
@@ -32,14 +32,14 @@ class TrackingServiceTest extends TestCase
     public function testTrackUsesExistingIdFromConfig(): void
     {
         $systemConfigHelper = new StaticSystemConfigHelper();
-        $systemConfigHelper->set('core.deployment_helper.id', 'existing-id-123');
+        $systemConfigHelper->set(TrackingService::TELEMETRY_ID, 'existing-id-123');
         $shopwareState = $this->createMock(ShopwareState::class);
         $shopwareState->method('getCurrentVersion')->willReturn('6.6.0.0');
 
         $service = new TrackingService($systemConfigHelper, $shopwareState);
         $service->track('test_event');
 
-        static::assertSame('existing-id-123', $systemConfigHelper->get('core.deployment_helper.id'));
+        static::assertSame('existing-id-123', $systemConfigHelper->get(TrackingService::TELEMETRY_ID));
     }
 
     public function testPersistIdDoesNothingWhenNoIdGenerated(): void
@@ -50,7 +50,21 @@ class TrackingServiceTest extends TestCase
         $service = new TrackingService($systemConfigHelper, $shopwareState);
         $service->persistId();
 
-        static::assertNull($systemConfigHelper->get('core.deployment_helper.id'));
+        static::assertNull($systemConfigHelper->get(TrackingService::TELEMETRY_ID));
+    }
+
+    public function testTrackMigratesLegacyKey(): void
+    {
+        $systemConfigHelper = new StaticSystemConfigHelper();
+        $systemConfigHelper->set(TrackingService::LEGACY_DEPLOYMENT_HELPER_ID, 'legacy-id-456');
+        $shopwareState = $this->createMock(ShopwareState::class);
+        $shopwareState->method('getCurrentVersion')->willReturn('6.6.0.0');
+
+        $service = new TrackingService($systemConfigHelper, $shopwareState);
+        $service->track('test_event');
+
+        static::assertSame('legacy-id-456', $systemConfigHelper->get(TrackingService::TELEMETRY_ID));
+        static::assertNull($systemConfigHelper->get(TrackingService::LEGACY_DEPLOYMENT_HELPER_ID));
     }
 
     #[Env('DO_NOT_TRACK')]
