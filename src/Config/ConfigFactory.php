@@ -37,6 +37,13 @@ class ConfigFactory
         $projectConfiguration = new ProjectConfiguration();
         $config = Yaml::parseFile($file);
 
+        $localFile = self::resolveLocalFile($file);
+
+        if ($localFile !== null) {
+            $localConfig = Yaml::parseFile($localFile, Yaml::PARSE_CUSTOM_TAGS);
+            $config = ConfigMerger::merge($config ?? [], $localConfig ?? []);
+        }
+
         if (isset($config['deployment']) && \is_array($config['deployment'])) {
             self::fillConfig($projectConfiguration, $config['deployment']);
         }
@@ -160,6 +167,20 @@ class ConfigFactory
                 }
             }
         }
+    }
+
+    private static function resolveLocalFile(string $file): ?string
+    {
+        $extension = pathinfo($file, \PATHINFO_EXTENSION);
+        $baseName = substr($file, 0, -\strlen('.' . $extension));
+
+        $localFile = $baseName . '.local.' . $extension;
+
+        if (file_exists($localFile)) {
+            return $localFile;
+        }
+
+        return null;
     }
 
     public static function fillLicenseDomain(ProjectConfiguration $projectConfiguration): ProjectConfiguration

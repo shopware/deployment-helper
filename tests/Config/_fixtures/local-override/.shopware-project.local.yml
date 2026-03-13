@@ -1,0 +1,11 @@
+deployment:
+  hooks:
+    pre: |
+      echo "Local pre hook"
+
+  store:
+    license-domain: local.example.com
+
+  one-time-tasks:
+    - id: bar
+      script: local-task

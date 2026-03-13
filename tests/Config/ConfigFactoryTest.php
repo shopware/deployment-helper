@@ -189,4 +189,51 @@ class ConfigFactoryTest extends TestCase
         static::assertArrayHasKey('late-task', $config->oneTimeTasks);
         static::assertSame(OneTimeTaskWhen::AFTER, $config->oneTimeTasks['late-task']->when);
     }
+
+    public function testLocalOverrideMergesConfig(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/local-override', $this->createMockApplication());
+
+        // Local override replaces scalar
+        static::assertSame('local.example.com', $config->store->licenseDomain);
+
+        // Local override replaces the pre hook
+        static::assertStringContainsString('Local pre hook', $config->hooks->pre);
+
+        // Original post hook is preserved (deep merge)
+        static::assertStringContainsString('After deployment general', $config->hooks->post);
+
+        // One-time tasks are appended (list append)
+        static::assertArrayHasKey('foo', $config->oneTimeTasks);
+        static::assertArrayHasKey('bar', $config->oneTimeTasks);
+        static::assertSame('local-task', $config->oneTimeTasks['bar']->script);
+    }
+
+    public function testLocalResetTag(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/local-reset', $this->createMockApplication());
+
+        // exclude list was reset, should only contain the local value
+        static::assertArrayHasKey('OnlyThisPlugin', $config->extensionManagement->overrides);
+        static::assertArrayNotHasKey('Name', $config->extensionManagement->overrides);
+        static::assertArrayNotHasKey('OtherPlugin', $config->extensionManagement->overrides);
+
+        // one-time-tasks was reset, should only contain the local task
+        static::assertCount(1, $config->oneTimeTasks);
+        static::assertArrayHasKey('only-task', $config->oneTimeTasks);
+        static::assertSame('only-script', $config->oneTimeTasks['only-task']->script);
+    }
+
+    public function testLocalOverrideTag(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/local-override-tag', $this->createMockApplication());
+
+        // hooks was fully replaced with !override, post hook should be gone
+        static::assertStringContainsString('Only this hook', $config->hooks->pre);
+        static::assertSame('', $config->hooks->post);
+
+        // Other sections are preserved
+        static::assertTrue($config->extensionManagement->enabled);
+        static::assertSame('prod.example.com', $config->store->licenseDomain);
+    }
 }
