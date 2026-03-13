@@ -1,0 +1,4 @@
+deployment:
+  hooks: !override
+    pre: |
+      echo "Only this hook"

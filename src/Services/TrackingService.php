@@ -19,7 +19,7 @@ class TrackingService
 
     private string $id;
 
-    private \Socket|false $socket;
+    private \Socket|false|null $socket = null;
 
     private string $domain;
 
@@ -27,7 +27,10 @@ class TrackingService
         private readonly SystemConfigHelper $systemConfigHelper,
         private readonly ShopwareState $shopwareState,
     ) {
-        $this->socket = @socket_create(\AF_INET, \SOCK_DGRAM, \SOL_UDP);
+        if (\function_exists('socket_create')) {
+            $this->socket = @socket_create(\AF_INET, \SOCK_DGRAM, \SOL_UDP);
+        }
+
         $this->domain = EnvironmentHelper::getVariable('SHOPWARE_TRACKING_DOMAIN', self::DEFAULT_TRACKING_DOMAIN);
     }
 
@@ -43,7 +46,7 @@ class TrackingService
         $tags += $this->getTags();
         $id = $this->getId();
 
-        if ($this->socket === false) {
+        if ($this->socket === false || $this->socket === null) {
             return;
         }
 

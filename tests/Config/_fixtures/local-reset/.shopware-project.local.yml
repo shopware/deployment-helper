@@ -1,0 +1,8 @@
+deployment:
+  extension-management:
+    exclude: !reset
+      - OnlyThisPlugin
+
+  one-time-tasks: !reset
+    - id: only-task
+      script: only-script

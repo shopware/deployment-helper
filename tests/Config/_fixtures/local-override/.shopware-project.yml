@@ -1,0 +1,15 @@
+deployment:
+  hooks:
+    pre: |
+      echo "Before deployment general"
+    post: |
+      echo "After deployment general"
+
+  extension-management:
+    enabled: true
+    exclude:
+      - Name
+
+  one-time-tasks:
+    - id: foo
+      script: test

@@ -1,0 +1,14 @@
+deployment:
+  hooks:
+    pre: |
+      echo "Before deployment"
+    post: |
+      echo "After deployment"
+
+  extension-management:
+    enabled: true
+    exclude:
+      - Name
+
+  store:
+    license-domain: prod.example.com
