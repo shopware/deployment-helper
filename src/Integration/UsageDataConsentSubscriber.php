@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopware\Deployment\Integration;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\Exception\TableDoesNotExist;
 use Shopware\Deployment\Event\PostDeploy;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Services\SystemConfigHelper;
@@ -44,11 +45,12 @@ readonly class UsageDataConsentSubscriber
 
         try {
             $this->connection->createSchemaManager()->introspectTableByUnquotedName('consent_state');
-        } catch (\Exception) {
+        } catch (TableDoesNotExist) {
             // consent system is not used in this version
             return;
         }
 
+        /** @var array{ state: string } */
         $currentState = $this->connection->fetchAssociative('SELECT * FROM `consent_state` WHERE `name` = "backend_data"');
 
         if ($currentState === false) {
@@ -72,7 +74,10 @@ readonly class UsageDataConsentSubscriber
         );
     }
 
-    private function updateConsent(string $status, mixed $currentState): void
+    /**
+     * @param array{ state: string } $currentState
+     */
+    private function updateConsent(string $status, array $currentState): void
     {
         if ($status === $currentState['state'] || ($status === 'revoked' && $currentState['state'] === 'declined')) {
             return;

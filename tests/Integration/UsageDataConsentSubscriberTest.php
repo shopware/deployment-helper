@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Shopware\Deployment\Tests\Integration;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
+use Doctrine\DBAL\Schema\Exception\TableDoesNotExist;
 use Doctrine\DBAL\Schema\Table;
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -25,6 +28,9 @@ class UsageDataConsentSubscriberTest extends TestCase
 
     private Connection&MockObject $connection;
 
+    /**
+     * @var (AbstractSchemaManager<AbstractPlatform>&object&MockObject)
+     */
     private AbstractSchemaManager&MockObject $schemaManager;
 
     private UsageDataConsentSubscriber $subscriber;
@@ -51,7 +57,7 @@ class UsageDataConsentSubscriberTest extends TestCase
             ->method('set')
             ->with('core.usageData.consentState', $consent);
 
-        $this->schemaManager->method('introspectTableByUnquotedName')->willThrowException(new \Exception('table not found'));
+        $this->schemaManager->method('introspectTableByUnquotedName')->willThrowException(new TableDoesNotExist('table not found'));
         $this->connection->expects($this->never())->method('executeStatement');
 
         $event = new PostDeploy(new RunConfiguration(), new NullOutput());
@@ -112,11 +118,11 @@ class UsageDataConsentSubscriberTest extends TestCase
 
         $this->connection->expects($this->once())->method('fetchAssociative')->willReturn(false);
         $this->connection->expects($this->once())->method('executeStatement')->with(
-            $this->stringStartsWith('INSERT INTO `consent_state`'),
-            $this->logicalAnd(
-                $this->isArray(),
-                $this->arrayHasKey('id'),
-                $this->containsEqual($written)
+            Assert::stringStartsWith('INSERT INTO `consent_state`'),
+            Assert::logicalAnd(
+                Assert::isArray(),
+                Assert::arrayHasKey('id'),
+                Assert::containsEqual($written)
             )
         );
 
@@ -150,10 +156,10 @@ class UsageDataConsentSubscriberTest extends TestCase
         $this->connection->expects($shouldExecute ? $this->once() : $this->never())
             ->method('executeStatement')
             ->with(
-                $this->stringStartsWith('UPDATE `consent_state`'),
-                $this->logicalAnd(
-                    $this->isArray(),
-                    $this->equalTo(['state' => $consent]),
+                Assert::stringStartsWith('UPDATE `consent_state`'),
+                Assert::logicalAnd(
+                    Assert::isArray(),
+                    Assert::equalTo(['state' => $consent]),
                 )
             );
 
