@@ -1,0 +1,3 @@
+deployment:
+  opensearch:
+    index-if-empty: true

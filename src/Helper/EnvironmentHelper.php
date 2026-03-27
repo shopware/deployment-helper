@@ -14,13 +14,13 @@ readonly class EnvironmentHelper
      */
     public static function getVariable(string $key, ?string $default = null): ?string
     {
-        $value = $_SERVER[$key] ?? $_ENV[$key] ?? null;
+        $value = $_SERVER[$key] ?? $_ENV[$key] ?? getenv($key);
 
-        return $value !== null ? (string) $value : $default;
+        return $value !== false ? (string) $value : $default;
     }
 
     public static function hasVariable(string $key): bool
     {
-        return \array_key_exists($key, $_SERVER) || \array_key_exists($key, $_ENV);
+        return \array_key_exists($key, $_SERVER) || \array_key_exists($key, $_ENV) || getenv($key) !== false;
     }
 }
