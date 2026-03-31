@@ -12,13 +12,13 @@ jobs:
       matrix:
         php: [ 8.2, 8.3 ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '${{ matrix.php }}'
-          tools: composer:2.8.3
+          tools: composer
           coverage: xdebug
 
       - name: Install dependencies
@@ -28,7 +28,7 @@ jobs:
         run: composer test-coverage-cobertura
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
@@ -36,7 +36,7 @@ jobs:
   phpstan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -52,7 +52,7 @@ jobs:
   cs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
