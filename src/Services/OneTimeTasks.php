@@ -67,10 +67,11 @@ class OneTimeTasks
 
     private function ensureTableExists(): void
     {
-        try {
-            $this->connection->executeQuery('SELECT 1 FROM one_time_tasks LIMIT 1');
-        } catch (\Throwable) {
-            $this->connection->executeStatement('CREATE TABLE one_time_tasks (id VARCHAR(255) PRIMARY KEY, created_at DATETIME NOT NULL)');
+        $tableExists = $this->connection->createSchemaManager()->tablesExist(['one_time_tasks']);
+        if ($tableExists) {
+            return;
         }
+
+        $this->connection->executeStatement('CREATE TABLE one_time_tasks (id VARCHAR(255) PRIMARY KEY, created_at DATETIME NOT NULL)');
     }
 }

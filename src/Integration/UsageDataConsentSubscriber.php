@@ -42,10 +42,8 @@ readonly class UsageDataConsentSubscriber
             return;
         }
 
-        try {
-            $this->connection->executeQuery('SELECT 1 FROM consent_state LIMIT 1');
-        } catch (\Throwable) {
-            // consent system is not used in this version
+        $tableExists = $this->connection->createSchemaManager()->tablesExist(['consent_state']);
+        if (!$tableExists) {
             return;
         }
 

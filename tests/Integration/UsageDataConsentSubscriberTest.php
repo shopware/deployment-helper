@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopware\Deployment\Tests\Integration;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -45,7 +46,9 @@ class UsageDataConsentSubscriberTest extends TestCase
             ->method('set')
             ->with('core.usageData.consentState', $consent);
 
-        $this->connection->method('executeQuery')->willThrowException(new \Exception('table not found'));
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->willReturn(false);
+        $this->connection->method('createSchemaManager')->willReturn($schemaManager);
         $this->connection->expects($this->never())->method('executeStatement');
 
         $event = new PostDeploy(new RunConfiguration(), new NullOutput());
@@ -99,6 +102,9 @@ class UsageDataConsentSubscriberTest extends TestCase
     {
         $_SERVER['SHOPWARE_USAGE_DATA_CONSENT'] = $consent;
 
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->willReturn(true);
+        $this->connection->method('createSchemaManager')->willReturn($schemaManager);
         $this->connection->expects($this->once())->method('fetchAssociative')->willReturn(false);
         $this->connection->expects($this->once())->method('executeStatement')->with(
             Assert::stringStartsWith('INSERT INTO `consent_state`'),
@@ -125,6 +131,9 @@ class UsageDataConsentSubscriberTest extends TestCase
     {
         $_SERVER['SHOPWARE_USAGE_DATA_CONSENT'] = $consent;
 
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->willReturn(true);
+        $this->connection->method('createSchemaManager')->willReturn($schemaManager);
         $this->connection->expects($this->once())->method('fetchAssociative')->willReturn([
             'id' => 1,
             'name' => 'backend_data',
