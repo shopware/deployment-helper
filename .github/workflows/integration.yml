@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+  workflow_call:
   workflow_dispatch:
 
 env:
@@ -13,6 +14,7 @@ env:
   DATABASE_URL: mysql://root@127.0.0.1/shopware
   # Disable our own telemetry to not fill test runs
   DO_NOT_TRACK: 1
+  SHOPWARE_USAGE_DATA_CONSENT: 'revoked'
 
 jobs:
   installation:
@@ -37,7 +39,7 @@ jobs:
         run: composer create-project shopware/production . --no-interaction
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
          path: ./custom/static-plugins/deployment-helper
 
@@ -86,7 +88,7 @@ jobs:
         run: composer create-project shopware/production . --no-interaction
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: ./custom/static-plugins/deployment-helper
 
@@ -136,7 +138,7 @@ jobs:
           sudo systemctl start mysql
 
       - name: Install shopware-cli
-        uses: shopware/shopware-cli-action@v2
+        uses: shopware/shopware-cli-action@v3
 
       - name: Create new Shopware Project
         run: |
@@ -146,7 +148,7 @@ jobs:
           rm -rf shop
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: ./custom/static-plugins/deployment-helper
 
