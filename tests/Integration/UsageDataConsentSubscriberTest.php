@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Integration;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
+use Doctrine\DBAL\Schema\Exception\TableDoesNotExist;
+use Doctrine\DBAL\Schema\Table;
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -19,17 +25,30 @@ use Zalas\PHPUnit\Globals\Attribute\Env;
 class UsageDataConsentSubscriberTest extends TestCase
 {
     private SystemConfigHelper&MockObject $systemConfigHelper;
+
+    private Connection&MockObject $connection;
+
+    /**
+     * @var (AbstractSchemaManager<AbstractPlatform>&object&MockObject)
+     */
+    private AbstractSchemaManager&MockObject $schemaManager;
+
     private UsageDataConsentSubscriber $subscriber;
 
     protected function setUp(): void
     {
         $this->systemConfigHelper = $this->createMock(SystemConfigHelper::class);
-        $this->subscriber = new UsageDataConsentSubscriber($this->systemConfigHelper);
+
+        $this->connection = $this->createMock(Connection::class);
+        $this->schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $this->connection->method('createSchemaManager')->willReturn($this->schemaManager);
+
+        $this->subscriber = new UsageDataConsentSubscriber($this->systemConfigHelper, $this->connection);
     }
 
     #[DataProvider('provideConsent')]
     #[Env('SHOPWARE_USAGE_DATA_CONSENT', value: '')]
-    public function testInvoke(string $consent, bool $shouldBeCalled): void
+    public function testInvokeWithSystemConfigOnly(string $consent, bool $shouldBeCalled): void
     {
         $_SERVER['SHOPWARE_USAGE_DATA_CONSENT'] = $consent;
 
@@ -37,6 +56,9 @@ class UsageDataConsentSubscriberTest extends TestCase
             ->expects($shouldBeCalled ? $this->once() : $this->never())
             ->method('set')
             ->with('core.usageData.consentState', $consent);
+
+        $this->schemaManager->method('introspectTableByUnquotedName')->willThrowException(new TableDoesNotExist('table not found'));
+        $this->connection->expects($this->never())->method('executeStatement');
 
         $event = new PostDeploy(new RunConfiguration(), new NullOutput());
         $this->subscriber->__invoke($event);
@@ -71,5 +93,87 @@ class UsageDataConsentSubscriberTest extends TestCase
 
         $event = new PostDeploy(new RunConfiguration(), new NullOutput());
         $this->subscriber->__invoke($event);
+    }
+
+    #[Env('SHOPWARE_USAGE_DATA_CONSENT', 'requested')]
+    public function testInvokeWithRequestedStateWillNotUpdateConsentTable(): void
+    {
+        $this->schemaManager->expects($this->never())->method('introspectTableByUnquotedName');
+        $this->connection->expects($this->never())->method('executeStatement');
+
+        $event = new PostDeploy(new RunConfiguration(), new NullOutput());
+        $this->subscriber->__invoke($event);
+    }
+
+    #[DataProvider('provideForConsentInsert')]
+    #[Env('SHOPWARE_USAGE_DATA_CONSENT', '')]
+    public function testInsertNewConsentState(string $consent, string $written): void
+    {
+        $_SERVER['SHOPWARE_USAGE_DATA_CONSENT'] = $consent;
+
+        $this->schemaManager->expects($this->once())
+            ->method('introspectTableByUnquotedName')
+            ->with('consent_state')
+            ->willReturn(new Table('consent_state'));
+
+        $this->connection->expects($this->once())->method('fetchAssociative')->willReturn(false);
+        $this->connection->expects($this->once())->method('executeStatement')->with(
+            Assert::stringStartsWith('INSERT INTO `consent_state`'),
+            Assert::logicalAnd(
+                Assert::isArray(),
+                Assert::arrayHasKey('id'),
+                Assert::containsEqual($written)
+            )
+        );
+
+        $event = new PostDeploy(new RunConfiguration(), new NullOutput());
+        $this->subscriber->__invoke($event);
+    }
+
+    public static function provideForConsentInsert(): \Generator
+    {
+        yield 'accepted' => ['accepted', 'accepted'];
+        yield 'revoked' => ['revoked', 'declined'];
+    }
+
+    #[DataProvider('provideForConsentUpdate')]
+    #[Env('SHOPWARE_USAGE_DATA_CONSENT', '')]
+    public function testUpdateNewConsentState(string $consent, string $storedValue, bool $shouldExecute): void
+    {
+        $_SERVER['SHOPWARE_USAGE_DATA_CONSENT'] = $consent;
+
+        $this->schemaManager->expects($this->once())
+            ->method('introspectTableByUnquotedName')
+            ->with('consent_state')
+            ->willReturn(new Table('consent_state'));
+
+        $this->connection->expects($this->once())->method('fetchAssociative')->willReturn([
+            'id' => 1,
+            'name' => 'backend_data',
+            'state' => $storedValue,
+        ]);
+
+        $this->connection->expects($shouldExecute ? $this->once() : $this->never())
+            ->method('executeStatement')
+            ->with(
+                Assert::stringStartsWith('UPDATE `consent_state`'),
+                Assert::logicalAnd(
+                    Assert::isArray(),
+                    Assert::equalTo(['state' => $consent]),
+                )
+            );
+
+        $event = new PostDeploy(new RunConfiguration(), new NullOutput());
+        $this->subscriber->__invoke($event);
+    }
+
+    public static function provideForConsentUpdate(): \Generator
+    {
+        yield 'accepted/accepted' => ['accepted', 'accepted', false];
+        yield 'accepted/declined' => ['accepted', 'declined', true];
+        yield 'accepted/revoked' => ['accepted', 'revoked', true];
+        yield 'revoked/accepted' => ['revoked', 'accepted', true];
+        yield 'revoked/declined' => ['revoked', 'declined', false];
+        yield 'revoked/revoked' => ['revoked', 'revoked', false];
     }
 }

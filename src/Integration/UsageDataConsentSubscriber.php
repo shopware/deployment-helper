@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Integration;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\Exception\TableDoesNotExist;
 use Shopware\Deployment\Event\PostDeploy;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Services\SystemConfigHelper;
@@ -14,6 +16,7 @@ readonly class UsageDataConsentSubscriber
 {
     public function __construct(
         private SystemConfigHelper $systemConfigHelper,
+        private Connection $connection,
     ) {
     }
 
@@ -30,5 +33,63 @@ readonly class UsageDataConsentSubscriber
         }
 
         $this->systemConfigHelper->set('core.usageData.consentState', $consent);
+        $this->updateInConsentTable($consent);
+    }
+
+    private function updateInConsentTable(string $status): void
+    {
+        // requested is not a valid state in the new system
+        if ($status === 'requested') {
+            return;
+        }
+
+        try {
+            $this->connection->createSchemaManager()->introspectTableByUnquotedName('consent_state');
+        } catch (TableDoesNotExist) {
+            // consent system is not used in this version
+            return;
+        }
+
+        /** @var array{ state: string } */
+        $currentState = $this->connection->fetchAssociative('SELECT * FROM `consent_state` WHERE `name` = "backend_data"');
+
+        if ($currentState === false) {
+            $this->insertBackendConsent($status);
+
+            return;
+        }
+
+        $this->updateConsent($status, $currentState);
+    }
+
+    private function insertBackendConsent(string $status): void
+    {
+        $this->connection->executeStatement(
+            'INSERT INTO `consent_state` (`id`, `name`, `identifier`, `state`, `actor`, `updated_at`)
+            VALUES (:id, "backend_data", "system", :state, "deployment-helper", NOW())',
+            [
+                'id' => random_bytes(16),
+                'state' => $status === 'accepted' ? 'accepted' : 'declined',
+            ]
+        );
+    }
+
+    /**
+     * @param array{ state: string } $currentState
+     */
+    private function updateConsent(string $status, array $currentState): void
+    {
+        if ($status === $currentState['state'] || ($status === 'revoked' && $currentState['state'] === 'declined')) {
+            return;
+        }
+
+        $this->connection->executeStatement(
+            'UPDATE `consent_state`
+            SET `state` = :state, `actor` = "deployment-helper", `updated_at` = NOW()
+            WHERE `name` = "backend_data"',
+            [
+                'state' => $status,
+            ]
+        );
     }
 }
