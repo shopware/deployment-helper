@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopware\Deployment\Tests\Services;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Config\ProjectConfiguration;
@@ -42,8 +43,12 @@ class OneTimeTasksTest extends TestCase
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper->expects($this->never())->method('runAndTail');
 
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->willReturn(false);
+
         $connection = $this->createMock(Connection::class);
-        $connection->expects($this->once())->method('executeQuery')->with('SELECT 1 FROM one_time_tasks LIMIT 1');
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
+        $connection->expects($this->once())->method('executeStatement')->with('CREATE TABLE one_time_tasks (id VARCHAR(255) PRIMARY KEY, created_at DATETIME NOT NULL)');
         $connection->expects($this->once())->method('fetchAllAssociativeIndexed')->willReturn([]);
 
         $configuration = new ProjectConfiguration();
@@ -60,7 +65,11 @@ class OneTimeTasksTest extends TestCase
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper->expects($this->once())->method('runAndTail')->with('echo "test"');
 
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->willReturn(true);
+
         $connection = $this->createMock(Connection::class);
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
         $connection->expects($this->once())->method('fetchAllAssociativeIndexed')->willReturn([]);
 
         $connection->expects($this->once())->method('executeStatement')->with('INSERT INTO one_time_tasks (id, created_at) VALUES (:id, :created_at)', [
@@ -116,7 +125,11 @@ class OneTimeTasksTest extends TestCase
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper->expects($this->once())->method('runAndTail')->with('echo "before"');
 
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->willReturn(true);
+
         $connection = $this->createMock(Connection::class);
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
         $connection->expects($this->once())->method('fetchAllAssociativeIndexed')->willReturn([]);
         $connection->expects($this->once())->method('executeStatement');
 
@@ -138,7 +151,11 @@ class OneTimeTasksTest extends TestCase
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper->expects($this->once())->method('runAndTail')->with('echo "after"');
 
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->willReturn(true);
+
         $connection = $this->createMock(Connection::class);
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
         $connection->expects($this->once())->method('fetchAllAssociativeIndexed')->willReturn([]);
         $connection->expects($this->once())->method('executeStatement');
 
@@ -160,7 +177,11 @@ class OneTimeTasksTest extends TestCase
         $processHelper = $this->createMock(ProcessHelper::class);
         $processHelper->expects($this->exactly(1))->method('runAndTail');
 
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->willReturn(true);
+
         $connection = $this->createMock(Connection::class);
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
         $connection->expects($this->once())->method('fetchAllAssociativeIndexed')->willReturn([]);
         $connection->expects($this->exactly(1))->method('executeStatement');
 

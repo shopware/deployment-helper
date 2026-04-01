@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace Shopware\Deployment\Tests\Integration;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
-use Doctrine\DBAL\Schema\Exception\TableDoesNotExist;
-use Doctrine\DBAL\Schema\Table;
 use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -28,20 +25,12 @@ class UsageDataConsentSubscriberTest extends TestCase
 
     private Connection&MockObject $connection;
 
-    /**
-     * @var (AbstractSchemaManager<AbstractPlatform>&object&MockObject)
-     */
-    private AbstractSchemaManager&MockObject $schemaManager;
-
     private UsageDataConsentSubscriber $subscriber;
 
     protected function setUp(): void
     {
         $this->systemConfigHelper = $this->createMock(SystemConfigHelper::class);
-
         $this->connection = $this->createMock(Connection::class);
-        $this->schemaManager = $this->createMock(AbstractSchemaManager::class);
-        $this->connection->method('createSchemaManager')->willReturn($this->schemaManager);
 
         $this->subscriber = new UsageDataConsentSubscriber($this->systemConfigHelper, $this->connection);
     }
@@ -57,7 +46,9 @@ class UsageDataConsentSubscriberTest extends TestCase
             ->method('set')
             ->with('core.usageData.consentState', $consent);
 
-        $this->schemaManager->method('introspectTableByUnquotedName')->willThrowException(new TableDoesNotExist('table not found'));
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->willReturn(false);
+        $this->connection->method('createSchemaManager')->willReturn($schemaManager);
         $this->connection->expects($this->never())->method('executeStatement');
 
         $event = new PostDeploy(new RunConfiguration(), new NullOutput());
@@ -98,7 +89,7 @@ class UsageDataConsentSubscriberTest extends TestCase
     #[Env('SHOPWARE_USAGE_DATA_CONSENT', 'requested')]
     public function testInvokeWithRequestedStateWillNotUpdateConsentTable(): void
     {
-        $this->schemaManager->expects($this->never())->method('introspectTableByUnquotedName');
+        $this->connection->expects($this->never())->method('executeQuery');
         $this->connection->expects($this->never())->method('executeStatement');
 
         $event = new PostDeploy(new RunConfiguration(), new NullOutput());
@@ -111,11 +102,9 @@ class UsageDataConsentSubscriberTest extends TestCase
     {
         $_SERVER['SHOPWARE_USAGE_DATA_CONSENT'] = $consent;
 
-        $this->schemaManager->expects($this->once())
-            ->method('introspectTableByUnquotedName')
-            ->with('consent_state')
-            ->willReturn(new Table('consent_state'));
-
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->willReturn(true);
+        $this->connection->method('createSchemaManager')->willReturn($schemaManager);
         $this->connection->expects($this->once())->method('fetchAssociative')->willReturn(false);
         $this->connection->expects($this->once())->method('executeStatement')->with(
             Assert::stringStartsWith('INSERT INTO `consent_state`'),
@@ -142,11 +131,9 @@ class UsageDataConsentSubscriberTest extends TestCase
     {
         $_SERVER['SHOPWARE_USAGE_DATA_CONSENT'] = $consent;
 
-        $this->schemaManager->expects($this->once())
-            ->method('introspectTableByUnquotedName')
-            ->with('consent_state')
-            ->willReturn(new Table('consent_state'));
-
+        $schemaManager = $this->createMock(AbstractSchemaManager::class);
+        $schemaManager->method('tablesExist')->willReturn(true);
+        $this->connection->method('createSchemaManager')->willReturn($schemaManager);
         $this->connection->expects($this->once())->method('fetchAssociative')->willReturn([
             'id' => 1,
             'name' => 'backend_data',

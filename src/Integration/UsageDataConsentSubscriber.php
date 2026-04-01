@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Shopware\Deployment\Integration;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Schema\Exception\TableDoesNotExist;
 use Shopware\Deployment\Event\PostDeploy;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Services\SystemConfigHelper;
@@ -43,10 +42,8 @@ readonly class UsageDataConsentSubscriber
             return;
         }
 
-        try {
-            $this->connection->createSchemaManager()->introspectTableByUnquotedName('consent_state');
-        } catch (TableDoesNotExist) {
-            // consent system is not used in this version
+        $tableExists = $this->connection->createSchemaManager()->tablesExist(['consent_state']);
+        if (!$tableExists) {
             return;
         }
 
