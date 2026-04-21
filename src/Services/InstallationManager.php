@@ -19,6 +19,7 @@ class InstallationManager
         private readonly ShopwareState $state,
         private readonly Connection $connection,
         private readonly ProcessHelper $processHelper,
+        private readonly OpenSearchHelper $openSearchHelper,
         private readonly PluginHelper $pluginHelper,
         private readonly AppHelper $appHelper,
         private readonly HookExecutor $hookExecutor,
@@ -58,6 +59,7 @@ class InstallationManager
         }
 
         $took = microtime(true);
+
         $this->processHelper->console(['system:install', '--create-database', '--shop-locale=' . $shopLocale, '--shop-currency=' . $shopCurrency, '--force', ...$additionalInstallParameters]);
 
         $this->trackingService->persistId();
@@ -102,13 +104,54 @@ class InstallationManager
         $this->appHelper->deactivateApps();
         $this->appHelper->removeApps();
 
+        if ($this->state->isStorefrontInstalled()) {
+            $this->processHelper->console(['cache:clear']);
+
+            if (!$configuration->skipThemeCompile) {
+                $this->processHelper->console(['theme:compile', '--active-only']);
+            }
+        }
+
         $this->state->setVersion($this->state->getCurrentVersion());
 
         $this->hookExecutor->execute(HookExecutor::HOOK_POST_INSTALL);
+        $this->ensureOpenSearchIsReady($output);
     }
 
     private function removeExistingHeadlessSalesChannel(): void
     {
         $this->connection->executeStatement('DELETE FROM sales_channel WHERE type_id = 0xf183ee5650cf4bdb8a774337575067a6');
+    }
+
+    private function ensureOpenSearchIsReady(OutputInterface $output): void
+    {
+        if (!$this->isOpenSearchPreparationEnabled()) {
+            return;
+        }
+
+        $action = $this->openSearchHelper->prepareShopIndex();
+
+        if ($action === OpenSearchHelper::SHOP_INDEX_ACTION_NONE) {
+            return;
+        }
+
+        if ($action === OpenSearchHelper::SHOP_INDEX_ACTION_UPDATE_MAPPING) {
+            $output->writeln('Running OpenSearch mapping update because the shop index mapping is incomplete');
+            $this->processHelper->console(['es:mapping:update']);
+
+            return;
+        }
+
+        $output->writeln('Running OpenSearch indexing because the shop alias or index settings are incomplete');
+        $this->processHelper->console(['es:index', '--no-queue']);
+    }
+
+    private function isOpenSearchPreparationEnabled(): bool
+    {
+        if (EnvironmentHelper::hasVariable('SHOPWARE_DEPLOYMENT_OPENSEARCH_PREPARE_INDEX')) {
+            return EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_OPENSEARCH_PREPARE_INDEX', '0') === '1';
+        }
+
+        return $this->configuration->openSearch->indexIfEmpty;
     }
 }

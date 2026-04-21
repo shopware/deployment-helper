@@ -18,6 +18,7 @@ class UpgradeManager
     public function __construct(
         private readonly ShopwareState $state,
         private readonly ProcessHelper $processHelper,
+        private readonly OpenSearchHelper $openSearchHelper,
         private readonly PluginHelper $pluginHelper,
         private readonly AppHelper $appHelper,
         private readonly HookExecutor $hookExecutor,
@@ -45,6 +46,8 @@ class UpgradeManager
         }
 
         $output->writeln('Shopware is installed, running update tools');
+
+        $this->ensureOpenSearchIsReady($output);
 
         $this->processHelper->console(['messenger:setup-transports']);
 
@@ -117,5 +120,37 @@ class UpgradeManager
             $output->writeln('Maintenance mode is disabled, clearing cache to make sure the storefront is visible again');
             $this->processHelper->console(['cache:pool:clear', 'cache.http', 'cache.object']);
         }
+    }
+
+    private function ensureOpenSearchIsReady(OutputInterface $output): void
+    {
+        if (!$this->isOpenSearchPreparationEnabled()) {
+            return;
+        }
+
+        $action = $this->openSearchHelper->prepareShopIndex();
+
+        if ($action === OpenSearchHelper::SHOP_INDEX_ACTION_NONE) {
+            return;
+        }
+
+        if ($action === OpenSearchHelper::SHOP_INDEX_ACTION_UPDATE_MAPPING) {
+            $output->writeln('Running OpenSearch mapping update because the shop index mapping is incomplete');
+            $this->processHelper->console(['es:mapping:update']);
+
+            return;
+        }
+
+        $output->writeln('Running OpenSearch indexing because the shop alias or index settings are incomplete');
+        $this->processHelper->console(['es:index', '--no-queue']);
+    }
+
+    private function isOpenSearchPreparationEnabled(): bool
+    {
+        if (EnvironmentHelper::hasVariable('SHOPWARE_DEPLOYMENT_OPENSEARCH_PREPARE_INDEX')) {
+            return EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_OPENSEARCH_PREPARE_INDEX', '0') === '1';
+        }
+
+        return $this->configuration->openSearch->indexIfEmpty;
     }
 }

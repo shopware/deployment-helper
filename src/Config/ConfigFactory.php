@@ -31,7 +31,7 @@ class ConfigFactory
         }
 
         if (!file_exists($file)) {
-            return self::fillLicenseDomain(new ProjectConfiguration());
+            return self::fillEnvironmentOverrides(new ProjectConfiguration());
         }
 
         $projectConfiguration = new ProjectConfiguration();
@@ -48,7 +48,7 @@ class ConfigFactory
             self::fillConfig($projectConfiguration, $config['deployment']);
         }
 
-        return self::fillLicenseDomain($projectConfiguration);
+        return self::fillEnvironmentOverrides($projectConfiguration);
     }
 
     /**
@@ -59,6 +59,12 @@ class ConfigFactory
         if (isset($deployment['maintenance']) && \is_array($deployment['maintenance'])) {
             if (isset($deployment['maintenance']['enabled']) && \is_bool($deployment['maintenance']['enabled'])) {
                 $projectConfiguration->maintenance->enabled = $deployment['maintenance']['enabled'];
+            }
+        }
+
+        if (isset($deployment['opensearch']) && \is_array($deployment['opensearch'])) {
+            if (isset($deployment['opensearch']['index-if-empty']) && \is_bool($deployment['opensearch']['index-if-empty'])) {
+                $projectConfiguration->openSearch->indexIfEmpty = $deployment['opensearch']['index-if-empty'];
             }
         }
 
@@ -183,10 +189,14 @@ class ConfigFactory
         return null;
     }
 
-    public static function fillLicenseDomain(ProjectConfiguration $projectConfiguration): ProjectConfiguration
+    public static function fillEnvironmentOverrides(ProjectConfiguration $projectConfiguration): ProjectConfiguration
     {
         if (EnvironmentHelper::hasVariable('SHOPWARE_STORE_LICENSE_DOMAIN')) {
             $projectConfiguration->store->licenseDomain = EnvironmentHelper::getVariable('SHOPWARE_STORE_LICENSE_DOMAIN', '');
+        }
+
+        if (EnvironmentHelper::hasVariable('SHOPWARE_DEPLOYMENT_OPENSEARCH_PREPARE_INDEX')) {
+            $projectConfiguration->openSearch->indexIfEmpty = EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_OPENSEARCH_PREPARE_INDEX', '0') === '1';
         }
 
         return $projectConfiguration;

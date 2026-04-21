@@ -12,6 +12,8 @@ class ProjectConfiguration
 
     public ProjectMaintenance $maintenance;
 
+    public ProjectOpenSearch $openSearch;
+
     public ProjectStore $store;
 
     /**
@@ -26,6 +28,7 @@ class ProjectConfiguration
         $this->hooks = new ProjectHooks();
         $this->extensionManagement = new ProjectExtensionManagement();
         $this->maintenance = new ProjectMaintenance();
+        $this->openSearch = new ProjectOpenSearch();
         $this->store = new ProjectStore();
     }
 }

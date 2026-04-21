@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Config;
 
+use PHPUnit\Framework\Attributes\BackupGlobals;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -29,6 +30,7 @@ class ConfigFactoryTest extends TestCase
         $config = ConfigFactory::create(__DIR__, $this->createMockApplication());
         static::assertFalse($config->maintenance->enabled);
         static::assertTrue($config->extensionManagement->enabled);
+        static::assertFalse($config->openSearch->indexIfEmpty);
         static::assertSame([], $config->extensionManagement->overrides);
         static::assertSame([], $config->oneTimeTasks);
         static::assertSame('', $config->hooks->pre);
@@ -65,11 +67,37 @@ class ConfigFactoryTest extends TestCase
         static::assertTrue($config->maintenance->enabled);
     }
 
+    public function testExistingConfigWithOpenSearchIndexIfEmpty(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/opensearch-reindex', $this->createMockApplication());
+        static::assertTrue($config->openSearch->indexIfEmpty);
+    }
+
     #[Env('SHOPWARE_STORE_LICENSE_DOMAIN', 'test')]
     public function testLicenseDomainPopulatedByEnv(): void
     {
         $config = ConfigFactory::create(__DIR__, $this->createMockApplication());
         static::assertSame('test', $config->store->licenseDomain);
+    }
+
+    #[Env('SHOPWARE_DEPLOYMENT_OPENSEARCH_PREPARE_INDEX', '1')]
+    public function testOpenSearchPrepareIndexPopulatedByEnv(): void
+    {
+        $config = ConfigFactory::create(__DIR__, $this->createMockApplication());
+        static::assertTrue($config->openSearch->indexIfEmpty);
+    }
+
+    #[BackupGlobals(true)]
+    public function testOpenSearchPrepareIndexPopulatedByGetenv(): void
+    {
+        putenv('SHOPWARE_DEPLOYMENT_OPENSEARCH_PREPARE_INDEX=1');
+
+        try {
+            $config = ConfigFactory::create(__DIR__, $this->createMockApplication());
+            static::assertTrue($config->openSearch->indexIfEmpty);
+        } finally {
+            putenv('SHOPWARE_DEPLOYMENT_OPENSEARCH_PREPARE_INDEX');
+        }
     }
 
     public function testExistingConfigWithStoreConfig(): void
