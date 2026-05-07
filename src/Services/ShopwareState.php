@@ -10,6 +10,12 @@ use Doctrine\DBAL\Connection;
 class ShopwareState
 {
     /**
+     * Shopware's SalesChannelDefinition::TYPE_STOREFRONT UUID, as a hex literal
+     * usable in raw SQL (matches the `sales_channel.type_id` BINARY(16) column).
+     */
+    private const STOREFRONT_TYPE_ID_HEX = '0x8a243080f92e4c719546314b577cf82b';
+
+    /**
      * @var array<string, string>
      */
     private array $maintenanceMode = [];
@@ -84,14 +90,34 @@ class ShopwareState
         return (bool) $this->connection->fetchOne('SELECT id FROM sales_channel_domain WHERE url = ?', [$salesChannelUrl]);
     }
 
+    /**
+     * Returns the IDs (lowercased hex) of all active storefront sales channels
+     * that have at least one theme assigned. Mirrors the selection used by
+     * `theme:compile --active-only`.
+     *
+     * @return list<string>
+     */
+    public function getActiveStorefrontSalesChannelIds(): array
+    {
+        /** @var list<string> $ids */
+        $ids = $this->connection->fetchFirstColumn(
+            'SELECT DISTINCT LOWER(HEX(sc.id))
+             FROM sales_channel sc
+             INNER JOIN theme_sales_channel tsc ON tsc.sales_channel_id = sc.id
+             WHERE sc.active = 1 AND sc.type_id = ' . self::STOREFRONT_TYPE_ID_HEX
+        );
+
+        return $ids;
+    }
+
     public function enableMaintenanceMode(): void
     {
         // Make a copy, so we can restore the original state later
         /** @var array<string, string> */
-        $data = $this->connection->fetchAllKeyValue('SELECT LOWER(HEX(id)), maintenance FROM sales_channel WHERE type_id = 0x8a243080f92e4c719546314b577cf82b');
+        $data = $this->connection->fetchAllKeyValue('SELECT LOWER(HEX(id)), maintenance FROM sales_channel WHERE type_id = ' . self::STOREFRONT_TYPE_ID_HEX);
         $this->maintenanceMode = $data;
 
-        $this->connection->executeStatement('UPDATE sales_channel SET maintenance = 1 WHERE type_id = 0x8a243080f92e4c719546314b577cf82b');
+        $this->connection->executeStatement('UPDATE sales_channel SET maintenance = 1 WHERE type_id = ' . self::STOREFRONT_TYPE_ID_HEX);
     }
 
     public function disableMaintenanceMode(): void

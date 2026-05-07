@@ -79,6 +79,113 @@ class ProcessHelper
         $this->run(['bin/console', '-n', ...$args]);
     }
 
+    /**
+     * Runs multiple console commands in parallel, with at most $workers running concurrently.
+     *
+     * Each worker's stdout/stderr is buffered and flushed as a single block when the process
+     * finishes, prefixed with a stable tag so the interleaved output remains readable. On the
+     * first failure we stop dispatching new work, drain the in-flight processes, and re-raise
+     * with the failed command and its captured stderr.
+     *
+     * @param list<list<string>> $commands each entry is the argv of `bin/console`, e.g. ['theme:compile', '--sync', '--keep-assets', '--sales-channel-id=...']
+     */
+    public function consoleParallel(array $commands, int $workers): void
+    {
+        if ($commands === []) {
+            return;
+        }
+
+        $workers = max(1, $workers);
+        $label = 'parallel: ' . \count($commands) . ' commands, ' . $workers . ' workers';
+        $startTime = $this->printPreStart([$label]);
+
+        /** @var array<int, array{process: PhpSubprocess, tag: string}> $running */
+        $running = [];
+        $queue = $commands;
+        $failures = [];
+        $nextTag = 1;
+
+        while ($queue !== [] || $running !== []) {
+            if ($failures !== []) {
+                // Stop dispatching new work; let in-flight processes finish.
+                $queue = [];
+            }
+
+            while (\count($running) < $workers && $queue !== []) {
+                $args = array_shift($queue);
+                $tag = '[#' . $nextTag++ . ' ' . implode(' ', $args) . ']';
+                $process = new PhpSubprocess(['bin/console', '-n', ...$args], $this->projectDir);
+                $process->setTimeout($this->timeout);
+                $process->start();
+                $running[] = ['process' => $process, 'tag' => $tag];
+            }
+
+            usleep(100_000);
+
+            foreach ($running as $key => $slot) {
+                $process = $slot['process'];
+                if ($process->isRunning()) {
+                    continue;
+                }
+
+                $stdout = $process->getOutput();
+                $stderr = $process->getErrorOutput();
+                $this->flushBufferedOutput($slot['tag'], $stdout, $stderr);
+
+                if (!$process->isSuccessful()) {
+                    $failures[] = [
+                        'command' => $process->getCommandLine(),
+                        'stderr' => trim($stderr) !== '' ? $stderr : $stdout,
+                        'exitCode' => $process->getExitCode(),
+                    ];
+                }
+
+                unset($running[$key]);
+            }
+
+            $running = array_values($running);
+        }
+
+        if ($failures !== []) {
+            $details = [];
+            foreach ($failures as $failure) {
+                $details[] = \sprintf(
+                    '%s (exit %s):%s%s',
+                    $failure['command'],
+                    $failure['exitCode'] ?? 'unknown',
+                    \PHP_EOL,
+                    rtrim($failure['stderr']),
+                );
+            }
+
+            throw new \RuntimeException('Parallel execution failed:' . \PHP_EOL . implode(\PHP_EOL . \PHP_EOL, $details));
+        }
+
+        $this->printPostStart([$label], $startTime);
+    }
+
+    private function flushBufferedOutput(string $tag, string $stdout, string $stderr): void
+    {
+        if ($stdout !== '') {
+            $this->output->writeStdout($this->prefixLines($tag, $stdout));
+        }
+
+        if ($stderr !== '') {
+            $this->output->writeStderr($this->prefixLines($tag, $stderr));
+        }
+    }
+
+    private function prefixLines(string $tag, string $buffer): string
+    {
+        $lines = explode("\n", rtrim($buffer, "\n"));
+        $prefixed = '';
+        foreach ($lines as $line) {
+            $prefixed .= $tag . ' ' . $line . "\n";
+        }
+
+        return $prefixed;
+    }
+
     public function runAndTail(string $code): void
     {
         $originalCode = $code;

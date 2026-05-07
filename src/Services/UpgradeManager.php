@@ -102,7 +102,7 @@ class UpgradeManager
 
         if (!$configuration->skipThemeCompile) {
             $took = microtime(true);
-            $this->processHelper->console(['theme:compile', '--active-only']);
+            $this->compileThemes($configuration, $output);
             $this->trackingService->track('theme_compiled', ['took' => microtime(true) - $took]);
         }
 
@@ -117,5 +117,64 @@ class UpgradeManager
             $output->writeln('Maintenance mode is disabled, clearing cache to make sure the storefront is visible again');
             $this->processHelper->console(['cache:pool:clear', 'cache.http', 'cache.object']);
         }
+    }
+
+    private function compileThemes(RunConfiguration $configuration, OutputInterface $output): void
+    {
+        if (!$configuration->parallelThemeCompile) {
+            $this->processHelper->console(['theme:compile', '--active-only']);
+
+            return;
+        }
+
+        $salesChannelIds = $this->state->getActiveStorefrontSalesChannelIds();
+
+        if (\count($salesChannelIds) <= 1) {
+            // Nothing to parallelize - fall back to the regular command.
+            $this->processHelper->console(['theme:compile', '--active-only']);
+
+            return;
+        }
+
+        $workers = $configuration->themeCompileWorkers ?? self::detectCpuCount($output);
+        $output->writeln(\sprintf(
+            'Compiling themes in parallel for %d sales channels with %d workers',
+            \count($salesChannelIds),
+            $workers,
+        ));
+
+        // First sales channel runs serially so it can write the shared theme assets
+        // (CSS plus JS bundles) without racing the parallel workers.
+        $first = array_shift($salesChannelIds);
+        $this->processHelper->console(['theme:compile', '--sync', '--sales-channel-id=' . $first]);
+
+        $commands = [];
+        foreach ($salesChannelIds as $id) {
+            // --keep-assets skips the shared JS bundle copy, leaving only per-channel CSS.
+            $commands[] = ['theme:compile', '--sync', '--keep-assets', '--sales-channel-id=' . $id];
+        }
+
+        $this->processHelper->consoleParallel($commands, $workers);
+    }
+
+    private const DEFAULT_WORKERS = 4;
+
+    private static function detectCpuCount(OutputInterface $output): int
+    {
+        if (\function_exists('shell_exec')) {
+            foreach (['nproc 2>/dev/null', 'getconf _NPROCESSORS_ONLN 2>/dev/null', 'sysctl -n hw.ncpu 2>/dev/null'] as $cmd) {
+                $value = @shell_exec($cmd);
+                if (\is_string($value) && ctype_digit(trim($value))) {
+                    return max(1, (int) trim($value));
+                }
+            }
+        }
+
+        $output->writeln(\sprintf(
+            '<comment>Could not auto-detect CPU count, falling back to %d workers. Set --theme-compile-workers or SHOPWARE_DEPLOYMENT_THEME_COMPILE_WORKERS to override.</comment>',
+            self::DEFAULT_WORKERS,
+        ));
+
+        return self::DEFAULT_WORKERS;
     }
 }

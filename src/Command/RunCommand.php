@@ -38,6 +38,8 @@ class RunCommand extends Command
         $this->addOption('skip-theme-compile', null, InputOption::VALUE_NONE, 'Skip theme compile (Should be used when the theme has been compiled before in the CI/CD)');
         $this->addOption('skip-asset-install', null, InputOption::VALUE_NONE, 'Deprecated - use --skip-assets-install instead');
         $this->addOption('skip-assets-install', null, InputOption::VALUE_NONE, 'Skip asset install (Should be used when the assets have been copied before in the CI/CD)');
+        $this->addOption('parallel-theme-compile', null, InputOption::VALUE_NONE, 'Compile themes for active sales channels in parallel. Can also be enabled via SHOPWARE_DEPLOYMENT_PARALLEL_THEME_COMPILE=1');
+        $this->addOption('theme-compile-workers', null, InputOption::VALUE_REQUIRED, 'Number of parallel workers for theme compilation. Defaults to the number of CPUs. Can also be set via SHOPWARE_DEPLOYMENT_THEME_COMPILE_WORKERS');
         $this->addOption('timeout', null, InputOption::VALUE_REQUIRED, 'Set script execution timeout (in seconds). Set to null to disable timeout', null);
     }
 
@@ -46,11 +48,19 @@ class RunCommand extends Command
         $installed = $this->state->isInstalled();
         $timeout = $input->getOption('timeout');
 
+        $workersOption = $input->getOption('theme-compile-workers') ?? EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_THEME_COMPILE_WORKERS');
+        $themeCompileWorkers = is_numeric($workersOption) ? (int) $workersOption : null;
+
+        $parallelThemeCompile = (bool) $input->getOption('parallel-theme-compile')
+            || EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_PARALLEL_THEME_COMPILE', '0') === '1';
+
         $config = new RunConfiguration(
             skipThemeCompile: (bool) $input->getOption('skip-theme-compile'),
             skipAssetsInstall: ((bool) $input->getOption('skip-asset-install') || (bool) $input->getOption('skip-assets-install')),
             timeout: (float) (is_numeric($timeout) ? $timeout : EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_TIMEOUT', '300')),
             forceReinstallation: EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_FORCE_REINSTALL', '0') === '1',
+            parallelThemeCompile: $parallelThemeCompile,
+            themeCompileWorkers: $themeCompileWorkers,
         );
 
         if ($config->forceReinstallation && $this->state->getPreviousVersion() === 'unknown') {
