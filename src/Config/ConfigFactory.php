@@ -31,7 +31,7 @@ class ConfigFactory
         }
 
         if (!file_exists($file)) {
-            return self::fillLicenseDomain(new ProjectConfiguration());
+            return self::fillDefaults(new ProjectConfiguration());
         }
 
         $projectConfiguration = new ProjectConfiguration();
@@ -48,7 +48,7 @@ class ConfigFactory
             self::fillConfig($projectConfiguration, $config['deployment']);
         }
 
-        return self::fillLicenseDomain($projectConfiguration);
+        return self::fillDefaults($projectConfiguration);
     }
 
     /**
@@ -56,6 +56,12 @@ class ConfigFactory
      */
     private static function fillConfig(ProjectConfiguration $projectConfiguration, array $deployment): void
     {
+        if (isset($deployment['staging']) && \is_array($deployment['staging'])) {
+            if (isset($deployment['staging']['enabled']) && \is_bool($deployment['staging']['enabled'])) {
+                $projectConfiguration->staging->enabled = $deployment['staging']['enabled'];
+            }
+        }
+
         if (isset($deployment['maintenance']) && \is_array($deployment['maintenance'])) {
             if (isset($deployment['maintenance']['enabled']) && \is_bool($deployment['maintenance']['enabled'])) {
                 $projectConfiguration->maintenance->enabled = $deployment['maintenance']['enabled'];
@@ -183,12 +189,16 @@ class ConfigFactory
         return null;
     }
 
-    public static function fillLicenseDomain(ProjectConfiguration $projectConfiguration): ProjectConfiguration
+    private static function fillDefaults(ProjectConfiguration $config): ProjectConfiguration
     {
         if (EnvironmentHelper::hasVariable('SHOPWARE_STORE_LICENSE_DOMAIN')) {
-            $projectConfiguration->store->licenseDomain = EnvironmentHelper::getVariable('SHOPWARE_STORE_LICENSE_DOMAIN', '');
+            $config->store->licenseDomain = EnvironmentHelper::getVariable('SHOPWARE_STORE_LICENSE_DOMAIN', '');
         }
 
-        return $projectConfiguration;
+        if (EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_STAGING') === '1') {
+            $config->staging->enabled = true;
+        }
+
+        return $config;
     }
 }

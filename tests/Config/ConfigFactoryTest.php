@@ -84,6 +84,19 @@ class ConfigFactoryTest extends TestCase
         static::assertTrue($config->alwaysClearCache);
     }
 
+    public function testExistingConfigWithStaging(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/staging', $this->createMockApplication());
+        static::assertTrue($config->staging->enabled);
+    }
+
+    #[Env('SHOPWARE_DEPLOYMENT_STAGING', '1')]
+    public function testStagingEnvVar(): void
+    {
+        $config = ConfigFactory::create(__DIR__, $this->createMockApplication());
+        static::assertTrue($config->staging->enabled);
+    }
+
     public function testExistingConfigWithExtensionOverride(): void
     {
         $config = ConfigFactory::create(__DIR__ . '/_fixtures/extension-override', $this->createMockApplication());
