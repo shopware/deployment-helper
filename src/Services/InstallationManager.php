@@ -88,6 +88,7 @@ class InstallationManager
         $this->state->disableFirstRunWizard();
 
         $this->processHelper->console(['plugin:refresh']);
+
         $this->pluginHelper->installPlugins($output, $configuration->skipAssetsInstall);
         $this->pluginHelper->updatePlugins($output, $configuration->skipAssetsInstall);
         $this->pluginHelper->deactivatePlugins($output, $configuration->skipAssetsInstall);
