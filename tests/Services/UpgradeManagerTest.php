@@ -235,6 +235,10 @@ class UpgradeManagerTest extends TestCase
             });
         $processHelper->expects($this->never())->method('consoleParallel');
 
+        $configuration = new ProjectConfiguration();
+        $configuration->themeCompile->parallel = true;
+        $configuration->themeCompile->workers = 2;
+
         $manager = new UpgradeManager(
             $state,
             $processHelper,
@@ -242,15 +246,12 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(AppHelper::class),
             $this->createMock(HookExecutor::class),
             $this->createMock(OneTimeTasks::class),
-            new ProjectConfiguration(),
+            $configuration,
             $this->createMock(AccountService::class),
             $this->createMock(TrackingService::class),
         );
 
-        $manager->run(
-            new RunConfiguration(parallelThemeCompile: true, themeCompileWorkers: 2),
-            $this->createMock(OutputInterface::class),
-        );
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
 
         static::assertContains(['theme:compile', '--active-only'], $consoleCommands);
     }
@@ -277,6 +278,10 @@ class UpgradeManagerTest extends TestCase
                 $callLog[] = ['type' => 'parallel', 'commands' => $commands, 'workers' => $workers];
             });
 
+        $configuration = new ProjectConfiguration();
+        $configuration->themeCompile->parallel = true;
+        $configuration->themeCompile->workers = 3;
+
         $manager = new UpgradeManager(
             $state,
             $processHelper,
@@ -284,15 +289,12 @@ class UpgradeManagerTest extends TestCase
             $this->createMock(AppHelper::class),
             $this->createMock(HookExecutor::class),
             $this->createMock(OneTimeTasks::class),
-            new ProjectConfiguration(),
+            $configuration,
             $this->createMock(AccountService::class),
             $this->createMock(TrackingService::class),
         );
 
-        $manager->run(
-            new RunConfiguration(parallelThemeCompile: true, themeCompileWorkers: 3),
-            $this->createMock(OutputInterface::class),
-        );
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
 
         $themeCalls = array_values(array_filter(
             $callLog,
@@ -312,6 +314,42 @@ class UpgradeManagerTest extends TestCase
             ],
             $themeCalls[1]['commands'],
         );
+    }
+
+    #[Env('SHOPWARE_DEPLOYMENT_THEME_COMPILE_WORKERS', '7')]
+    public function testParallelThemeCompileWorkerCountOverriddenByEnv(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state->method('getActiveStorefrontSalesChannelIds')->willReturn(['aaa', 'bbb']);
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $observedWorkers = null;
+        $processHelper
+            ->expects($this->once())
+            ->method('consoleParallel')
+            ->willReturnCallback(static function (array $commands, int $workers) use (&$observedWorkers): void {
+                $observedWorkers = $workers;
+            });
+
+        $configuration = new ProjectConfiguration();
+        $configuration->themeCompile->parallel = true;
+        $configuration->themeCompile->workers = 2;
+
+        $manager = new UpgradeManager(
+            $state,
+            $processHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+            $configuration,
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertSame(7, $observedWorkers);
     }
 
     public function testRunWithLicenseDomain(): void

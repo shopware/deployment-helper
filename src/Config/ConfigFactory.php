@@ -76,6 +76,16 @@ class ConfigFactory
             self::fillExtensionManagement($projectConfiguration->extensionManagement, $deployment['extension-management']);
         }
 
+        if (isset($deployment['theme-compile']) && \is_array($deployment['theme-compile'])) {
+            if (isset($deployment['theme-compile']['parallel']) && \is_bool($deployment['theme-compile']['parallel'])) {
+                $projectConfiguration->themeCompile->parallel = $deployment['theme-compile']['parallel'];
+            }
+
+            if (isset($deployment['theme-compile']['workers']) && \is_int($deployment['theme-compile']['workers'])) {
+                $projectConfiguration->themeCompile->workers = $deployment['theme-compile']['workers'];
+            }
+        }
+
         if (isset($deployment['store']) && \is_array($deployment['store'])) {
             if (isset($deployment['store']['license-domain']) && \is_string($deployment['store']['license-domain'])) {
                 $projectConfiguration->store->licenseDomain = $deployment['store']['license-domain'];

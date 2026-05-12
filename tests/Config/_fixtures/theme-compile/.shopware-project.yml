@@ -1,0 +1,4 @@
+deployment:
+  theme-compile:
+    parallel: true
+    workers: 6

@@ -102,7 +102,7 @@ class UpgradeManager
 
         if (!$configuration->skipThemeCompile) {
             $took = microtime(true);
-            $this->compileThemes($configuration, $output);
+            $this->compileThemes($output);
             $this->trackingService->track('theme_compiled', ['took' => microtime(true) - $took]);
         }
 
@@ -119,9 +119,9 @@ class UpgradeManager
         }
     }
 
-    private function compileThemes(RunConfiguration $configuration, OutputInterface $output): void
+    private function compileThemes(OutputInterface $output): void
     {
-        if (!$configuration->parallelThemeCompile) {
+        if (!$this->configuration->themeCompile->parallel) {
             $this->processHelper->console(['theme:compile', '--active-only']);
 
             return;
@@ -136,7 +136,10 @@ class UpgradeManager
             return;
         }
 
-        $workers = $configuration->themeCompileWorkers ?? self::detectCpuCount($output);
+        $workersEnv = EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_THEME_COMPILE_WORKERS');
+        $workers = is_numeric($workersEnv)
+            ? max(1, (int) $workersEnv)
+            : ($this->configuration->themeCompile->workers ?? self::detectCpuCount());
         $output->writeln(\sprintf(
             'Compiling themes in parallel for %d sales channels with %d workers',
             \count($salesChannelIds),
@@ -157,9 +160,7 @@ class UpgradeManager
         $this->processHelper->consoleParallel($commands, $workers);
     }
 
-    private const DEFAULT_WORKERS = 4;
-
-    private static function detectCpuCount(OutputInterface $output): int
+    private static function detectCpuCount(): int
     {
         if (\function_exists('shell_exec')) {
             foreach (['nproc 2>/dev/null', 'getconf _NPROCESSORS_ONLN 2>/dev/null', 'sysctl -n hw.ncpu 2>/dev/null'] as $cmd) {
@@ -170,11 +171,6 @@ class UpgradeManager
             }
         }
 
-        $output->writeln(\sprintf(
-            '<comment>Could not auto-detect CPU count, falling back to %d workers. Set --theme-compile-workers or SHOPWARE_DEPLOYMENT_THEME_COMPILE_WORKERS to override.</comment>',
-            self::DEFAULT_WORKERS,
-        ));
-
-        return self::DEFAULT_WORKERS;
+        return 4;
     }
 }

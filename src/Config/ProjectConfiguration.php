@@ -14,6 +14,8 @@ class ProjectConfiguration
 
     public ProjectStore $store;
 
+    public ProjectThemeCompile $themeCompile;
+
     /**
      * @var array<string, \Shopware\Deployment\Struct\OneTimeTask>
      */
@@ -27,5 +29,6 @@ class ProjectConfiguration
         $this->extensionManagement = new ProjectExtensionManagement();
         $this->maintenance = new ProjectMaintenance();
         $this->store = new ProjectStore();
+        $this->themeCompile = new ProjectThemeCompile();
     }
 }

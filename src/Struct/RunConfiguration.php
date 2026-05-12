@@ -11,8 +11,6 @@ readonly class RunConfiguration
         public bool $skipAssetsInstall = false,
         public ?float $timeout = 60,
         public bool $forceReinstallation = false,
-        public bool $parallelThemeCompile = false,
-        public ?int $themeCompileWorkers = null,
     ) {
     }
 }

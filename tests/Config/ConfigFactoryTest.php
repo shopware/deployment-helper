@@ -65,6 +65,20 @@ class ConfigFactoryTest extends TestCase
         static::assertTrue($config->maintenance->enabled);
     }
 
+    public function testCreateConfigWithoutThemeCompileDefaults(): void
+    {
+        $config = ConfigFactory::create(__DIR__, $this->createMockApplication());
+        static::assertFalse($config->themeCompile->parallel);
+        static::assertNull($config->themeCompile->workers);
+    }
+
+    public function testExistingConfigWithThemeCompile(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/theme-compile', $this->createMockApplication());
+        static::assertTrue($config->themeCompile->parallel);
+        static::assertSame(6, $config->themeCompile->workers);
+    }
+
     #[Env('SHOPWARE_STORE_LICENSE_DOMAIN', 'test')]
     public function testLicenseDomainPopulatedByEnv(): void
     {
