@@ -15,7 +15,7 @@ class TrackingService
 
     private const DEFAULT_TRACKING_DOMAIN = 'udp.usage.shopware.io';
 
-    private const TELEMETRY_DOCS_URL = 'https://github.com/shopware/deployment-helper/blob/main/TELEMETRY.md';
+    private const TELEMETRY_DOCS_URL = 'https://developer.shopware.com/docs/resources/references/telemetry.html';
 
     /**
      * @var array<string, string>

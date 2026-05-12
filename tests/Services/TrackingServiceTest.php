@@ -90,7 +90,7 @@ class TrackingServiceTest extends TestCase
 
         $content = $output->fetch();
         static::assertStringContainsString('Shopware collects anonymous telemetry', $content);
-        static::assertStringContainsString('https://github.com/shopware/deployment-helper/blob/main/TELEMETRY.md', $content);
+        static::assertStringContainsString('https://developer.shopware.com/docs/resources/references/telemetry.html', $content);
     }
 
     #[Env('DO_NOT_TRACK')]
