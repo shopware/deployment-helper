@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Services\ShopwareState;
 use Shopware\Deployment\Services\TrackingService;
 use Shopware\Deployment\Tests\TestUtil\StaticSystemConfigHelper;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Zalas\PHPUnit\Globals\Attribute\Env;
 
 #[CoversClass(TrackingService::class)]
@@ -76,5 +77,32 @@ class TrackingServiceTest extends TestCase
 
         $service = new TrackingService($systemConfigHelper, $shopwareState);
         $service->track('test_event');
+    }
+
+    public function testShowHintPrintsTelemetryNotice(): void
+    {
+        $systemConfigHelper = new StaticSystemConfigHelper();
+        $shopwareState = $this->createMock(ShopwareState::class);
+
+        $service = new TrackingService($systemConfigHelper, $shopwareState);
+        $output = new BufferedOutput();
+        $service->showHint($output);
+
+        $content = $output->fetch();
+        static::assertStringContainsString('Shopware collects anonymous telemetry', $content);
+        static::assertStringContainsString('https://github.com/shopware/deployment-helper/blob/main/TELEMETRY.md', $content);
+    }
+
+    #[Env('DO_NOT_TRACK')]
+    public function testShowHintIsSuppressedByDoNotTrack(): void
+    {
+        $systemConfigHelper = new StaticSystemConfigHelper();
+        $shopwareState = $this->createMock(ShopwareState::class);
+
+        $service = new TrackingService($systemConfigHelper, $shopwareState);
+        $output = new BufferedOutput();
+        $service->showHint($output);
+
+        static::assertSame('', $output->fetch());
     }
 }

@@ -43,6 +43,8 @@ class RunCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->trackingService->showHint($output);
+
         $installed = $this->state->isInstalled();
         $timeout = $input->getOption('timeout');
 
