@@ -24,6 +24,16 @@ class ShopwareState
         try {
             $this->connection->fetchAllAssociative('SELECT * FROM system_config');
 
+            $numberOfExistingUsers = (int) $this->connection->fetchOne('SELECT COUNT(*) FROM `user`');
+            if ($numberOfExistingUsers === 0) {
+                return false;
+            }
+
+            $salesChannelExists = (int) $this->connection->fetchOne('SELECT COUNT(*) FROM `sales_channel`');
+            if ($salesChannelExists === 0) {
+                return false;
+            }
+
             return true;
         } catch (\Throwable) {
             return false;
