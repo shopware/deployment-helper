@@ -40,6 +40,7 @@ class InstallationManager
         $shopCurrency = EnvironmentHelper::getVariable('INSTALL_CURRENCY', 'EUR');
         $adminUser = EnvironmentHelper::getVariable('INSTALL_ADMIN_USERNAME', 'admin');
         $adminPassword = EnvironmentHelper::getVariable('INSTALL_ADMIN_PASSWORD', 'shopware');
+        $adminEmail = EnvironmentHelper::getVariable('INSTALL_ADMIN_EMAIL', '');
         $appUrl = EnvironmentHelper::getVariable('APP_URL');
         $salesChannelUrl = UrlHelper::normalizeSalesChannelUrl(EnvironmentHelper::getVariable('SALES_CHANNEL_URL', $appUrl) ?? '');
 
@@ -63,7 +64,12 @@ class InstallationManager
         $this->trackingService->persistId();
         $this->trackingService->track('installed', ['took' => microtime(true) - $took, 'shopware_version' => $this->state->getCurrentVersion()]);
 
-        $this->processHelper->console(['user:create', $adminUser, '--password=' . $adminPassword]);
+        $additionalCreateUserParameters = [];
+        if ($adminEmail !== '') {
+            $additionalCreateUserParameters[] = '--email=' . $adminEmail;
+        }
+
+        $this->processHelper->console(['user:create', $adminUser, '--password=' . $adminPassword, ...$additionalCreateUserParameters]);
 
         $this->processHelper->console(['messenger:setup-transports']);
 
