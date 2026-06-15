@@ -33,11 +33,26 @@ class ShopwareStateTest extends TestCase
 
     public function testShopwareIsInstalled(): void
     {
-        $this->connection
-            ->expects($this->once())
-            ->method('fetchAllAssociative')
-            ->willReturn([]);
+        $this->connection->method('fetchAllAssociative')->willReturn([]);
+        $this->connection->method('fetchOne')->willReturn('1');
+
         static::assertTrue($this->state->isInstalled());
+    }
+
+    public function testShopwareIsNotInstalledWhenNoUser(): void
+    {
+        $this->connection->method('fetchAllAssociative')->willReturn([]);
+        $this->connection->method('fetchOne')->willReturnOnConsecutiveCalls('0');
+
+        static::assertFalse($this->state->isInstalled());
+    }
+
+    public function testShopwareIsNotInstalledWhenNoSalesChannel(): void
+    {
+        $this->connection->method('fetchAllAssociative')->willReturn([]);
+        $this->connection->method('fetchOne')->willReturnOnConsecutiveCalls('1', '0');
+
+        static::assertFalse($this->state->isInstalled());
     }
 
     public function testStorefrontInstalled(): void
