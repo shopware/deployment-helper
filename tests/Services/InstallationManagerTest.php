@@ -170,5 +170,35 @@ class InstallationManagerTest extends TestCase
 
         static::assertCount(4, $consoleCommands);
         static::assertSame(['system:install', '--create-database', '--shop-locale=en-GB', '--shop-currency=EUR', '--force', '--no-assign-theme', '--skip-assets-install', '--drop-database'], $consoleCommands[0]);
+        static::assertSame(['user:create', 'admin', '--password=shopware'], $consoleCommands[1]);
+    }
+
+    #[Env('INSTALL_ADMIN_EMAIL', 'admin@example.com')]
+    public function testRunWithAdminEmail(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $manager = new InstallationManager(
+            $this->createMock(ShopwareState::class),
+            $this->createMock(Connection::class),
+            $processHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            new ProjectConfiguration(),
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertSame(['user:create', 'admin', '--password=shopware', '--email=admin@example.com'], $consoleCommands[1]);
     }
 }
