@@ -7,6 +7,7 @@ namespace Shopware\Deployment\Services;
 use Digilist\DependencyGraph\DependencyGraph;
 use Digilist\DependencyGraph\DependencyNode;
 use Shopware\Deployment\Helper\ProcessHelper;
+use Shopware\Deployment\Struct\PluginCollection;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Filesystem\Path;
@@ -27,6 +28,11 @@ class PluginLoader
      * @return array<string, Plugin>
      */
     public function all(OutputInterface $output): array
+    {
+        return $this->load($output)->all();
+    }
+
+    public function load(OutputInterface $output): PluginCollection
     {
         $projectLockPath = Path::join($this->projectDir, 'composer.lock');
         $projectAliases = [];
@@ -50,12 +56,13 @@ class PluginLoader
             $output->writeln('<error>Unable to parse plugin list. Error: ' . $e->getMessage() . '</error>');
             $output->writeln('<error>Invalid JSON string: ' . $pluginJsonString . '</error>');
 
-            return [];
+            return new PluginCollection([], [], []);
         }
 
         $graph = new DependencyGraph();
         $byName = [];
         $nodes = [];
+        $pluginsWithDependencies = [];
 
         foreach ($data as $item) {
             $byName[$item['name']] = $item;
@@ -77,6 +84,7 @@ class PluginLoader
 
                         if (isset($nodes[$require])) {
                             $graph->addDependency($nodes[$item['composerName']], $nodes[$require]);
+                            $pluginsWithDependencies[$item['name']] = true;
                         }
                     }
                 }
@@ -84,10 +92,21 @@ class PluginLoader
         }
 
         $formatted = [];
+        $formattedPluginsWithDependencies = [];
+        $formattedPluginsWithoutDependencies = [];
+
         foreach ($graph->resolve() as $name) {
             $formatted[$name] = $byName[$name];
+
+            if (isset($pluginsWithDependencies[$name])) {
+                $formattedPluginsWithDependencies[$name] = $byName[$name];
+
+                continue;
+            }
+
+            $formattedPluginsWithoutDependencies[$name] = $byName[$name];
         }
 
-        return $formatted;
+        return new PluginCollection($formatted, $formattedPluginsWithDependencies, $formattedPluginsWithoutDependencies);
     }
 }

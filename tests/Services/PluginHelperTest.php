@@ -12,9 +12,11 @@ use Shopware\Deployment\Config\ProjectExtensionManagement;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\PluginHelper;
 use Shopware\Deployment\Services\PluginLoader;
+use Shopware\Deployment\Struct\PluginCollection;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 #[CoversClass(PluginHelper::class)]
+#[CoversClass(PluginCollection::class)]
 class PluginHelperTest extends TestCase
 {
     public function testInstallSkipped(): void
@@ -93,23 +95,6 @@ class PluginHelperTest extends TestCase
         $helper->installPlugins(new BufferedOutput(), true);
     }
 
-    public function testInstallMultipleNotInstalled(): void
-    {
-        $processHelper = $this->createMock(ProcessHelper::class);
-        $processHelper->expects($this->once())->method('console')->with(['plugin:install', 'TestPlugin', 'OtherPlugin', '--activate']);
-
-        $helper = new PluginHelper(
-            $this->getPluginLoaderWithPlugins([
-                $this->getPlugin(active: false, installedAt: null),
-                $this->getPlugin(name: 'OtherPlugin', active: false, installedAt: null),
-            ]),
-            $processHelper,
-            new ProjectConfiguration(),
-        );
-
-        $helper->installPlugins(new BufferedOutput());
-    }
-
     public function testInstalledButNotActive(): void
     {
         $processHelper = $this->createMock(ProcessHelper::class);
@@ -119,6 +104,58 @@ class PluginHelperTest extends TestCase
             $this->getPluginLoader(active: false),
             $processHelper,
             new ProjectConfiguration(),
+        );
+
+        $helper->installPlugins(new BufferedOutput());
+    }
+
+    public function testInstallMultipleNotInstalledWithoutDependenciesNotActive(): void
+    {
+        $configuration = new ProjectConfiguration();
+        $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_INSTALLED];
+        $configuration->extensionManagement->overrides['OtherPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_INSTALLED];
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:install', 'TestPlugin', 'OtherPlugin']);
+
+        $helper = new PluginHelper(
+            $this->getPluginLoaderWithPlugins([
+                $this->getPlugin(active: false, installedAt: null),
+                $this->getPlugin(name: 'OtherPlugin', active: false, installedAt: null),
+            ]),
+            $processHelper,
+            $configuration,
+        );
+
+        $helper->installPlugins(new BufferedOutput());
+    }
+
+    public function testInstallNotInstalledWithDependenciesNotActive(): void
+    {
+        $configuration = new ProjectConfiguration();
+        $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_INSTALLED];
+        $configuration->extensionManagement->overrides['OtherPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_INSTALLED];
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->exactly(2))->method('console')->willReturnCallback(static function (array $command): void {
+            static $commands = [
+                ['plugin:install', 'TestPlugin'],
+                ['plugin:install', 'OtherPlugin'],
+            ];
+
+            self::assertSame(array_shift($commands), $command);
+        });
+
+        $helper = new PluginHelper(
+            $this->getPluginLoaderWithPlugins(
+                [
+                    $this->getPlugin(active: false, installedAt: null),
+                    $this->getPlugin(name: 'OtherPlugin', active: false, installedAt: null),
+                ],
+                ['OtherPlugin'],
+            ),
+            $processHelper,
+            $configuration,
         );
 
         $helper->installPlugins(new BufferedOutput());
@@ -374,12 +411,31 @@ class PluginHelperTest extends TestCase
 
     /**
      * @param list<array{name: string, composerName: string, path: string, installedAt: string|null, version: string, upgradeVersion: string|null, active: bool}> $plugins
+     * @param list<string>                                                                                                                                        $pluginNamesWithDependencies
      */
-    private function getPluginLoaderWithPlugins(array $plugins): PluginLoader&MockObject
+    private function getPluginLoaderWithPlugins(array $plugins, array $pluginNamesWithDependencies = []): PluginLoader&MockObject
     {
         $loader = $this->createMock(PluginLoader::class);
+        $pluginsByName = [];
+        $pluginsWithDependencies = [];
+        $pluginsWithoutDependencies = [];
 
-        $loader->method('all')->willReturn($plugins);
+        foreach ($plugins as $plugin) {
+            $pluginsByName[$plugin['name']] = $plugin;
+
+            if (\in_array($plugin['name'], $pluginNamesWithDependencies, true)) {
+                $pluginsWithDependencies[$plugin['name']] = $plugin;
+
+                continue;
+            }
+
+            $pluginsWithoutDependencies[$plugin['name']] = $plugin;
+        }
+
+        $collection = new PluginCollection($pluginsByName, $pluginsWithDependencies, $pluginsWithoutDependencies);
+
+        $loader->method('all')->willReturn($pluginsByName);
+        $loader->method('load')->willReturn($collection);
 
         return $loader;
     }

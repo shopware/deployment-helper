@@ -8,9 +8,11 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\PluginLoader;
+use Shopware\Deployment\Struct\PluginCollection;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 #[CoversClass(PluginLoader::class)]
+#[CoversClass(PluginCollection::class)]
 class PluginLoaderTest extends TestCase
 {
     public function testLoad(): void
@@ -87,6 +89,37 @@ class PluginLoaderTest extends TestCase
             ],
             $plugins,
         );
+    }
+
+    public function testLoadSeparatesPluginsWithAndWithoutDependencies(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+
+        $data = [
+            [
+                'name' => 'Plugin1',
+                'composerName' => 'plugin/1',
+                'path' => '_fixtures/plugin1',
+                'version' => '1.0.0',
+            ],
+            [
+                'name' => 'Plugin2',
+                'composerName' => 'plugin/2',
+                'path' => '_fixtures/plugin2',
+                'version' => '1.0.0',
+            ],
+        ];
+
+        $processHelper
+            ->method('getPluginList')
+            ->willReturn(json_encode($data, \JSON_THROW_ON_ERROR));
+
+        $plugins = (new PluginLoader(__DIR__, $processHelper))->load(new BufferedOutput());
+
+        static::assertSame(['Plugin1'], array_keys($plugins->withDependencies()));
+        static::assertSame(['Plugin2'], array_keys($plugins->withoutDependencies()));
+        static::assertTrue($plugins->hasDependencies('Plugin1'));
+        static::assertFalse($plugins->hasDependencies('Plugin2'));
     }
 
     public function testLoadDependenciesInRightOrderWithReplaces(): void

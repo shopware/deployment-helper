@@ -20,14 +20,24 @@ class PluginHelper
     public function installPlugins(OutputInterface $output, bool $skipAssetsInstall = false): void
     {
         $additionalParameters = [];
-        $pluginsToInstall = [];
-        $pluginsToInstallAndActivate = [];
 
         if ($skipAssetsInstall) {
             $additionalParameters[] = '--skip-asset-build';
         }
 
-        foreach ($this->pluginLoader->all($output) as $plugin) {
+        $plugins = $this->pluginLoader->load($output);
+        /** @var list<string> $pluginsToInstall */
+        $pluginsToInstall = [];
+        $installPlugins = function () use (&$pluginsToInstall, $additionalParameters): void {
+            if ($pluginsToInstall === []) {
+                return;
+            }
+
+            $this->processHelper->console(['plugin:install', ...$pluginsToInstall, ...$additionalParameters]);
+            $pluginsToInstall = [];
+        };
+
+        foreach ($plugins->all() as $plugin) {
             if (!$this->configuration->extensionManagement->canExtensionBeInstalled($plugin['name'])) {
                 continue;
             }
@@ -39,28 +49,30 @@ class PluginHelper
             // plugin is installed, but not active
             if ($plugin['installedAt'] !== null) {
                 if ($this->configuration->extensionManagement->canExtensionBeActivated($plugin['name'])) {
+                    $installPlugins();
                     $this->processHelper->console(['plugin:activate', $plugin['name'], ...$additionalParameters]);
                 }
 
                 continue;
             }
 
+            $activate = [];
+
             if ($this->configuration->extensionManagement->canExtensionBeActivated($plugin['name'])) {
-                $pluginsToInstallAndActivate[] = $plugin['name'];
+                $activate[] = '--activate';
+            }
+
+            if ($activate === [] && !$plugins->hasDependencies($plugin['name'])) {
+                $pluginsToInstall[] = $plugin['name'];
 
                 continue;
             }
 
-            $pluginsToInstall[] = $plugin['name'];
+            $installPlugins();
+            $this->processHelper->console(['plugin:install', $plugin['name'], ...$activate, ...$additionalParameters]);
         }
 
-        if ($pluginsToInstallAndActivate !== []) {
-            $this->processHelper->console(['plugin:install', ...$pluginsToInstallAndActivate, '--activate', ...$additionalParameters]);
-        }
-
-        if ($pluginsToInstall !== []) {
-            $this->processHelper->console(['plugin:install', ...$pluginsToInstall, ...$additionalParameters]);
-        }
+        $installPlugins();
     }
 
     public function updatePlugins(OutputInterface $output, bool $skipAssetsInstall = false): void
