@@ -93,6 +93,23 @@ class PluginHelperTest extends TestCase
         $helper->installPlugins(new BufferedOutput(), true);
     }
 
+    public function testInstallMultipleNotInstalled(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())->method('console')->with(['plugin:install', 'TestPlugin', 'OtherPlugin', '--activate']);
+
+        $helper = new PluginHelper(
+            $this->getPluginLoaderWithPlugins([
+                $this->getPlugin(active: false, installedAt: null),
+                $this->getPlugin(name: 'OtherPlugin', active: false, installedAt: null),
+            ]),
+            $processHelper,
+            new ProjectConfiguration(),
+        );
+
+        $helper->installPlugins(new BufferedOutput());
+    }
+
     public function testInstalledButNotActive(): void
     {
         $processHelper = $this->createMock(ProcessHelper::class);
@@ -352,20 +369,34 @@ class PluginHelperTest extends TestCase
 
     public function getPluginLoader(bool $active = true, ?string $installedAt = 'test', ?string $upgradeVersion = null): PluginLoader&MockObject
     {
+        return $this->getPluginLoaderWithPlugins([$this->getPlugin(active: $active, installedAt: $installedAt, upgradeVersion: $upgradeVersion)]);
+    }
+
+    /**
+     * @param list<array{name: string, composerName: string, path: string, installedAt: string|null, version: string, upgradeVersion: string|null, active: bool}> $plugins
+     */
+    private function getPluginLoaderWithPlugins(array $plugins): PluginLoader&MockObject
+    {
         $loader = $this->createMock(PluginLoader::class);
 
-        $loader->method('all')->willReturn([
-            [
-                'name' => 'TestPlugin',
-                'composerName' => 'test/test-plugin',
-                'path' => '/var/www/html/custom/plugins/TestPlugin',
-                'installedAt' => $installedAt,
-                'version' => '1.0.0',
-                'upgradeVersion' => $upgradeVersion,
-                'active' => $active,
-            ],
-        ]);
+        $loader->method('all')->willReturn($plugins);
 
         return $loader;
+    }
+
+    /**
+     * @return array{name: string, composerName: string, path: string, installedAt: string|null, version: string, upgradeVersion: string|null, active: bool}
+     */
+    private function getPlugin(string $name = 'TestPlugin', bool $active = true, ?string $installedAt = 'test', ?string $upgradeVersion = null): array
+    {
+        return [
+            'name' => $name,
+            'composerName' => 'test/' . strtolower((string) preg_replace('/(?<!^)[A-Z]/', '-$0', $name)),
+            'path' => '/var/www/html/custom/plugins/' . $name,
+            'installedAt' => $installedAt,
+            'version' => '1.0.0',
+            'upgradeVersion' => $upgradeVersion,
+            'active' => $active,
+        ];
     }
 }

@@ -20,6 +20,8 @@ class PluginHelper
     public function installPlugins(OutputInterface $output, bool $skipAssetsInstall = false): void
     {
         $additionalParameters = [];
+        $pluginsToInstall = [];
+        $pluginsToInstallAndActivate = [];
 
         if ($skipAssetsInstall) {
             $additionalParameters[] = '--skip-asset-build';
@@ -43,13 +45,21 @@ class PluginHelper
                 continue;
             }
 
-            $activate = [];
-
             if ($this->configuration->extensionManagement->canExtensionBeActivated($plugin['name'])) {
-                $activate[] = '--activate';
+                $pluginsToInstallAndActivate[] = $plugin['name'];
+
+                continue;
             }
 
-            $this->processHelper->console(['plugin:install', $plugin['name'], ...$activate, ...$additionalParameters]);
+            $pluginsToInstall[] = $plugin['name'];
+        }
+
+        if ($pluginsToInstallAndActivate !== []) {
+            $this->processHelper->console(['plugin:install', ...$pluginsToInstallAndActivate, '--activate', ...$additionalParameters]);
+        }
+
+        if ($pluginsToInstall !== []) {
+            $this->processHelper->console(['plugin:install', ...$pluginsToInstall, ...$additionalParameters]);
         }
     }
 
