@@ -28,15 +28,6 @@ class PluginHelper
         $plugins = $this->pluginLoader->load($output);
         /** @var list<string> $pluginsToInstall */
         $pluginsToInstall = [];
-        $installPlugins = function () use (&$pluginsToInstall, $additionalParameters): void {
-            if ($pluginsToInstall === []) {
-                return;
-            }
-
-            $this->processHelper->console(['plugin:install', ...$pluginsToInstall, ...$additionalParameters]);
-            $pluginsToInstall = [];
-        };
-
         foreach ($plugins->all() as $plugin) {
             if (!$this->configuration->extensionManagement->canExtensionBeInstalled($plugin['name'])) {
                 continue;
@@ -49,7 +40,7 @@ class PluginHelper
             // plugin is installed, but not active
             if ($plugin['installedAt'] !== null) {
                 if ($this->configuration->extensionManagement->canExtensionBeActivated($plugin['name'])) {
-                    $installPlugins();
+                    $this->installQueuedPlugins($pluginsToInstall, $additionalParameters);
                     $this->processHelper->console(['plugin:activate', $plugin['name'], ...$additionalParameters]);
                 }
 
@@ -68,11 +59,25 @@ class PluginHelper
                 continue;
             }
 
-            $installPlugins();
+            $this->installQueuedPlugins($pluginsToInstall, $additionalParameters);
             $this->processHelper->console(['plugin:install', $plugin['name'], ...$activate, ...$additionalParameters]);
         }
 
-        $installPlugins();
+        $this->installQueuedPlugins($pluginsToInstall, $additionalParameters);
+    }
+
+    /**
+     * @param list<string> $pluginsToInstall
+     * @param list<string> $additionalParameters
+     */
+    private function installQueuedPlugins(array &$pluginsToInstall, array $additionalParameters): void
+    {
+        if ($pluginsToInstall === []) {
+            return;
+        }
+
+        $this->processHelper->console(['plugin:install', ...$pluginsToInstall, ...$additionalParameters]);
+        $pluginsToInstall = [];
     }
 
     public function updatePlugins(OutputInterface $output, bool $skipAssetsInstall = false): void
