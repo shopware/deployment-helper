@@ -6,6 +6,7 @@ namespace Shopware\Deployment\Config;
 
 use Shopware\Deployment\Application;
 use Shopware\Deployment\Helper\EnvironmentHelper;
+use Shopware\Deployment\Struct\HookStep;
 use Shopware\Deployment\Struct\OneTimeTask;
 use Shopware\Deployment\Struct\OneTimeTaskWhen;
 use Symfony\Component\Filesystem\Path;
@@ -111,29 +112,63 @@ class ConfigFactory
      */
     private static function fillHooks(ProjectHooks $hooks, array $config): void
     {
-        if (isset($config['pre']) && \is_string($config['pre'])) {
-            $hooks->pre = $config['pre'];
+        if (isset($config['pre'])) {
+            $hooks->pre = self::parseHookSteps($config['pre']);
         }
 
-        if (isset($config['post']) && \is_string($config['post'])) {
-            $hooks->post = $config['post'];
+        if (isset($config['post'])) {
+            $hooks->post = self::parseHookSteps($config['post']);
         }
 
-        if (isset($config['pre-install']) && \is_string($config['pre-install'])) {
-            $hooks->preInstall = $config['pre-install'];
+        if (isset($config['pre-install'])) {
+            $hooks->preInstall = self::parseHookSteps($config['pre-install']);
         }
 
-        if (isset($config['post-install']) && \is_string($config['post-install'])) {
-            $hooks->postInstall = $config['post-install'];
+        if (isset($config['post-install'])) {
+            $hooks->postInstall = self::parseHookSteps($config['post-install']);
         }
 
-        if (isset($config['pre-update']) && \is_string($config['pre-update'])) {
-            $hooks->preUpdate = $config['pre-update'];
+        if (isset($config['pre-update'])) {
+            $hooks->preUpdate = self::parseHookSteps($config['pre-update']);
         }
 
-        if (isset($config['post-update']) && \is_string($config['post-update'])) {
-            $hooks->postUpdate = $config['post-update'];
+        if (isset($config['post-update'])) {
+            $hooks->postUpdate = self::parseHookSteps($config['post-update']);
         }
+    }
+
+    /**
+     * A hook can either be a single script (string) or a list of steps with
+     * a "title" and a "script" key, which are executed as individual steps.
+     *
+     * @return list<HookStep>
+     */
+    private static function parseHookSteps(mixed $value): array
+    {
+        if (\is_string($value)) {
+            return $value === '' ? [] : [new HookStep($value)];
+        }
+
+        if (!\is_array($value)) {
+            return [];
+        }
+
+        $steps = [];
+        foreach ($value as $step) {
+            if (\is_array($step) && isset($step['script']) && \is_string($step['script'])) {
+                $title = isset($step['title']) && \is_string($step['title']) ? $step['title'] : '';
+                $steps[] = new HookStep($step['script'], $title);
+
+                continue;
+            }
+
+            // Allow a plain list of script strings as a shorthand.
+            if (\is_string($step) && $step !== '') {
+                $steps[] = new HookStep($step);
+            }
+        }
+
+        return $steps;
     }
 
     /**
