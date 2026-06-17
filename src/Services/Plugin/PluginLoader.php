@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Shopware\Deployment\Services;
+namespace Shopware\Deployment\Services\Plugin;
 
 use Digilist\DependencyGraph\DependencyGraph;
 use Digilist\DependencyGraph\DependencyNode;
@@ -56,7 +56,7 @@ class PluginLoader
             $output->writeln('<error>Unable to parse plugin list. Error: ' . $e->getMessage() . '</error>');
             $output->writeln('<error>Invalid JSON string: ' . $pluginJsonString . '</error>');
 
-            return new PluginCollection([], [], []);
+            return new PluginCollection([], []);
         }
 
         $graph = new DependencyGraph();
@@ -92,21 +92,11 @@ class PluginLoader
         }
 
         $formatted = [];
-        $formattedPluginsWithDependencies = [];
-        $formattedPluginsWithoutDependencies = [];
 
         foreach ($graph->resolve() as $name) {
             $formatted[$name] = $byName[$name];
-
-            if (isset($pluginsWithDependencies[$name])) {
-                $formattedPluginsWithDependencies[$name] = $byName[$name];
-
-                continue;
-            }
-
-            $formattedPluginsWithoutDependencies[$name] = $byName[$name];
         }
 
-        return new PluginCollection($formatted, $formattedPluginsWithDependencies, $formattedPluginsWithoutDependencies);
+        return new PluginCollection($formatted, $pluginsWithDependencies);
     }
 }

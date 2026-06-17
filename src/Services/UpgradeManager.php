@@ -7,6 +7,7 @@ namespace Shopware\Deployment\Services;
 use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Helper\ProcessHelper;
+use Shopware\Deployment\Services\Plugin\PluginHelper;
 use Shopware\Deployment\Struct\OneTimeTaskWhen;
 use Shopware\Deployment\Struct\RunConfiguration;
 use Symfony\Component\Console\Input\ArgvInput;
