@@ -221,6 +221,137 @@ class UpgradeManagerTest extends TestCase
         static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[6]);
     }
 
+    public function testParallelThemeCompileFallsBackWithSingleSalesChannel(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state->method('getActiveStorefrontSalesChannelIds')->willReturn(['abc']);
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+        $processHelper->expects($this->never())->method('consoleParallel');
+
+        $configuration = new ProjectConfiguration();
+        $configuration->themeCompile->parallel = true;
+        $configuration->themeCompile->workers = 2;
+
+        $manager = new UpgradeManager(
+            $state,
+            $processHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+            $configuration,
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertContains(['theme:compile', '--active-only'], $consoleCommands);
+    }
+
+    public function testParallelThemeCompileFansOutPerSalesChannel(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state
+            ->method('getActiveStorefrontSalesChannelIds')
+            ->willReturn(['aaa', 'bbb', 'ccc']);
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $callLog = [];
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(static function (array $command) use (&$callLog): void {
+                $callLog[] = ['type' => 'console', 'args' => $command];
+            });
+
+        $processHelper
+            ->expects($this->once())
+            ->method('consoleParallel')
+            ->willReturnCallback(static function (array $commands, int $workers) use (&$callLog): void {
+                $callLog[] = ['type' => 'parallel', 'commands' => $commands, 'workers' => $workers];
+            });
+
+        $configuration = new ProjectConfiguration();
+        $configuration->themeCompile->parallel = true;
+        $configuration->themeCompile->workers = 3;
+
+        $manager = new UpgradeManager(
+            $state,
+            $processHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+            $configuration,
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        $themeCalls = array_values(array_filter(
+            $callLog,
+            static fn (array $entry): bool => $entry['type'] === 'parallel'
+                || ($entry['type'] === 'console' && ($entry['args'][0] ?? null) === 'theme:compile'),
+        ));
+
+        static::assertCount(2, $themeCalls, 'expected exactly one serial first-channel call and one parallel batch');
+        static::assertSame('console', $themeCalls[0]['type']);
+        static::assertSame(['theme:compile', '--sync', '--sales-channel-id=aaa'], $themeCalls[0]['args']);
+        static::assertSame('parallel', $themeCalls[1]['type'], 'first channel must run before the parallel batch to write shared assets');
+        static::assertSame(3, $themeCalls[1]['workers']);
+        static::assertSame(
+            [
+                ['theme:compile', '--sync', '--keep-assets', '--sales-channel-id=bbb'],
+                ['theme:compile', '--sync', '--keep-assets', '--sales-channel-id=ccc'],
+            ],
+            $themeCalls[1]['commands'],
+        );
+    }
+
+    #[Env('SHOPWARE_DEPLOYMENT_THEME_COMPILE_WORKERS', '7')]
+    public function testParallelThemeCompileWorkerCountOverriddenByEnv(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state->method('getActiveStorefrontSalesChannelIds')->willReturn(['aaa', 'bbb']);
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $observedWorkers = null;
+        $processHelper
+            ->expects($this->once())
+            ->method('consoleParallel')
+            ->willReturnCallback(static function (array $commands, int $workers) use (&$observedWorkers): void {
+                $observedWorkers = $workers;
+            });
+
+        $configuration = new ProjectConfiguration();
+        $configuration->themeCompile->parallel = true;
+        $configuration->themeCompile->workers = 2;
+
+        $manager = new UpgradeManager(
+            $state,
+            $processHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+            $configuration,
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertSame(7, $observedWorkers);
+    }
+
     public function testRunWithLicenseDomain(): void
     {
         $oneTimeTasks = $this->createMock(OneTimeTasks::class);
