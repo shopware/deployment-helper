@@ -34,7 +34,7 @@ class PluginHelper
 
     public function removePlugins(OutputInterface $output, bool $skipAssetsInstall = false): void
     {
-        $this->execute($this->planner->planRemove($this->pluginLoader->load($output), $this->additionalParameters($skipAssetsInstall)));
+        $this->execute($this->planner->planUninstall($this->pluginLoader->load($output), $this->additionalParameters($skipAssetsInstall)));
     }
 
     /**

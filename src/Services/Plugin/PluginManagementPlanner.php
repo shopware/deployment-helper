@@ -133,7 +133,7 @@ class PluginManagementPlanner
      *
      * @return list<ConsoleCommand>
      */
-    public function planRemove(PluginCollection $plugins, array $additionalParameters): array
+    public function planUninstall(PluginCollection $plugins, array $additionalParameters): array
     {
         $commands = [];
 

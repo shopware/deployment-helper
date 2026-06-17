@@ -12,10 +12,20 @@ use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\Plugin\PluginHelper;
 use Shopware\Deployment\Services\Plugin\PluginLoader;
 use Shopware\Deployment\Services\Plugin\PluginManagementPlanner;
+use Shopware\Deployment\Struct\Command\ActivatePlugin;
+use Shopware\Deployment\Struct\Command\DeactivatePlugin;
+use Shopware\Deployment\Struct\Command\InstallPlugins;
+use Shopware\Deployment\Struct\Command\UninstallPlugin;
+use Shopware\Deployment\Struct\Command\UpdatePlugin;
 use Shopware\Deployment\Struct\PluginCollection;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 #[CoversClass(PluginHelper::class)]
+#[CoversClass(InstallPlugins::class)]
+#[CoversClass(ActivatePlugin::class)]
+#[CoversClass(UpdatePlugin::class)]
+#[CoversClass(DeactivatePlugin::class)]
+#[CoversClass(UninstallPlugin::class)]
 class PluginHelperTest extends TestCase
 {
     public function testInstallExecutesPlannedCommandsInOrder(): void
@@ -53,6 +63,45 @@ class PluginHelperTest extends TestCase
         );
 
         self::assertSame([['plugin:uninstall', 'TestPlugin', '--keep-user-data', '--skip-asset-build']], $commands);
+    }
+
+    public function testInstallExecutesActivateCommand(): void
+    {
+        $commands = $this->capture(
+            static fn (PluginHelper $helper, BufferedOutput $output) => $helper->installPlugins($output),
+            [$this->getPlugin(active: false)],
+            [],
+            new ProjectConfiguration(),
+        );
+
+        self::assertSame([['plugin:activate', 'TestPlugin']], $commands);
+    }
+
+    public function testUpdateExecutesPlannedCommands(): void
+    {
+        $commands = $this->capture(
+            static fn (PluginHelper $helper, BufferedOutput $output) => $helper->updatePlugins($output, true),
+            [$this->getPlugin(upgradeVersion: '1.0.1')],
+            [],
+            new ProjectConfiguration(),
+        );
+
+        self::assertSame([['plugin:update', 'TestPlugin', '--skip-asset-build']], $commands);
+    }
+
+    public function testDeactivateExecutesPlannedCommands(): void
+    {
+        $configuration = new ProjectConfiguration();
+        $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_INACTIVE];
+
+        $commands = $this->capture(
+            static fn (PluginHelper $helper, BufferedOutput $output) => $helper->deactivatePlugins($output),
+            [$this->getPlugin()],
+            [],
+            $configuration,
+        );
+
+        self::assertSame([['plugin:deactivate', 'TestPlugin']], $commands);
     }
 
     public function testNothingToDoExecutesNoCommands(): void

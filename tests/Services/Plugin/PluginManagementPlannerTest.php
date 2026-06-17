@@ -84,6 +84,7 @@ class PluginManagementPlannerTest extends TestCase
         );
 
         self::assertEquals([new ActivatePlugin('TestPlugin')], $commands);
+        self::assertSame(['plugin:activate', 'TestPlugin'], $commands[0]->toArgs());
     }
 
     public function testInstallMultipleNotInstalledWithoutDependenciesNotActive(): void
@@ -201,6 +202,7 @@ class PluginManagementPlannerTest extends TestCase
         );
 
         self::assertEquals([new UpdatePlugin('TestPlugin')], $commands);
+        self::assertSame(['plugin:update', 'TestPlugin'], $commands[0]->toArgs());
     }
 
     public function testNoUpdateWhenNotForcedWithSameVersion(): void
@@ -267,6 +269,7 @@ class PluginManagementPlannerTest extends TestCase
         $commands = $this->planner($configuration)->planDeactivate($this->collection([$this->getPlugin()]), []);
 
         self::assertEquals([new DeactivatePlugin('TestPlugin')], $commands);
+        self::assertSame(['plugin:deactivate', 'TestPlugin'], $commands[0]->toArgs());
     }
 
     public function testInactiveWithDisabledAssets(): void
@@ -294,7 +297,7 @@ class PluginManagementPlannerTest extends TestCase
         $configuration = new ProjectConfiguration();
         $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_REMOVE];
 
-        $commands = $this->planner($configuration)->planRemove($this->collection([$this->getPlugin()]), []);
+        $commands = $this->planner($configuration)->planUninstall($this->collection([$this->getPlugin()]), []);
 
         self::assertEquals([new UninstallPlugin('TestPlugin')], $commands);
     }
@@ -304,7 +307,7 @@ class PluginManagementPlannerTest extends TestCase
         $configuration = new ProjectConfiguration();
         $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_REMOVE];
 
-        $commands = $this->planner($configuration)->planRemove(
+        $commands = $this->planner($configuration)->planUninstall(
             $this->collection([$this->getPlugin()]),
             ['--skip-asset-build'],
         );
@@ -317,7 +320,7 @@ class PluginManagementPlannerTest extends TestCase
         $configuration = new ProjectConfiguration();
         $configuration->extensionManagement->overrides['TestPlugin'] = ['state' => ProjectExtensionManagement::LIFECYCLE_STATE_REMOVE, 'keepUserData' => true];
 
-        $commands = $this->planner($configuration)->planRemove(
+        $commands = $this->planner($configuration)->planUninstall(
             $this->collection([$this->getPlugin()]),
             ['--skip-asset-build'],
         );
@@ -328,7 +331,7 @@ class PluginManagementPlannerTest extends TestCase
 
     public function testUninstallNotMatching(): void
     {
-        $commands = $this->planner()->planRemove($this->collection([$this->getPlugin()]), []);
+        $commands = $this->planner()->planUninstall($this->collection([$this->getPlugin()]), []);
 
         self::assertSame([], $commands);
     }
