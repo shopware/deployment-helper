@@ -69,6 +69,12 @@ class ConfigFactory
             }
         }
 
+        if (isset($deployment['opensearch']) && \is_array($deployment['opensearch'])) {
+            if (isset($deployment['opensearch']['index-if-empty']) && \is_bool($deployment['opensearch']['index-if-empty'])) {
+                $projectConfiguration->openSearch->indexIfEmpty = $deployment['opensearch']['index-if-empty'];
+            }
+        }
+
         if (isset($deployment['cache']) && \is_array($deployment['cache'])) {
             if (isset($deployment['cache']['always_clear']) && \is_bool($deployment['cache']['always_clear'])) {
                 $projectConfiguration->alwaysClearCache = $deployment['cache']['always_clear'];
@@ -230,6 +236,10 @@ class ConfigFactory
 
         if (EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_STAGING') === '1') {
             $config->staging->enabled = true;
+        }
+
+        if (EnvironmentHelper::hasVariable('SHOPWARE_DEPLOYMENT_OPENSEARCH_PREPARE_INDEX')) {
+            $config->openSearch->indexIfEmpty = EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_OPENSEARCH_PREPARE_INDEX', '0') === '1';
         }
 
         return $config;

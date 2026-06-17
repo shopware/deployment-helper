@@ -42,6 +42,7 @@ class UpgradeManagerTest extends TestCase
         $manager = new UpgradeManager(
             $this->createMock(ShopwareState::class),
             $this->createMock(ProcessHelper::class),
+            $this->createMock(OpenSearchHelper::class),
             $this->createMock(PluginHelper::class),
             $this->createMock(AppHelper::class),
             $hookExecutor,
@@ -75,6 +76,7 @@ class UpgradeManagerTest extends TestCase
         $manager = new UpgradeManager(
             $state,
             $this->createMock(ProcessHelper::class),
+            $this->createMock(OpenSearchHelper::class),
             $this->createMock(PluginHelper::class),
             $this->createMock(AppHelper::class),
             $this->createMock(HookExecutor::class),
@@ -114,9 +116,13 @@ class UpgradeManagerTest extends TestCase
                 $consoleCommands[] = $command;
             });
 
+        $openSearchHelper = $this->createMock(OpenSearchHelper::class);
+        $openSearchHelper->expects(static::never())->method('prepareShopIndex');
+
         $manager = new UpgradeManager(
             $state,
             $processHelper,
+            $openSearchHelper,
             $this->createMock(PluginHelper::class),
             $this->createMock(AppHelper::class),
             $this->createMock(HookExecutor::class),
@@ -158,9 +164,13 @@ class UpgradeManagerTest extends TestCase
                 $consoleCommands[] = $command;
             });
 
+        $openSearchHelper = $this->createMock(OpenSearchHelper::class);
+        $openSearchHelper->expects(static::never())->method('prepareShopIndex');
+
         $manager = new UpgradeManager(
             $state,
             $processHelper,
+            $openSearchHelper,
             $this->createMock(PluginHelper::class),
             $this->createMock(AppHelper::class),
             $this->createMock(HookExecutor::class),
@@ -201,9 +211,13 @@ class UpgradeManagerTest extends TestCase
         $config = new ProjectConfiguration();
         $config->maintenance->enabled = true;
 
+        $openSearchHelper = $this->createMock(OpenSearchHelper::class);
+        $openSearchHelper->expects(static::never())->method('prepareShopIndex');
+
         $manager = new UpgradeManager(
             $state,
             $processHelper,
+            $openSearchHelper,
             $this->createMock(PluginHelper::class),
             $this->createMock(AppHelper::class),
             $this->createMock(HookExecutor::class),
@@ -242,6 +256,7 @@ class UpgradeManagerTest extends TestCase
         $manager = new UpgradeManager(
             $this->createMock(ShopwareState::class),
             $this->createMock(ProcessHelper::class),
+            $this->createMock(OpenSearchHelper::class),
             $this->createMock(PluginHelper::class),
             $this->createMock(AppHelper::class),
             $hookExecutor,
@@ -252,5 +267,186 @@ class UpgradeManagerTest extends TestCase
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+    }
+
+    public function testRunChecksOpenSearchBeforeUpgradeCommands(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $configuration = new ProjectConfiguration();
+        $configuration->openSearch->indexIfEmpty = true;
+
+        $openSearchHelper = $this->createMock(OpenSearchHelper::class);
+        $openSearchHelper->expects(static::once())->method('prepareShopIndex')->willReturn(OpenSearchHelper::SHOP_INDEX_ACTION_REINDEX);
+
+        $manager = new UpgradeManager(
+            $this->createMock(ShopwareState::class),
+            $processHelper,
+            $openSearchHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+            $configuration,
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertSame(['es:index', '--no-queue'], $consoleCommands[0]);
+        static::assertSame(['messenger:setup-transports'], $consoleCommands[1]);
+    }
+
+    public function testRunTriggersOpenSearchBootstrapBeforeUpdateWhenEnabledAndAliasIsMissing(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $configuration = new ProjectConfiguration();
+        $configuration->openSearch->indexIfEmpty = true;
+
+        $openSearchHelper = $this->createMock(OpenSearchHelper::class);
+        $openSearchHelper->expects(static::once())->method('prepareShopIndex')->willReturn(OpenSearchHelper::SHOP_INDEX_ACTION_REINDEX);
+
+        $manager = new UpgradeManager(
+            $this->createMock(ShopwareState::class),
+            $processHelper,
+            $openSearchHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+            $configuration,
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertSame(['es:index', '--no-queue'], $consoleCommands[0]);
+    }
+
+    public function testRunTriggersOpenSearchMappingUpdateWhenIndexIsAlreadyReady(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $configuration = new ProjectConfiguration();
+        $configuration->openSearch->indexIfEmpty = true;
+
+        $openSearchHelper = $this->createMock(OpenSearchHelper::class);
+        $openSearchHelper->expects(static::once())->method('prepareShopIndex')->willReturn(OpenSearchHelper::SHOP_INDEX_ACTION_UPDATE_MAPPING);
+
+        $manager = new UpgradeManager(
+            $this->createMock(ShopwareState::class),
+            $processHelper,
+            $openSearchHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+            $configuration,
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertSame(['es:mapping:update'], $consoleCommands[0]);
+    }
+
+    public function testRunTriggersOpenSearchMappingUpdateBeforeUpdateWhenMappingIsIncomplete(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $configuration = new ProjectConfiguration();
+        $configuration->openSearch->indexIfEmpty = true;
+
+        $openSearchHelper = $this->createMock(OpenSearchHelper::class);
+        $openSearchHelper->expects(static::once())->method('prepareShopIndex')->willReturn(OpenSearchHelper::SHOP_INDEX_ACTION_UPDATE_MAPPING);
+
+        $manager = new UpgradeManager(
+            $this->createMock(ShopwareState::class),
+            $processHelper,
+            $openSearchHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+            $configuration,
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertSame(['es:mapping:update'], $consoleCommands[0]);
+    }
+
+    #[Env('SHOPWARE_DEPLOYMENT_OPENSEARCH_PREPARE_INDEX', '0')]
+    public function testRunSkipsOpenSearchPreparationWhenEnvDisablesIt(): void
+    {
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $configuration = new ProjectConfiguration();
+        $configuration->openSearch->indexIfEmpty = true;
+
+        $openSearchHelper = $this->createMock(OpenSearchHelper::class);
+        $openSearchHelper->expects(static::never())->method('prepareShopIndex');
+
+        $manager = new UpgradeManager(
+            $this->createMock(ShopwareState::class),
+            $processHelper,
+            $openSearchHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+            $configuration,
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        $openSearchCommands = array_values(array_filter(
+            $consoleCommands,
+            static fn (array $command): bool => $command === ['es:index', '--no-queue'] || $command === ['es:mapping:update']
+        ));
+
+        static::assertSame([], $openSearchCommands);
     }
 }
