@@ -143,7 +143,7 @@ class ConfigFactory
      *
      * @return list<HookStep>
      */
-    private static function parseHookSteps(mixed $value): array
+    private static function parseHookSteps(string|array $value): array
     {
         if (\is_string($value)) {
             return $value === '' ? [] : [new HookStep($value)];
