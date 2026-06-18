@@ -8,3 +8,6 @@ deployment:
           bin/console cache:warmup
       - title: Notify the team
         script: ./notify.sh
+    pre-update:
+      - echo "first"
+      - echo "second"

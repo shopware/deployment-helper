@@ -141,16 +141,14 @@ class ConfigFactory
      * A hook can either be a single script (string) or a list of steps with
      * a "title" and a "script" key, which are executed as individual steps.
      *
+     * @param string|array<mixed> $value
+     *
      * @return list<HookStep>
      */
     private static function parseHookSteps(string|array $value): array
     {
         if (\is_string($value)) {
             return $value === '' ? [] : [new HookStep($value)];
-        }
-
-        if (!\is_array($value)) {
-            return [];
         }
 
         $steps = [];

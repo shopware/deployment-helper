@@ -76,6 +76,12 @@ class ConfigFactoryTest extends TestCase
         static::assertCount(1, $config->hooks->pre);
         static::assertSame('', $config->hooks->pre[0]->title);
         static::assertStringContainsString('Before deployment', $config->hooks->pre[0]->script);
+
+        // A plain list of script strings is the shorthand for untitled steps
+        static::assertCount(2, $config->hooks->preUpdate);
+        static::assertSame('echo "first"', $config->hooks->preUpdate[0]->script);
+        static::assertSame('', $config->hooks->preUpdate[0]->title);
+        static::assertSame('echo "second"', $config->hooks->preUpdate[1]->script);
     }
 
     public function testExistingConfigWithMaintenance(): void

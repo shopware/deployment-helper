@@ -10,11 +10,13 @@ use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Config\ProjectHooks;
 use Shopware\Deployment\Config\ProjectMaintenance;
 use Shopware\Deployment\Config\ProjectStore;
+use Shopware\Deployment\Struct\HookStep;
 
 #[CoversClass(ProjectConfiguration::class)]
 #[CoversClass(ProjectHooks::class)]
 #[CoversClass(ProjectMaintenance::class)]
 #[CoversClass(ProjectStore::class)]
+#[CoversClass(HookStep::class)]
 class ProjectConfigurationTest extends TestCase
 {
     public function testConstructor(): void
@@ -32,5 +34,30 @@ class ProjectConfigurationTest extends TestCase
         static::assertEmpty($config->extensionManagement->overrides);
 
         static::assertEmpty($config->store->licenseDomain);
+    }
+
+    public function testHooksNormalizeStringIntoSingleUntitledStep(): void
+    {
+        $hooks = new ProjectHooks(pre: 'echo "hi"');
+
+        static::assertCount(1, $hooks->pre);
+        static::assertSame('echo "hi"', $hooks->pre[0]->script);
+        static::assertSame('', $hooks->pre[0]->title);
+    }
+
+    public function testHooksNormalizeEmptyStringIntoNoSteps(): void
+    {
+        $hooks = new ProjectHooks(pre: '');
+
+        static::assertSame([], $hooks->pre);
+    }
+
+    public function testHooksKeepStepListAsIs(): void
+    {
+        $steps = [new HookStep('echo "a"', 'Step A'), new HookStep('echo "b"', 'Step B')];
+
+        $hooks = new ProjectHooks(post: $steps);
+
+        static::assertSame($steps, $hooks->post);
     }
 }
