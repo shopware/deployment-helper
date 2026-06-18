@@ -141,7 +141,7 @@ class ConfigFactory
      * A hook can either be a single script (string) or a list of steps with
      * a "title" and a "script" key, which are executed as individual steps.
      *
-     * @param string|array<mixed> $value
+     * @param string|list<string|array{script?: scalar|null, title?: scalar|null}> $value
      *
      * @return list<HookStep>
      */
