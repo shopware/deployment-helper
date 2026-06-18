@@ -31,7 +31,7 @@ class ConfigFactoryTest extends TestCase
         static::assertTrue($config->extensionManagement->enabled);
         static::assertSame([], $config->extensionManagement->overrides);
         static::assertSame([], $config->oneTimeTasks);
-        static::assertSame('', $config->hooks->pre);
+        static::assertSame([], $config->hooks->pre);
     }
 
     public static function files(): \Generator
@@ -51,12 +51,37 @@ class ConfigFactoryTest extends TestCase
         static::assertSame('foo', $config->oneTimeTasks['foo']->id);
         static::assertSame('test', $config->oneTimeTasks['foo']->script);
         static::assertSame(OneTimeTaskWhen::AFTER, $config->oneTimeTasks['foo']->when);
-        static::assertNotSame('', $config->hooks->pre);
-        static::assertNotSame('', $config->hooks->post);
-        static::assertNotSame('', $config->hooks->preInstall);
-        static::assertNotSame('', $config->hooks->postInstall);
-        static::assertNotSame('', $config->hooks->preUpdate);
-        static::assertNotSame('', $config->hooks->postUpdate);
+        static::assertNotEmpty($config->hooks->pre);
+        static::assertNotEmpty($config->hooks->post);
+        static::assertNotEmpty($config->hooks->preInstall);
+        static::assertNotEmpty($config->hooks->postInstall);
+        static::assertNotEmpty($config->hooks->preUpdate);
+        static::assertNotEmpty($config->hooks->postUpdate);
+        static::assertStringContainsString('Before deployment general', $config->hooks->pre[0]->script);
+    }
+
+    public function testExistingConfigWithMultiStepHooks(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/multi-step-hooks', $this->createMockApplication());
+
+        static::assertCount(2, $config->hooks->post);
+
+        static::assertSame('Warm up the cache', $config->hooks->post[0]->title);
+        static::assertStringContainsString('cache:warmup', $config->hooks->post[0]->script);
+
+        static::assertSame('Notify the team', $config->hooks->post[1]->title);
+        static::assertStringContainsString('notify.sh', $config->hooks->post[1]->script);
+
+        // A plain string hook is still supported and becomes a single untitled step
+        static::assertCount(1, $config->hooks->pre);
+        static::assertSame('', $config->hooks->pre[0]->title);
+        static::assertStringContainsString('Before deployment', $config->hooks->pre[0]->script);
+
+        // A plain list of script strings is the shorthand for untitled steps
+        static::assertCount(2, $config->hooks->preUpdate);
+        static::assertSame('echo "first"', $config->hooks->preUpdate[0]->script);
+        static::assertSame('', $config->hooks->preUpdate[0]->title);
+        static::assertSame('echo "second"', $config->hooks->preUpdate[1]->script);
     }
 
     public function testExistingConfigWithMaintenance(): void
@@ -211,10 +236,10 @@ class ConfigFactoryTest extends TestCase
         static::assertSame('local.example.com', $config->store->licenseDomain);
 
         // Local override replaces the pre hook
-        static::assertStringContainsString('Local pre hook', $config->hooks->pre);
+        static::assertStringContainsString('Local pre hook', $config->hooks->pre[0]->script);
 
         // Original post hook is preserved (deep merge)
-        static::assertStringContainsString('After deployment general', $config->hooks->post);
+        static::assertStringContainsString('After deployment general', $config->hooks->post[0]->script);
 
         // One-time tasks are appended (list append)
         static::assertArrayHasKey('foo', $config->oneTimeTasks);
@@ -242,8 +267,8 @@ class ConfigFactoryTest extends TestCase
         $config = ConfigFactory::create(__DIR__ . '/_fixtures/local-override-tag', $this->createMockApplication());
 
         // hooks was fully replaced with !override, post hook should be gone
-        static::assertStringContainsString('Only this hook', $config->hooks->pre);
-        static::assertSame('', $config->hooks->post);
+        static::assertStringContainsString('Only this hook', $config->hooks->pre[0]->script);
+        static::assertSame([], $config->hooks->post);
 
         // Other sections are preserved
         static::assertTrue($config->extensionManagement->enabled);

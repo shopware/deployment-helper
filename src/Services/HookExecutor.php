@@ -27,21 +27,22 @@ class HookExecutor
      */
     public function execute(string $name): void
     {
-        $code = '';
-        match ($name) {
-            self::HOOK_PRE => $code = $this->configuration->hooks->pre,
-            self::HOOK_POST => $code = $this->configuration->hooks->post,
-            self::HOOK_PRE_INSTALL => $code = $this->configuration->hooks->preInstall,
-            self::HOOK_POST_INSTALL => $code = $this->configuration->hooks->postInstall,
-            self::HOOK_PRE_UPDATE => $code = $this->configuration->hooks->preUpdate,
-            self::HOOK_POST_UPDATE => $code = $this->configuration->hooks->postUpdate,
+        $steps = match ($name) {
+            self::HOOK_PRE => $this->configuration->hooks->pre,
+            self::HOOK_POST => $this->configuration->hooks->post,
+            self::HOOK_PRE_INSTALL => $this->configuration->hooks->preInstall,
+            self::HOOK_POST_INSTALL => $this->configuration->hooks->postInstall,
+            self::HOOK_PRE_UPDATE => $this->configuration->hooks->preUpdate,
+            self::HOOK_POST_UPDATE => $this->configuration->hooks->postUpdate,
             default => throw new \RuntimeException('Unknown hook name'),
         };
 
-        if ($code === '') {
-            return;
-        }
+        foreach ($steps as $step) {
+            if ($step->script === '') {
+                continue;
+            }
 
-        $this->processHelper->runAndTail($code);
+            $this->processHelper->runAndTail($step->script, $step->title);
+        }
     }
 }
