@@ -18,8 +18,6 @@ class ProjectConfiguration
 
     public ProjectStore $store;
 
-    public ProjectOpenSearch $openSearch;
-
     /**
      * @var array<string, \Shopware\Deployment\Struct\OneTimeTask>
      */
@@ -35,6 +33,5 @@ class ProjectConfiguration
         $this->staging = new ProjectStaging();
         $this->openSearch = new ProjectOpenSearch();
         $this->store = new ProjectStore();
-        $this->openSearch = new ProjectOpenSearch();
     }
 }
