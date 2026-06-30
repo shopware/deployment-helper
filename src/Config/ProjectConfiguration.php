@@ -14,6 +14,8 @@ class ProjectConfiguration
 
     public ProjectStaging $staging;
 
+    public ProjectOpenSearch $openSearch;
+
     public ProjectStore $store;
 
     /**
@@ -29,6 +31,7 @@ class ProjectConfiguration
         $this->extensionManagement = new ProjectExtensionManagement();
         $this->maintenance = new ProjectMaintenance();
         $this->staging = new ProjectStaging();
+        $this->openSearch = new ProjectOpenSearch();
         $this->store = new ProjectStore();
     }
 }

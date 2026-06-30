@@ -9,12 +9,14 @@ use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Config\ProjectHooks;
 use Shopware\Deployment\Config\ProjectMaintenance;
+use Shopware\Deployment\Config\ProjectOpenSearch;
 use Shopware\Deployment\Config\ProjectStore;
 use Shopware\Deployment\Struct\HookStep;
 
 #[CoversClass(ProjectConfiguration::class)]
 #[CoversClass(ProjectHooks::class)]
 #[CoversClass(ProjectMaintenance::class)]
+#[CoversClass(ProjectOpenSearch::class)]
 #[CoversClass(ProjectStore::class)]
 #[CoversClass(HookStep::class)]
 class ProjectConfigurationTest extends TestCase
@@ -33,6 +35,7 @@ class ProjectConfigurationTest extends TestCase
         static::assertTrue($config->extensionManagement->enabled);
         static::assertEmpty($config->extensionManagement->overrides);
 
+        static::assertFalse($config->openSearch->indexIfEmpty);
         static::assertEmpty($config->store->licenseDomain);
     }
 

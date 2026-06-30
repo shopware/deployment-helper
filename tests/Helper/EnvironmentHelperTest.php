@@ -25,10 +25,34 @@ class EnvironmentHelperTest extends TestCase
     }
 
     #[BackupGlobals(true)]
+    public function testGetFromGetenv(): void
+    {
+        putenv('FOO_GETENV=bar');
+
+        try {
+            static::assertSame('bar', EnvironmentHelper::getVariable('FOO_GETENV'));
+        } finally {
+            putenv('FOO_GETENV');
+        }
+    }
+
+    #[BackupGlobals(true)]
     public function testHas(): void
     {
         static::assertFalse(EnvironmentHelper::hasVariable('FOO'));
         $_SERVER['FOO'] = 'bar';
         static::assertTrue(EnvironmentHelper::hasVariable('FOO'));
+    }
+
+    #[BackupGlobals(true)]
+    public function testHasFromGetenv(): void
+    {
+        putenv('FOO_GETENV=bar');
+
+        try {
+            static::assertTrue(EnvironmentHelper::hasVariable('FOO_GETENV'));
+        } finally {
+            putenv('FOO_GETENV');
+        }
     }
 }
