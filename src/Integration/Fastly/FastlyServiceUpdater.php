@@ -38,6 +38,12 @@ class FastlyServiceUpdater
 
         $io = new SymfonyStyle(new ArgvInput(), $event->output);
 
+        if (EnvironmentHelper::getVariable('FASTLY_DISABLE_SNIPPET_UPDATE') === '1') {
+            $io->info('FASTLY_DISABLE_SNIPPET_UPDATE is set. Skipping Fastly service update.');
+
+            return;
+        }
+
         if ($apiToken === '' || $serviceId === '') {
             $io->info('FASTLY_API_TOKEN or FASTLY_SERVICE_ID is not set. Skipping Fastly service update.');
 

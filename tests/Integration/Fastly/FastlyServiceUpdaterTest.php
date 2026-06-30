@@ -51,6 +51,28 @@ class FastlyServiceUpdaterTest extends TestCase
 
     #[Env('FASTLY_API_TOKEN', 'API_TOKEN')]
     #[Env('FASTLY_SERVICE_ID', 'SERVICE_ID')]
+    #[Env('FASTLY_DISABLE_SNIPPET_UPDATE', '1')]
+    public function testDoesNothingWhenDisabledViaEnv(): void
+    {
+        $fastlyAPIClient = $this->createMock(FastlyAPIClient::class);
+        $fastlyAPIClient
+            ->expects($this->never())
+            ->method('setApiKey');
+
+        $fs = new Filesystem();
+        $tmpDir = sys_get_temp_dir() . '/' . uniqid('fastly-test-', true);
+
+        $fs->mkdir($tmpDir . '/config/fastly');
+
+        $updater = new FastlyServiceUpdater($tmpDir, $fastlyAPIClient);
+
+        $updater(new PostDeploy(new RunConfiguration(), new NullOutput()));
+
+        $fs->remove($tmpDir);
+    }
+
+    #[Env('FASTLY_API_TOKEN', 'API_TOKEN')]
+    #[Env('FASTLY_SERVICE_ID', 'SERVICE_ID')]
     public function testCreateSnippet(): void
     {
         $fastlyAPIClient = $this->createMock(FastlyAPIClient::class);
