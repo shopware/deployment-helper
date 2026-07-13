@@ -87,7 +87,7 @@ class ProcessHelper
      * first failure we stop dispatching new work, drain the in-flight processes, and re-raise
      * with the failed command and its captured stderr.
      *
-     * @param list<list<string>> $commands each entry is the argv of `bin/console`, e.g. ['theme:compile', '--sync', '--keep-assets', '--sales-channel-id=...']
+     * @param list<list<string>> $commands each entry is the argv of `bin/console`, e.g. ['theme:compile', '--sync', '--keep-assets', '--only=...']
      */
     public function consoleParallel(array $commands, int $workers): void
     {

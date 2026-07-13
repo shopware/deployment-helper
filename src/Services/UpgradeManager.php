@@ -128,37 +128,129 @@ class UpgradeManager
             return;
         }
 
-        $salesChannelIds = $this->state->getActiveStorefrontSalesChannelIds();
+        $shopwareVersion = $this->state->getCurrentVersion();
 
-        if (\count($salesChannelIds) <= 1) {
+        // Parallel fan-out needs theme:compile --only (Shopware 6.5.6+).
+        if (!self::supportsThemeCompileOnly($shopwareVersion)) {
+            $output->writeln(\sprintf(
+                'Parallel theme compile requires Shopware 6.5.6+ for --only (current: %s); falling back to serial compile',
+                $shopwareVersion,
+            ));
+            $this->processHelper->console(['theme:compile', '--active-only']);
+
+            return;
+        }
+
+        $assignments = $this->state->getActiveStorefrontThemeAssignments();
+
+        if (\count($assignments) <= 1) {
             // Nothing to parallelize - fall back to the regular command.
             $this->processHelper->console(['theme:compile', '--active-only']);
 
             return;
         }
 
-        $workersEnv = EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_THEME_COMPILE_WORKERS');
-        $workers = is_numeric($workersEnv)
-            ? max(1, (int) $workersEnv)
-            : ($this->configuration->themeCompile->workers ?? self::detectCpuCount());
+        // Shared plugin/theme assets live under theme/{themeId}. One sales channel per
+        // theme must compile without --keep-assets so that directory is populated; any
+        // further channels that reuse the same theme can safely keep existing assets.
+        $seedSalesChannelIds = [];
+        $parallelSalesChannelIds = [];
+        $seenThemes = [];
+        foreach ($assignments as $assignment) {
+            if (!isset($seenThemes[$assignment['themeId']])) {
+                $seenThemes[$assignment['themeId']] = true;
+                $seedSalesChannelIds[] = $assignment['salesChannelId'];
+            } else {
+                $parallelSalesChannelIds[] = $assignment['salesChannelId'];
+            }
+        }
+
+        if ($parallelSalesChannelIds === []) {
+            // Every sales channel has a distinct theme - no shared-asset work to skip,
+            // so the regular single-process compile is simpler and avoids temp-file races.
+            $this->processHelper->console(['theme:compile', '--active-only']);
+
+            return;
+        }
+
+        $workers = min($this->resolveThemeCompileWorkers(), \count($parallelSalesChannelIds));
         $output->writeln(\sprintf(
-            'Compiling themes in parallel for %d sales channels with %d workers',
-            \count($salesChannelIds),
+            'Compiling themes in parallel for %d sales channels (%d theme seed(s), %d workers)',
+            \count($assignments),
+            \count($seedSalesChannelIds),
             $workers,
         ));
 
-        // First sales channel runs serially so it can write the shared theme assets
-        // (CSS plus JS bundles) without racing the parallel workers.
-        $first = array_shift($salesChannelIds);
-        $this->processHelper->console(['theme:compile', '--sync', '--sales-channel-id=' . $first]);
+        $baseArgs = $this->themeCompileBaseArgs($shopwareVersion);
+
+        // Seed compiles write theme/{themeId} assets; run them serially so seeds for
+        // different themes do not race on shared SCSS temp files.
+        foreach ($seedSalesChannelIds as $salesChannelId) {
+            $this->processHelper->console([...$baseArgs, '--only=' . $salesChannelId]);
+        }
 
         $commands = [];
-        foreach ($salesChannelIds as $id) {
-            // --keep-assets skips the shared JS bundle copy, leaving only per-channel CSS.
-            $commands[] = ['theme:compile', '--sync', '--keep-assets', '--sales-channel-id=' . $id];
+        foreach ($parallelSalesChannelIds as $salesChannelId) {
+            // --keep-assets skips getAssetCopyFiles() (theme/{themeId}); per-channel CSS
+            // and theme-prefix JS still compile into the sales-channel theme path.
+            // --keep-assets itself exists since Shopware 6.4 and needs no version gate.
+            $commands[] = [...$baseArgs, '--keep-assets', '--only=' . $salesChannelId];
         }
 
         $this->processHelper->consoleParallel($commands, $workers);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function themeCompileBaseArgs(string $shopwareVersion): array
+    {
+        $args = ['theme:compile'];
+
+        // --sync is available from Shopware 6.6.1 and forces synchronous compile when
+        // theme.compile_async is enabled. Older cores reject the unknown option.
+        if (self::supportsThemeCompileSync($shopwareVersion)) {
+            $args[] = '--sync';
+        }
+
+        return $args;
+    }
+
+    /**
+     * theme:compile --only was introduced in Shopware 6.5.6.
+     */
+    private static function supportsThemeCompileOnly(string $version): bool
+    {
+        return self::shopwareVersionAtLeast($version, '6.5.6', defaultWhenUnparseable: true);
+    }
+
+    /**
+     * theme:compile --sync was introduced in Shopware 6.6.1.
+     */
+    private static function supportsThemeCompileSync(string $version): bool
+    {
+        // Unknown / dev versions: prefer --sync; async compile without it can
+        // silently enqueue work and make the deploy appear successful too early.
+        return self::shopwareVersionAtLeast($version, '6.6.1', defaultWhenUnparseable: true);
+    }
+
+    private static function shopwareVersionAtLeast(string $version, string $minimum, bool $defaultWhenUnparseable): bool
+    {
+        if (preg_match('/^(\d+\.\d+\.\d+)/', $version, $matches) !== 1) {
+            return $defaultWhenUnparseable;
+        }
+
+        return version_compare($matches[1], $minimum, '>=');
+    }
+
+    private function resolveThemeCompileWorkers(): int
+    {
+        $configured = $this->configuration->themeCompile->workers;
+        if ($configured !== null) {
+            return max(1, $configured);
+        }
+
+        return self::detectCpuCount();
     }
 
     private static function detectCpuCount(): int

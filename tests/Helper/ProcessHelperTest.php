@@ -52,15 +52,15 @@ class ProcessHelperTest extends TestCase
             $helper = new ProcessHelper($projectDir, output: $output);
 
             $helper->consoleParallel([
-                ['theme:compile', '--sales-channel-id=aaa'],
-                ['theme:compile', '--sales-channel-id=bbb'],
-                ['theme:compile', '--sales-channel-id=ccc'],
+                ['theme:compile', '--only=aaa'],
+                ['theme:compile', '--only=bbb'],
+                ['theme:compile', '--only=ccc'],
             ], 2);
 
             $stdout = $output->getStdout();
-            static::assertStringContainsString('[#1 theme:compile --sales-channel-id=aaa] argv=theme:compile --sales-channel-id=aaa', $stdout);
-            static::assertStringContainsString('[#2 theme:compile --sales-channel-id=bbb] argv=theme:compile --sales-channel-id=bbb', $stdout);
-            static::assertStringContainsString('[#3 theme:compile --sales-channel-id=ccc] argv=theme:compile --sales-channel-id=ccc', $stdout);
+            static::assertStringContainsString('[#1 theme:compile --only=aaa] argv=theme:compile --only=aaa', $stdout);
+            static::assertStringContainsString('[#2 theme:compile --only=bbb] argv=theme:compile --only=bbb', $stdout);
+            static::assertStringContainsString('[#3 theme:compile --only=ccc] argv=theme:compile --only=ccc', $stdout);
         } finally {
             self::removeDirectory($projectDir);
         }

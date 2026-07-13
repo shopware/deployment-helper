@@ -88,7 +88,7 @@ class ConfigFactory
                 $projectConfiguration->themeCompile->parallel = $deployment['theme-compile']['parallel'];
             }
 
-            if (isset($deployment['theme-compile']['workers']) && \is_int($deployment['theme-compile']['workers'])) {
+            if (isset($deployment['theme-compile']['workers']) && \is_int($deployment['theme-compile']['workers']) && $deployment['theme-compile']['workers'] >= 1) {
                 $projectConfiguration->themeCompile->workers = $deployment['theme-compile']['workers'];
             }
         }
@@ -240,6 +240,11 @@ class ConfigFactory
 
         if (EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_STAGING') === '1') {
             $config->staging->enabled = true;
+        }
+
+        $themeCompileWorkers = EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_THEME_COMPILE_WORKERS');
+        if (is_numeric($themeCompileWorkers) && (int) $themeCompileWorkers >= 1) {
+            $config->themeCompile->workers = (int) $themeCompileWorkers;
         }
 
         return $config;
