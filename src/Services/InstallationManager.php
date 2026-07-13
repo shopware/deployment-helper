@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Helper\ProcessHelper;
+use Shopware\Deployment\Services\Plugin\PluginHelper;
 use Shopware\Deployment\Struct\RunConfiguration;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -40,6 +41,7 @@ class InstallationManager
         $shopCurrency = EnvironmentHelper::getVariable('INSTALL_CURRENCY', 'EUR');
         $adminUser = EnvironmentHelper::getVariable('INSTALL_ADMIN_USERNAME', 'admin');
         $adminPassword = EnvironmentHelper::getVariable('INSTALL_ADMIN_PASSWORD', 'shopware');
+        $adminEmail = EnvironmentHelper::getVariable('INSTALL_ADMIN_EMAIL', '');
         $appUrl = EnvironmentHelper::getVariable('APP_URL');
         $salesChannelUrl = UrlHelper::normalizeSalesChannelUrl(EnvironmentHelper::getVariable('SALES_CHANNEL_URL', $appUrl) ?? '');
 
@@ -63,7 +65,12 @@ class InstallationManager
         $this->trackingService->persistId();
         $this->trackingService->track('installed', ['took' => microtime(true) - $took, 'shopware_version' => $this->state->getCurrentVersion()]);
 
-        $this->processHelper->console(['user:create', $adminUser, '--password=' . $adminPassword]);
+        $additionalCreateUserParameters = [];
+        if ($adminEmail !== '') {
+            $additionalCreateUserParameters[] = '--email=' . $adminEmail;
+        }
+
+        $this->processHelper->console(['user:create', $adminUser, '--password=' . $adminPassword, ...$additionalCreateUserParameters]);
 
         $this->processHelper->console(['messenger:setup-transports']);
 
@@ -88,6 +95,7 @@ class InstallationManager
         $this->state->disableFirstRunWizard();
 
         $this->processHelper->console(['plugin:refresh']);
+
         $this->pluginHelper->installPlugins($output, $configuration->skipAssetsInstall);
         $this->pluginHelper->updatePlugins($output, $configuration->skipAssetsInstall);
         $this->pluginHelper->deactivatePlugins($output, $configuration->skipAssetsInstall);

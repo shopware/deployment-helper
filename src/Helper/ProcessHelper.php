@@ -186,12 +186,14 @@ class ProcessHelper
         return $prefixed;
     }
 
-    public function runAndTail(string $code): void
+    public function runAndTail(string $code, string $title = ''): void
     {
         $originalCode = $code;
         $code = $this->replaceVariables($code);
 
-        $start = $this->printPreStart([$originalCode]);
+        $label = $title !== '' ? $title : $originalCode;
+
+        $start = $this->printPreStart([$label]);
 
         $process = new Process(['sh', '-c', $code], $this->projectDir);
         $process->setTimeout($this->timeout);
@@ -206,7 +208,7 @@ class ProcessHelper
             throw new \RuntimeException('Execution of ' . $originalCode . ' failed');
         }
 
-        $this->printPostStart([$originalCode], $start);
+        $this->printPostStart([$label], $start);
     }
 
     public function getPluginList(): string

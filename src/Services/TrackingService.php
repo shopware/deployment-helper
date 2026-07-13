@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Shopware\Deployment\Services;
 
 use Shopware\Deployment\Helper\EnvironmentHelper;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class TrackingService
 {
@@ -13,6 +14,8 @@ class TrackingService
     public const LEGACY_DEPLOYMENT_HELPER_ID = 'core.deployment_helper.id';
 
     private const DEFAULT_TRACKING_DOMAIN = 'udp.usage.shopware.io';
+
+    private const TELEMETRY_DOCS_URL = 'https://developer.shopware.com/docs/resources/references/telemetry.html';
 
     /**
      * @var array<string, string>
@@ -67,6 +70,18 @@ class TrackingService
         if (isset($this->id)) {
             $this->systemConfigHelper->set(self::TELEMETRY_ID, $this->id);
         }
+    }
+
+    public function showHint(OutputInterface $output): void
+    {
+        if (EnvironmentHelper::hasVariable('DO_NOT_TRACK')) {
+            return;
+        }
+
+        $output->writeln(\sprintf(
+            '<comment>Shopware collects anonymous telemetry about your usage of the Deployment Helper. Learn more at %s</comment>',
+            self::TELEMETRY_DOCS_URL,
+        ));
     }
 
     /**

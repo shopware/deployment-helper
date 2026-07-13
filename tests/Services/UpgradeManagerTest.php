@@ -12,7 +12,7 @@ use Shopware\Deployment\Services\AccountService;
 use Shopware\Deployment\Services\AppHelper;
 use Shopware\Deployment\Services\HookExecutor;
 use Shopware\Deployment\Services\OneTimeTasks;
-use Shopware\Deployment\Services\PluginHelper;
+use Shopware\Deployment\Services\Plugin\PluginHelper;
 use Shopware\Deployment\Services\ShopwareState;
 use Shopware\Deployment\Services\TrackingService;
 use Shopware\Deployment\Services\UpgradeManager;

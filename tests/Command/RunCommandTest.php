@@ -51,6 +51,9 @@ class RunCommandTest extends TestCase
 
         $trackingService = $this->createMock(TrackingService::class);
         $trackingService
+            ->expects($this->once())
+            ->method('showHint');
+        $trackingService
             ->expects($this->exactly(2))
             ->method('track')
             ->willReturnCallback(static function ($event, $data): void {
@@ -115,6 +118,9 @@ class RunCommandTest extends TestCase
 
         $trackingService = $this->createMock(TrackingService::class);
         $trackingService
+            ->expects($this->once())
+            ->method('showHint');
+        $trackingService
             ->expects($this->exactly(2))
             ->method('track')
             ->willReturnCallback(static function ($event, $data): void {
@@ -176,6 +182,9 @@ class RunCommandTest extends TestCase
             }));
 
         $trackingService = $this->createMock(TrackingService::class);
+        $trackingService
+            ->expects($this->once())
+            ->method('showHint');
         $trackingService
             ->expects($this->exactly(2))
             ->method('track')

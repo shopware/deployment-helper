@@ -12,6 +12,8 @@ class ProjectConfiguration
 
     public ProjectMaintenance $maintenance;
 
+    public ProjectStaging $staging;
+
     public ProjectStore $store;
 
     public ProjectThemeCompile $themeCompile;
@@ -28,6 +30,7 @@ class ProjectConfiguration
         $this->hooks = new ProjectHooks();
         $this->extensionManagement = new ProjectExtensionManagement();
         $this->maintenance = new ProjectMaintenance();
+        $this->staging = new ProjectStaging();
         $this->store = new ProjectStore();
         $this->themeCompile = new ProjectThemeCompile();
     }

@@ -1,0 +1,3 @@
+deployment:
+  staging:
+    enabled: true
