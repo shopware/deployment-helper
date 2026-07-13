@@ -131,7 +131,7 @@ class UpgradeManager
         $shopwareVersion = $this->state->getCurrentVersion();
 
         // Parallel fan-out needs theme:compile --only (Shopware 6.5.6+).
-        if (!self::supportsThemeCompileOnly($shopwareVersion)) {
+        if (!$this->supportsThemeCompileOnly($shopwareVersion)) {
             $output->writeln(\sprintf(
                 'Parallel theme compile requires Shopware 6.5.6+ for --only (current: %s); falling back to serial compile',
                 $shopwareVersion,
@@ -209,7 +209,7 @@ class UpgradeManager
 
         // --sync is available from Shopware 6.6.1 and forces synchronous compile when
         // theme.compile_async is enabled. Older cores reject the unknown option.
-        if (self::supportsThemeCompileSync($shopwareVersion)) {
+        if ($this->supportsThemeCompileSync($shopwareVersion)) {
             $args[] = '--sync';
         }
 
@@ -219,22 +219,22 @@ class UpgradeManager
     /**
      * theme:compile --only was introduced in Shopware 6.5.6.
      */
-    private static function supportsThemeCompileOnly(string $version): bool
+    private function supportsThemeCompileOnly(string $version): bool
     {
-        return self::shopwareVersionAtLeast($version, '6.5.6', defaultWhenUnparseable: true);
+        return $this->shopwareVersionAtLeast($version, '6.5.6', defaultWhenUnparseable: true);
     }
 
     /**
      * theme:compile --sync was introduced in Shopware 6.6.1.
      */
-    private static function supportsThemeCompileSync(string $version): bool
+    private function supportsThemeCompileSync(string $version): bool
     {
         // Unknown / dev versions: prefer --sync; async compile without it can
         // silently enqueue work and make the deploy appear successful too early.
-        return self::shopwareVersionAtLeast($version, '6.6.1', defaultWhenUnparseable: true);
+        return $this->shopwareVersionAtLeast($version, '6.6.1', defaultWhenUnparseable: true);
     }
 
-    private static function shopwareVersionAtLeast(string $version, string $minimum, bool $defaultWhenUnparseable): bool
+    private function shopwareVersionAtLeast(string $version, string $minimum, bool $defaultWhenUnparseable): bool
     {
         if (preg_match('/^(\d+\.\d+\.\d+)/', $version, $matches) !== 1) {
             return $defaultWhenUnparseable;
@@ -250,10 +250,10 @@ class UpgradeManager
             return max(1, $configured);
         }
 
-        return self::detectCpuCount();
+        return $this->detectCpuCount();
     }
 
-    private static function detectCpuCount(): int
+    private function detectCpuCount(): int
     {
         if (\function_exists('shell_exec')) {
             foreach (['nproc 2>/dev/null', 'getconf _NPROCESSORS_ONLN 2>/dev/null', 'sysctl -n hw.ncpu 2>/dev/null'] as $cmd) {

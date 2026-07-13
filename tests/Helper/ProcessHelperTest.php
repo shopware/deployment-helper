@@ -41,7 +41,7 @@ class ProcessHelperTest extends TestCase
 
     public function testConsoleParallelRunsAllCommandsAndTagsOutput(): void
     {
-        $projectDir = self::makeFakeProjectDir(<<<'PHP'
+        $projectDir = $this->makeFakeProjectDir(<<<'PHP'
             $argv = array_values(array_filter(array_slice($argv, 1), fn (string $a): bool => $a !== '-n'));
             echo 'argv=' . implode(' ', $argv) . "\n";
             exit(0);
@@ -62,13 +62,13 @@ class ProcessHelperTest extends TestCase
             static::assertStringContainsString('[#2 theme:compile --only=bbb] argv=theme:compile --only=bbb', $stdout);
             static::assertStringContainsString('[#3 theme:compile --only=ccc] argv=theme:compile --only=ccc', $stdout);
         } finally {
-            self::removeDirectory($projectDir);
+            $this->removeDirectory($projectDir);
         }
     }
 
     public function testConsoleParallelRaisesWithCapturedStderr(): void
     {
-        $projectDir = self::makeFakeProjectDir(<<<'PHP'
+        $projectDir = $this->makeFakeProjectDir(<<<'PHP'
             $argv = array_slice($argv, 1);
             if (in_array('--fail', $argv, true)) {
                 fwrite(STDERR, "boom: something went wrong\n");
@@ -93,13 +93,13 @@ class ProcessHelperTest extends TestCase
                 static::assertStringContainsString('exit 7', $e->getMessage());
             }
         } finally {
-            self::removeDirectory($projectDir);
+            $this->removeDirectory($projectDir);
         }
     }
 
     public function testConsoleParallelStopsLaunchingAfterFailure(): void
     {
-        $projectDir = self::makeFakeProjectDir(<<<'PHP'
+        $projectDir = $this->makeFakeProjectDir(<<<'PHP'
             $argv = array_values(array_filter(array_slice($argv, 1), fn (string $a): bool => $a !== '-n'));
             [$marker, $stateFile] = [$argv[1] ?? '', $argv[2] ?? ''];
             if ($stateFile !== '') {
@@ -131,11 +131,11 @@ class ProcessHelperTest extends TestCase
             static::assertLessThan(4, \count($launched), 'queue should stop dispatching after a failure');
         } finally {
             @unlink($stateFile);
-            self::removeDirectory($projectDir);
+            $this->removeDirectory($projectDir);
         }
     }
 
-    private static function makeFakeProjectDir(string $phpBody): string
+    private function makeFakeProjectDir(string $phpBody): string
     {
         $dir = sys_get_temp_dir() . '/ph_test_' . bin2hex(random_bytes(6));
         mkdir($dir . '/bin', 0o755, true);
@@ -144,7 +144,7 @@ class ProcessHelperTest extends TestCase
         return $dir;
     }
 
-    private static function removeDirectory(string $dir): void
+    private function removeDirectory(string $dir): void
     {
         if (!is_dir($dir)) {
             return;

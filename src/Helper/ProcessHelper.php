@@ -120,6 +120,8 @@ class ProcessHelper
                 $running[] = ['process' => $process, 'tag' => $tag];
             }
 
+            // Symfony processes are polled rather than awaited; yielding briefly avoids
+            // a busy loop while still picking up completed commands promptly.
             usleep(100_000);
 
             foreach ($running as $key => $slot) {
