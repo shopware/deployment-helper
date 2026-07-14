@@ -215,12 +215,19 @@ class ShopwareStateTest extends TestCase
         $this->connection
             ->expects($this->once())
             ->method('fetchAllKeyValue')
+            ->with(
+                'SELECT LOWER(HEX(id)), maintenance FROM sales_channel WHERE type_id = UNHEX(?)',
+                ['8a243080f92e4c719546314b577cf82b'],
+            )
             ->willReturn(['id' => 'maintenance']);
 
         $this->connection
             ->expects($this->once())
             ->method('executeStatement')
-            ->with('UPDATE sales_channel SET maintenance = 1 WHERE type_id = 0x8a243080f92e4c719546314b577cf82b');
+            ->with(
+                'UPDATE sales_channel SET maintenance = 1 WHERE type_id = UNHEX(?)',
+                ['8a243080f92e4c719546314b577cf82b'],
+            );
 
         $this->state->enableMaintenanceMode();
     }

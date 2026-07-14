@@ -83,6 +83,16 @@ class ConfigFactory
             self::fillExtensionManagement($projectConfiguration->extensionManagement, $deployment['extension-management']);
         }
 
+        if (isset($deployment['theme-compile']) && \is_array($deployment['theme-compile'])) {
+            if (isset($deployment['theme-compile']['parallel']) && \is_bool($deployment['theme-compile']['parallel'])) {
+                $projectConfiguration->themeCompile->parallel = $deployment['theme-compile']['parallel'];
+            }
+
+            if (isset($deployment['theme-compile']['workers']) && \is_int($deployment['theme-compile']['workers']) && $deployment['theme-compile']['workers'] >= 1) {
+                $projectConfiguration->themeCompile->workers = $deployment['theme-compile']['workers'];
+            }
+        }
+
         if (isset($deployment['store']) && \is_array($deployment['store'])) {
             if (isset($deployment['store']['license-domain']) && \is_string($deployment['store']['license-domain'])) {
                 $projectConfiguration->store->licenseDomain = $deployment['store']['license-domain'];
@@ -230,6 +240,11 @@ class ConfigFactory
 
         if (EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_STAGING') === '1') {
             $config->staging->enabled = true;
+        }
+
+        $themeCompileWorkers = EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_THEME_COMPILE_WORKERS');
+        if (is_numeric($themeCompileWorkers) && (int) $themeCompileWorkers >= 1) {
+            $config->themeCompile->workers = (int) $themeCompileWorkers;
         }
 
         return $config;

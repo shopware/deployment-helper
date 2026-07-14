@@ -10,6 +10,12 @@ use Doctrine\DBAL\Connection;
 class ShopwareState
 {
     /**
+     * Shopware's SalesChannelDefinition::TYPE_STOREFRONT UUID (hex, no dashes).
+     * Bound via UNHEX(?) for prepared statements, or inlined as 0x… in raw SQL.
+     */
+    private const STOREFRONT_TYPE_ID = '8a243080f92e4c719546314b577cf82b';
+
+    /**
      * @var array<string, string>
      */
     private array $maintenanceMode = [];
@@ -94,14 +100,58 @@ class ShopwareState
         return (bool) $this->connection->fetchOne('SELECT id FROM sales_channel_domain WHERE url = ?', [$salesChannelUrl]);
     }
 
+    /**
+     * Returns active storefront sales channels with their assigned theme
+     * (lowercased hex IDs). Mirrors the selection used by
+     * `theme:compile --active-only` / DatabaseAvailableThemeProvider.
+     *
+     * When a sales channel has multiple theme assignments, the first row wins
+     * (same practical shape as Shopware's key-value theme provider).
+     *
+     * @return list<array{salesChannelId: string, themeId: string}>
+     */
+    public function getActiveStorefrontThemeAssignments(): array
+    {
+        /** @var list<array{sales_channel_id: string, theme_id: string}> $rows */
+        $rows = $this->connection->fetchAllAssociative(
+            'SELECT LOWER(HEX(sc.id)) AS sales_channel_id, LOWER(HEX(tsc.theme_id)) AS theme_id
+             FROM sales_channel sc
+             INNER JOIN theme_sales_channel tsc ON tsc.sales_channel_id = sc.id
+             WHERE sc.active = 1 AND sc.type_id = UNHEX(?)',
+            [self::STOREFRONT_TYPE_ID],
+        );
+
+        $assignments = [];
+        $seenSalesChannels = [];
+        foreach ($rows as $row) {
+            if (isset($seenSalesChannels[$row['sales_channel_id']])) {
+                continue;
+            }
+
+            $seenSalesChannels[$row['sales_channel_id']] = true;
+            $assignments[] = [
+                'salesChannelId' => $row['sales_channel_id'],
+                'themeId' => $row['theme_id'],
+            ];
+        }
+
+        return $assignments;
+    }
+
     public function enableMaintenanceMode(): void
     {
         // Make a copy, so we can restore the original state later
         /** @var array<string, string> */
-        $data = $this->connection->fetchAllKeyValue('SELECT LOWER(HEX(id)), maintenance FROM sales_channel WHERE type_id = 0x8a243080f92e4c719546314b577cf82b');
+        $data = $this->connection->fetchAllKeyValue(
+            'SELECT LOWER(HEX(id)), maintenance FROM sales_channel WHERE type_id = UNHEX(?)',
+            [self::STOREFRONT_TYPE_ID],
+        );
         $this->maintenanceMode = $data;
 
-        $this->connection->executeStatement('UPDATE sales_channel SET maintenance = 1 WHERE type_id = 0x8a243080f92e4c719546314b577cf82b');
+        $this->connection->executeStatement(
+            'UPDATE sales_channel SET maintenance = 1 WHERE type_id = UNHEX(?)',
+            [self::STOREFRONT_TYPE_ID],
+        );
     }
 
     public function disableMaintenanceMode(): void

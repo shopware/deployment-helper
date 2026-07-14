@@ -90,6 +90,42 @@ class ConfigFactoryTest extends TestCase
         static::assertTrue($config->maintenance->enabled);
     }
 
+    public function testCreateConfigWithoutThemeCompileDefaults(): void
+    {
+        $config = ConfigFactory::create(__DIR__, $this->createMockApplication());
+        static::assertFalse($config->themeCompile->parallel);
+        static::assertNull($config->themeCompile->workers);
+    }
+
+    public function testExistingConfigWithThemeCompile(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/theme-compile', $this->createMockApplication());
+        static::assertTrue($config->themeCompile->parallel);
+        static::assertSame(6, $config->themeCompile->workers);
+    }
+
+    public function testThemeCompileWorkersBelowOneAreIgnored(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/theme-compile-invalid-workers', $this->createMockApplication());
+        static::assertTrue($config->themeCompile->parallel);
+        static::assertNull($config->themeCompile->workers);
+    }
+
+    #[Env('SHOPWARE_DEPLOYMENT_THEME_COMPILE_WORKERS', '7')]
+    public function testThemeCompileWorkersOverriddenByEnv(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/theme-compile', $this->createMockApplication());
+        static::assertTrue($config->themeCompile->parallel);
+        static::assertSame(7, $config->themeCompile->workers);
+    }
+
+    #[Env('SHOPWARE_DEPLOYMENT_THEME_COMPILE_WORKERS', '0')]
+    public function testThemeCompileWorkersEnvBelowOneIsIgnored(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/theme-compile', $this->createMockApplication());
+        static::assertSame(6, $config->themeCompile->workers);
+    }
+
     #[Env('SHOPWARE_STORE_LICENSE_DOMAIN', 'test')]
     public function testLicenseDomainPopulatedByEnv(): void
     {
