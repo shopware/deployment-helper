@@ -34,8 +34,8 @@ When the option is enabled, Deployment Helper will run Shopware's index commands
 as part of a fresh installation after Shopware has completed its installation and
 setup steps:
 
-- Run `es:index` when `OPENSEARCH_URL` is set.
-- Run `es:admin:index` when `ADMIN_OPENSEARCH_URL` is set.
+- Run `es:index --no-queue` when `OPENSEARCH_URL` is set.
+- Run `es:admin:index --no-queue` when `ADMIN_OPENSEARCH_URL` is set.
 - Run both commands when both variables are set.
 - Run neither command when its corresponding URL is absent.
 
