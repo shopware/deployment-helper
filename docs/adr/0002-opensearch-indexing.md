@@ -1,4 +1,4 @@
-# 2. Opt-in OpenSearch indexing after installation
+# 2. Opt-in OpenSearch bootstrap after fresh installation
 
 - Status: Proposed
 - Date: 2026-07-28
