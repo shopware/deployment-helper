@@ -1,0 +1,15 @@
+name: Technical TODO
+description: For Improvements and Tasks related to refactoring, testing, design, perf, docs, spikes, config changes, etc.
+
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thanks for suggesting a technical improvement! Please check our issues backlog to ensure that no one else has suggested this task yet.
+    - type: textarea
+      id: technical-todo
+      attributes:
+        label: Technical TODO
+        description: Please describe here what we need to do and why.
+      validations:
+        required: true
