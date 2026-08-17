@@ -15,6 +15,8 @@ env:
   # Disable our own telemetry to not fill test runs
   DO_NOT_TRACK: 1
   SHOPWARE_USAGE_DATA_CONSENT: 'revoked'
+  COMPOSER_POLICY_ABANDONED_BLOCK: 0
+  COMPOSER_SECURITY_BLOCKING_ABANDONED: 0
 
 jobs:
   installation:
@@ -27,6 +29,9 @@ jobs:
           php-version: '8.3'
           tools: symfony-cli
 
+      - name: Install shopware-cli
+        uses: shopware/shopware-cli-action@v3
+
       - name: Start Default MySQL
         run: |
           sudo mv /var/lib/mysql /var/lib/mysql-old
@@ -36,7 +41,7 @@ jobs:
           sudo systemctl start mysql
 
       - name: Create new Shopware Project
-        run: composer create-project shopware/production . --no-interaction
+        run: shopware-cli project create . latest --no-interaction --no-audit
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -76,6 +81,9 @@ jobs:
           php-version: '8.3'
           tools: symfony-cli
 
+      - name: Install shopware-cli
+        uses: shopware/shopware-cli-action@v3
+
       - name: Start Default MySQL
         run: |
           sudo mv /var/lib/mysql /var/lib/mysql-old
@@ -85,7 +93,7 @@ jobs:
           sudo systemctl start mysql
 
       - name: Create new Shopware Project
-        run: composer create-project shopware/production . --no-interaction
+        run: shopware-cli project create . latest --no-interaction --no-audit
 
       - name: Checkout
         uses: actions/checkout@v6
