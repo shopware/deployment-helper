@@ -15,6 +15,7 @@ env:
   # Disable our own telemetry to not fill test runs
   DO_NOT_TRACK: 1
   SHOPWARE_USAGE_DATA_CONSENT: 'revoked'
+  COMPOSER_POLICY_ABANDONED_BLOCK: 0
 
 jobs:
   installation:
