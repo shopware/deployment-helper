@@ -29,6 +29,9 @@ jobs:
           php-version: '8.3'
           tools: symfony-cli
 
+      - name: Install shopware-cli
+        uses: shopware/shopware-cli-action@v3
+
       - name: Start Default MySQL
         run: |
           sudo mv /var/lib/mysql /var/lib/mysql-old
@@ -38,7 +41,7 @@ jobs:
           sudo systemctl start mysql
 
       - name: Create new Shopware Project
-        run: composer create-project shopware/production . --no-interaction
+        run: shopware-cli project create . latest --no-interaction
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -78,6 +81,9 @@ jobs:
           php-version: '8.3'
           tools: symfony-cli
 
+      - name: Install shopware-cli
+        uses: shopware/shopware-cli-action@v3
+
       - name: Start Default MySQL
         run: |
           sudo mv /var/lib/mysql /var/lib/mysql-old
@@ -87,7 +93,7 @@ jobs:
           sudo systemctl start mysql
 
       - name: Create new Shopware Project
-        run: composer create-project shopware/production . --no-interaction
+        run: shopware-cli project create . latest --no-interaction
 
       - name: Checkout
         uses: actions/checkout@v6
