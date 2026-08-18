@@ -2,9 +2,7 @@
 
 ## Purpose
 
-This repository contains the Shopware Deployment Helper, a PHP CLI/library used to install and update Shopware projects. It is intended to work independently of the exact Shopware version for Shopware versions newer than 6.5.
-
-Use this file as the default guidance for coding agents working in this repository. Prefer repository conventions and existing patterns over generic PHP or Symfony conventions when they differ.
+This file contains instructions for AI coding agents operating in this repository. Agents should follow these instructions when inspecting, modifying, testing, or reviewing code in the Shopware Deployment Helper.
 
 ## Tech stack
 
