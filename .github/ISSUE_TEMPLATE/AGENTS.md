@@ -1,4 +1,4 @@
-# AGENTS.md
+# Agent Instructions
 
 ## Purpose
 
