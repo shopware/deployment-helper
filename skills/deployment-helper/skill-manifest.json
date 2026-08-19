@@ -1,0 +1,26 @@
+{
+  "name": "deployment-helper",
+  "version": "1.0.0-draft",
+  "description": "Deployment Helper operations and workflows",
+  "documentation_url": "https://github.com/shopware/deployment-helper/blob/main/skills/deployment-helper/skill.md",
+  "compatibility": {
+    "php_min": "8.2",
+    "shopware_min": "6.5",
+    "deployment_helper": "*"
+  },
+  "maintainer": {
+    "github_team": "shopware/deployment-helper-maintainers",
+    "contact_email": "l.apple@shopware.com"
+  },
+  "keywords": [
+    "deployment",
+    "ci-cd",
+    "operations",
+    "shopware-cli",
+    "server-deployment"
+  ],
+  "lifecycle": "beta",
+  "changelog": {
+    "1.0.0-draft": "Initial draft for CLI integration, operations-focused guidance"
+  }
+}
