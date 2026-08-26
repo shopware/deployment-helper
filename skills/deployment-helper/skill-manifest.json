@@ -8,6 +8,9 @@
     "shopware_min": "6.5",
     "deployment_helper": "*"
   },
+    "maintainer": {
+    "github_team": "shopware/deployment-helper-maintainers",
+  },
   "keywords": [
     "deployment",
     "ci-cd",
