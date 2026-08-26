@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Config;
 
-class ProjectOpenSearchIndexing
+class ProjectOpenSearch
 {
-    public bool $enabled = false;
+    public bool $indexOnInstall = false;
 }

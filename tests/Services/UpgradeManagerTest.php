@@ -82,7 +82,7 @@ class UpgradeManagerTest extends TestCase
                 });
 
             $configuration = new ProjectConfiguration();
-            $configuration->openSearchIndexing->enabled = true;
+            $configuration->openSearch->indexOnInstall = true;
 
             $manager = new UpgradeManager(
                 $this->createMock(ShopwareState::class),

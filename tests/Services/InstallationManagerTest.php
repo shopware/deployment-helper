@@ -193,7 +193,7 @@ class InstallationManagerTest extends TestCase
         $trackingService->expects(static::once())->method('persistId');
 
         $configuration = new ProjectConfiguration();
-        $configuration->openSearchIndexing->enabled = true;
+        $configuration->openSearch->indexOnInstall = true;
 
         $manager = new InstallationManager(
             $this->createMock(ShopwareState::class),
@@ -250,8 +250,8 @@ class InstallationManagerTest extends TestCase
     /**
      * @param list<list<string>> $expectedIndexCommands
      */
-    #[DataProvider('openSearchIndexingProvider')]
-    public function testRunOpenSearchIndexing(bool $enabled, ?string $indexingEnabled, ?string $openSearchUrl, ?string $adminOpenSearchUrl, array $expectedIndexCommands): void
+    #[DataProvider('openSearchIndexOnInstallProvider')]
+    public function testRunOpenSearchIndexOnInstall(bool $enabled, ?string $indexingEnabled, ?string $openSearchUrl, ?string $adminOpenSearchUrl, array $expectedIndexCommands): void
     {
         if ($indexingEnabled !== null) {
             $_SERVER['SHOPWARE_ES_INDEXING_ENABLED'] = $indexingEnabled;
@@ -274,7 +274,7 @@ class InstallationManagerTest extends TestCase
             });
 
         $configuration = new ProjectConfiguration();
-        $configuration->openSearchIndexing->enabled = $enabled;
+        $configuration->openSearch->indexOnInstall = $enabled;
 
         $manager = new InstallationManager(
             $this->createMock(ShopwareState::class),
@@ -293,7 +293,7 @@ class InstallationManagerTest extends TestCase
         static::assertSame($expectedIndexCommands, \array_slice($consoleCommands, 4));
     }
 
-    public function testRunPropagatesOpenSearchIndexingFailureBeforePostInstallSteps(): void
+    public function testRunPropagatesOpenSearchIndexOnInstallFailureBeforePostInstallSteps(): void
     {
         $_SERVER['SHOPWARE_ES_INDEXING_ENABLED'] = '1';
         $_SERVER['OPENSEARCH_URL'] = 'http://opensearch:9200';
@@ -317,7 +317,7 @@ class InstallationManagerTest extends TestCase
             ->with(HookExecutor::HOOK_PRE_INSTALL);
 
         $configuration = new ProjectConfiguration();
-        $configuration->openSearchIndexing->enabled = true;
+        $configuration->openSearch->indexOnInstall = true;
 
         $manager = new InstallationManager(
             $state,
@@ -340,7 +340,7 @@ class InstallationManagerTest extends TestCase
     /**
      * @return iterable<string, array{bool, ?string, ?string, ?string, list<list<string>>}>
      */
-    public static function openSearchIndexingProvider(): iterable
+    public static function openSearchIndexOnInstallProvider(): iterable
     {
         yield 'storefront only' => [true, '1', 'http://opensearch:9200', null, [['es:index', '--no-queue']]];
         yield 'admin only' => [true, '1', null, 'http://admin-opensearch:9200', [['es:admin:index', '--no-queue']]];

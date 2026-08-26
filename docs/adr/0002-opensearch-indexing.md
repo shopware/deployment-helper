@@ -27,8 +27,8 @@ Deployment Helper decision.
 
 ## Decision
 
-Deployment Helper will offer OpenSearch indexing as an explicit opt-in through a
-dedicated deployment configuration option. The option is disabled by default.
+Deployment Helper will offer OpenSearch indexing as an explicit opt-in through
+`deployment.opensearch.index-on-install`. The option is disabled by default.
 
 When the option is enabled, Deployment Helper will run Shopware's index commands
 as part of a fresh installation after Shopware has completed its installation and
@@ -65,8 +65,7 @@ commands rather than creating or modifying OpenSearch indexes directly.
 
 ### Negative / trade-offs
 
-- Operators must learn and set an additional Deployment Helper configuration
-  option.
+- Operators must learn and set `deployment.opensearch.index-on-install`.
 - An unavailable or misconfigured OpenSearch service can fail a fresh installation
   when the feature is enabled.
 - The error-versus-fallback policy remains outside Deployment Helper and may differ

@@ -93,9 +93,9 @@ class ConfigFactory
             }
         }
 
-        if (isset($deployment['opensearch-indexing']) && \is_array($deployment['opensearch-indexing'])) {
-            if (isset($deployment['opensearch-indexing']['enabled']) && \is_bool($deployment['opensearch-indexing']['enabled'])) {
-                $projectConfiguration->openSearchIndexing->enabled = $deployment['opensearch-indexing']['enabled'];
+        if (isset($deployment['opensearch']) && \is_array($deployment['opensearch'])) {
+            if (isset($deployment['opensearch']['index-on-install']) && \is_bool($deployment['opensearch']['index-on-install'])) {
+                $projectConfiguration->openSearch->indexOnInstall = $deployment['opensearch']['index-on-install'];
             }
         }
 
