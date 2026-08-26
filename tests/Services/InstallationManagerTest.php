@@ -107,6 +107,43 @@ class InstallationManagerTest extends TestCase
 
         static::assertCount(7, $consoleCommands);
         static::assertSame(['system:install', '--create-database', '--shop-locale=en-GB', '--shop-currency=EUR', '--force', '--no-assign-theme', '--skip-assets-install'], $consoleCommands[0]);
+        static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://localhost', '--isoCode=en-GB'], $consoleCommands[3]);
+    }
+
+    #[Env('INSTALL_LOCALE', 'de-DE')]
+    public function testRunCreatesStorefrontWithInstallLocaleIsoCode(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state->method('isStorefrontInstalled')
+            ->willReturn(true);
+        $state->method('isSalesChannelExisting')
+            ->willReturn(false);
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $manager = new InstallationManager(
+            $state,
+            $this->createMock(Connection::class),
+            $processHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            new ProjectConfiguration(),
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertSame(['system:install', '--create-database', '--shop-locale=de-DE', '--shop-currency=EUR', '--force'], $consoleCommands[0]);
+        static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://localhost', '--isoCode=de-DE'], $consoleCommands[3]);
     }
 
     public function testRunWithLicenseDomain(): void

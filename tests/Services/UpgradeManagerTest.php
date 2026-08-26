@@ -174,7 +174,49 @@ class UpgradeManagerTest extends TestCase
 
         static::assertCount(7, $consoleCommands);
         static::assertArrayHasKey(1, $consoleCommands);
-        static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://foo.com'], $consoleCommands[1]);
+        static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://foo.com', '--isoCode=en-GB'], $consoleCommands[1]);
+    }
+
+    #[Env('SALES_CHANNEL_URL', 'http://foo.com')]
+    #[Env('INSTALL_LOCALE', 'de-DE')]
+    public function testRunCreatesStorefrontWithInstallLocaleIsoCode(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state
+            ->expects($this->exactly(2))
+            ->method('isStorefrontInstalled')
+            ->willReturn(true);
+
+        $state
+            ->expects($this->once())
+            ->method('isSalesChannelExisting')
+            ->with('http://foo.com')
+            ->willReturn(false);
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $manager = new UpgradeManager(
+            $state,
+            $processHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+            new ProjectConfiguration(),
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertSame(['sales-channel:create:storefront', '--name=Storefront', '--url=http://foo.com', '--isoCode=de-DE'], $consoleCommands[1]);
     }
 
     public function testRunWithMaintenanceMode(): void

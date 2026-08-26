@@ -77,7 +77,7 @@ class InstallationManager
         if ($this->state->isStorefrontInstalled()) {
             $this->removeExistingHeadlessSalesChannel();
             if (!$this->state->isSalesChannelExisting($salesChannelUrl)) {
-                $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $salesChannelUrl]);
+                $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $salesChannelUrl, '--isoCode=' . $shopLocale]);
             }
 
             $themeChangeParameters = [];
