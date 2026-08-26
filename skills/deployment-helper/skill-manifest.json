@@ -8,10 +8,6 @@
     "shopware_min": "6.5",
     "deployment_helper": "*"
   },
-  "maintainer": {
-    "github_team": "shopware/deployment-helper-maintainers",
-    "contact_email": "l.apple@shopware.com"
-  },
   "keywords": [
     "deployment",
     "ci-cd",
