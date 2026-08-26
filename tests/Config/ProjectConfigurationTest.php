@@ -9,12 +9,14 @@ use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Config\ProjectHooks;
 use Shopware\Deployment\Config\ProjectMaintenance;
+use Shopware\Deployment\Config\ProjectOpenSearchIndexing;
 use Shopware\Deployment\Config\ProjectStore;
 use Shopware\Deployment\Struct\HookStep;
 
 #[CoversClass(ProjectConfiguration::class)]
 #[CoversClass(ProjectHooks::class)]
 #[CoversClass(ProjectMaintenance::class)]
+#[CoversClass(ProjectOpenSearchIndexing::class)]
 #[CoversClass(ProjectStore::class)]
 #[CoversClass(HookStep::class)]
 class ProjectConfigurationTest extends TestCase
@@ -34,6 +36,7 @@ class ProjectConfigurationTest extends TestCase
         static::assertEmpty($config->extensionManagement->overrides);
 
         static::assertEmpty($config->store->licenseDomain);
+        static::assertFalse($config->openSearchIndexing->enabled);
     }
 
     public function testHooksNormalizeStringIntoSingleUntitledStep(): void

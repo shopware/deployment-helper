@@ -18,6 +18,8 @@ class ProjectConfiguration
 
     public ProjectThemeCompile $themeCompile;
 
+    public ProjectOpenSearchIndexing $openSearchIndexing;
+
     /**
      * @var array<string, \Shopware\Deployment\Struct\OneTimeTask>
      */
@@ -33,5 +35,6 @@ class ProjectConfiguration
         $this->staging = new ProjectStaging();
         $this->store = new ProjectStore();
         $this->themeCompile = new ProjectThemeCompile();
+        $this->openSearchIndexing = new ProjectOpenSearchIndexing();
     }
 }

@@ -32,6 +32,7 @@ class ConfigFactoryTest extends TestCase
         static::assertSame([], $config->extensionManagement->overrides);
         static::assertSame([], $config->oneTimeTasks);
         static::assertSame([], $config->hooks->pre);
+        static::assertFalse($config->openSearchIndexing->enabled);
     }
 
     public static function files(): \Generator
@@ -102,6 +103,18 @@ class ConfigFactoryTest extends TestCase
         $config = ConfigFactory::create(__DIR__ . '/_fixtures/theme-compile', $this->createMockApplication());
         static::assertTrue($config->themeCompile->parallel);
         static::assertSame(6, $config->themeCompile->workers);
+    }
+
+    public function testExistingConfigWithOpenSearchIndexing(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/opensearch-indexing', $this->createMockApplication());
+        static::assertTrue($config->openSearchIndexing->enabled);
+    }
+
+    public function testOpenSearchIndexingIgnoresNonBooleanEnabledValue(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/opensearch-indexing-invalid', $this->createMockApplication());
+        static::assertFalse($config->openSearchIndexing->enabled);
     }
 
     public function testThemeCompileWorkersBelowOneAreIgnored(): void

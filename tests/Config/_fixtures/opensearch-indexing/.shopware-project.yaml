@@ -1,0 +1,3 @@
+deployment:
+    opensearch-indexing:
+        enabled: true

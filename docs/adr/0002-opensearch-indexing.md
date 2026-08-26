@@ -1,6 +1,6 @@
 # 2. Opt-in OpenSearch bootstrap after fresh installation
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-07-28
 
 ## Context
