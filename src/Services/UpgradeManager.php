@@ -75,7 +75,8 @@ class UpgradeManager
         $salesChannelUrl = EnvironmentHelper::getVariable('SALES_CHANNEL_URL');
 
         if ($salesChannelUrl !== null && $this->state->isStorefrontInstalled() && !$this->state->isSalesChannelExisting($salesChannelUrl)) {
-            $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . UrlHelper::normalizeSalesChannelUrl($salesChannelUrl)]);
+            $shopLocale = EnvironmentHelper::getVariable('INSTALL_LOCALE', 'en-GB');
+            $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . UrlHelper::normalizeSalesChannelUrl($salesChannelUrl), '--isoCode=' . $shopLocale]);
         }
 
         $this->processHelper->console(['plugin:refresh']);
