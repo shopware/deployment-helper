@@ -54,6 +54,67 @@ class UpgradeManagerTest extends TestCase
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
     }
 
+    public function testRunDoesNotIndexOpenSearch(): void
+    {
+        $keys = ['SHOPWARE_ES_INDEXING_ENABLED', 'OPENSEARCH_URL', 'ADMIN_OPENSEARCH_URL'];
+        $environment = [];
+        foreach ($keys as $key) {
+            $environment[$key] = [
+                'serverExists' => \array_key_exists($key, $_SERVER),
+                'serverValue' => $_SERVER[$key] ?? null,
+                'envExists' => \array_key_exists($key, $_ENV),
+                'envValue' => $_ENV[$key] ?? null,
+            ];
+            unset($_SERVER[$key], $_ENV[$key]);
+        }
+
+        try {
+            $_SERVER['SHOPWARE_ES_INDEXING_ENABLED'] = '1';
+            $_SERVER['OPENSEARCH_URL'] = 'http://opensearch:9200';
+            $_SERVER['ADMIN_OPENSEARCH_URL'] = 'http://admin-opensearch:9200';
+
+            $processHelper = $this->createMock(ProcessHelper::class);
+            $consoleCommands = [];
+            $processHelper
+                ->method('console')
+                ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
+                    $consoleCommands[] = $command;
+                });
+
+            $configuration = new ProjectConfiguration();
+            $configuration->openSearch->indexOnInstall = true;
+
+            $manager = new UpgradeManager(
+                $this->createMock(ShopwareState::class),
+                $processHelper,
+                $this->createMock(PluginHelper::class),
+                $this->createMock(AppHelper::class),
+                $this->createMock(HookExecutor::class),
+                $this->createMock(OneTimeTasks::class),
+                $configuration,
+                $this->createMock(AccountService::class),
+                $this->createMock(TrackingService::class),
+            );
+
+            $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+            static::assertNotContains(['es:index', '--no-queue'], $consoleCommands);
+            static::assertNotContains(['es:admin:index', '--no-queue'], $consoleCommands);
+        } finally {
+            foreach ($environment as $key => $values) {
+                unset($_SERVER[$key], $_ENV[$key]);
+
+                if ($values['serverExists']) {
+                    $_SERVER[$key] = $values['serverValue'];
+                }
+
+                if ($values['envExists']) {
+                    $_ENV[$key] = $values['envValue'];
+                }
+            }
+        }
+    }
+
     public function testRunUpdatesVersion(): void
     {
         $state = $this->createMock(ShopwareState::class);

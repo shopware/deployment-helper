@@ -93,6 +93,12 @@ class ConfigFactory
             }
         }
 
+        if (isset($deployment['opensearch']) && \is_array($deployment['opensearch'])) {
+            if (isset($deployment['opensearch']['index-on-install']) && \is_bool($deployment['opensearch']['index-on-install'])) {
+                $projectConfiguration->openSearch->indexOnInstall = $deployment['opensearch']['index-on-install'];
+            }
+        }
+
         if (isset($deployment['store']) && \is_array($deployment['store'])) {
             if (isset($deployment['store']['license-domain']) && \is_string($deployment['store']['license-domain'])) {
                 $projectConfiguration->store->licenseDomain = $deployment['store']['license-domain'];
