@@ -102,6 +102,10 @@ class Application extends SymfonyApplication
     {
         $this->projectConfigFile = $input->getParameterOption(['--project-config'], null, true);
 
+        if ($input->getFirstArgument() === 'dump-env' && $output instanceof ApplicationOutput) {
+            $output = $output->getDecorated();
+        }
+
         return parent::doRun($input, $output);
     }
 }

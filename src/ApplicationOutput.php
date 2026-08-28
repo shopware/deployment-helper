@@ -13,6 +13,11 @@ final readonly class ApplicationOutput implements OutputInterface
     {
     }
 
+    public function getDecorated(): OutputInterface
+    {
+        return $this->decorated;
+    }
+
     private function wrapMessage(string $message): string
     {
         return preg_replace('#(^|\n)(.)#m', '$1[deployment-helper] $2', $message) ?? $message;
