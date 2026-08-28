@@ -37,10 +37,10 @@ class ApplicationTest extends TestCase
     public function testDumpEnvCommandIsRegisteredAndHidden(): void
     {
         $app = new Application();
-        $command = $app->get('dump-env');
 
-        static::assertInstanceOf(DumpEnvCommand::class, $command);
-        static::assertTrue($command->isHidden());
+        static::assertTrue($app->getContainer()->has(DumpEnvCommand::class));
+        static::assertTrue($app->has('dump-env'));
+        static::assertTrue($app->get('dump-env')->isHidden());
     }
 
     #[Env('PROJECT_ROOT', __DIR__ . '/..')]

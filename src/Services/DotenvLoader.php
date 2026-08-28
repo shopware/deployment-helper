@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Services;
 
+use Shopware\Deployment\Helper\EnvironmentHelper;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Dotenv\Dotenv;
 
@@ -46,10 +47,10 @@ readonly class DotenvLoader
         try {
             (new Dotenv())->bootEnv($this->projectDir . '/.env', overrideExistingVars: true);
 
-            $names = $_SERVER['SYMFONY_DOTENV_VARS'] ?? $_ENV['SYMFONY_DOTENV_VARS'] ?? '';
+            $names = EnvironmentHelper::getVariable('SYMFONY_DOTENV_VARS', '');
             $values = [];
 
-            foreach (explode(',', (string) $names) as $name) {
+            foreach (explode(',', $names) as $name) {
                 if ($name === '') {
                     continue;
                 }
