@@ -94,16 +94,16 @@ class InstallationManager
 
         $this->state->disableFirstRunWizard();
 
+        if ($this->configuration->store->licenseDomain !== '') {
+            $this->accountService->refresh(new SymfonyStyle(new ArgvInput([]), $output), $this->state->getCurrentVersion(), $this->configuration->store->licenseDomain);
+        }
+
         $this->processHelper->console(['plugin:refresh']);
 
         $this->pluginHelper->installPlugins($output, $configuration->skipAssetsInstall);
         $this->pluginHelper->updatePlugins($output, $configuration->skipAssetsInstall);
         $this->pluginHelper->deactivatePlugins($output, $configuration->skipAssetsInstall);
         $this->pluginHelper->removePlugins($output, $configuration->skipAssetsInstall);
-
-        if ($this->configuration->store->licenseDomain !== '') {
-            $this->accountService->refresh(new SymfonyStyle(new ArgvInput([]), $output), $this->state->getCurrentVersion(), $this->configuration->store->licenseDomain);
-        }
 
         $this->appHelper->installApps();
         $this->appHelper->updateApps();
