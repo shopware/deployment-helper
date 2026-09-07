@@ -79,6 +79,10 @@ class UpgradeManager
             $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . UrlHelper::normalizeSalesChannelUrl($salesChannelUrl), '--isoCode=' . $shopLocale]);
         }
 
+        if ($this->configuration->store->licenseDomain !== '') {
+            $this->accountService->refresh(new SymfonyStyle(new ArgvInput([]), $output), $currentVersion, $this->configuration->store->licenseDomain);
+        }
+
         $this->processHelper->console(['plugin:refresh']);
 
         if ($this->state->isStorefrontInstalled()) {
@@ -92,10 +96,6 @@ class UpgradeManager
         $this->pluginHelper->updatePlugins($output, $configuration->skipAssetsInstall);
         $this->pluginHelper->deactivatePlugins($output, $configuration->skipAssetsInstall);
         $this->pluginHelper->removePlugins($output, $configuration->skipAssetsInstall);
-
-        if ($this->configuration->store->licenseDomain !== '') {
-            $this->accountService->refresh(new SymfonyStyle(new ArgvInput([]), $output), $currentVersion, $this->configuration->store->licenseDomain);
-        }
 
         $this->appHelper->installApps();
         $this->appHelper->updateApps();
