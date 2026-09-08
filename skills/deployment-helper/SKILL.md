@@ -51,6 +51,7 @@ It supports Shopware 6.5+ and requires PHP 8.2+.
 - **Target environment** — staging or production? Never run against production to try it out; migrate on staging first.
 - **Prerequisites** — is `DATABASE_URL` set and reachable? For a fresh install, are `INSTALL_ADMIN_*`, `SALES_CHANNEL_URL`, and `APP_URL` ready?
 - **Config reviewed** — does `.shopware-project.yml` reflect the intended hooks, extension-management, staging, and maintenance settings?
+- **Readiness probe** — `vendor/bin/shopware-deployment-helper is-installed` confirms the helper runs and can reach the database, and reports whether Shopware is already installed (exit `0` installed, `1` not). Cheap to run before any changes.
 - **Rehearse on staging** — Deployment Helper has no dry-run mode; for a migration or an unfamiliar config, run the full deployment against a staging copy first and verify shop health before touching production.
 
 Do not begin an install or migration until the scenario and target environment are confirmed.
@@ -106,7 +107,7 @@ Moving from manual deployments or other tools:
 **Migration steps**:
 1. Install Deployment Helper via Composer
 2. Define hooks in `.shopware-project.yml` matching existing manual steps
-3. Run the full deployment on a staging/non-prod copy first (Deployment Helper has no `--dry-run`)
+3. Sanity-check with `vendor/bin/shopware-deployment-helper is-installed` (helper runs and reaches the database), then rehearse the full deployment on a staging/non-prod copy first (Deployment Helper has no `--dry-run`)
 4. Enable maintenance mode
 5. Run actual deployment with `vendor/bin/shopware-deployment-helper run`
 6. Disable maintenance mode
@@ -175,6 +176,9 @@ Runtime:
 - `SHOPWARE_DEPLOYMENT_TIMEOUT` (seconds, or `null` to disable)
 - `SHOPWARE_DEPLOYMENT_FORCE_REINSTALL` (only when understood)
 
+Store account (needed to install/update paid Store extensions via `extension-management`):
+- `SHOPWARE_STORE_ACCOUNT_EMAIL`, `SHOPWARE_STORE_ACCOUNT_PASSWORD` — used to refresh the Store account on deploy; without them Store account login is skipped. Store account credentials come from these env vars, not from config.
+
 Never rely on default installation password in production.
 
 ## Extension Management Operations
@@ -216,7 +220,7 @@ Hooks inject custom logic at specific deployment stages:
 deployment:
   hooks:
     pre:
-      - %php.bin% bin/console some:command
+      - '%php.bin% bin/console some:command'
 ```
 
 **Fresh install hooks**:
@@ -244,7 +248,7 @@ deployment:
   one-time-tasks:
     - id: migrate-custom-table-schema
       when: before
-      script: %php.bin% bin/console custom:migrate
+      script: '%php.bin% bin/console custom:migrate'
 ```
 
 **Timing**:
