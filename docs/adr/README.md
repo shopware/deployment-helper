@@ -13,4 +13,4 @@ update the old one's status.
 | ADR | Title | Status |
 | --- | --- | --- |
 | [0001](0001-plugin-handling.md) | Plugin handling: load, plan, execute | Accepted |
-| [0002](0002-opensearch-indexing.md) | Opt-in OpenSearch indexing after installation | Proposed |
+| [0002](0002-opensearch-indexing.md) | Opt-in OpenSearch indexing after installation | Accepted |

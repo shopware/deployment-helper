@@ -15,6 +15,8 @@ DH unifies post-upload deploy steps: install fresh shops and upgrade live ones, 
 
 Server-side Deployer recipe calls `vendor/bin/shopware-deployment-helper run`. CI may invoke that recipe directly or through another action/wrapper. Config-driven execution: CLI prepares config (`.shopware-project.yml`), DH executes it.
 
+Hidden `dump-env` loads the Symfony dotenv cascade (`.env`, `.env.local`, `.env.$APP_ENV`, compiled `.env.local.php`) and prints the parsed key/value pairs as JSON. Output is unprefixed so other tools can consume it.
+
 ## Under the hood
 
 [Symfony Console app](src/Application.php) with its own dependency injection container. Does not boot Shopware; shells out to `bin/console` via [ProcessHelper](src/Helper/ProcessHelper.php#L15) with timeouts.

@@ -26,6 +26,7 @@ class InstallationManager
         private readonly ProjectConfiguration $configuration,
         private readonly AccountService $accountService,
         private readonly TrackingService $trackingService,
+        private readonly SystemConfigHelper $systemConfigHelper,
     ) {
     }
 
@@ -77,7 +78,7 @@ class InstallationManager
         if ($this->state->isStorefrontInstalled()) {
             $this->removeExistingHeadlessSalesChannel();
             if (!$this->state->isSalesChannelExisting($salesChannelUrl)) {
-                $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $salesChannelUrl]);
+                $this->processHelper->console(['sales-channel:create:storefront', '--name=Storefront', '--url=' . $salesChannelUrl, '--isoCode=' . $shopLocale]);
             }
 
             $themeChangeParameters = [];
@@ -94,6 +95,15 @@ class InstallationManager
 
         $this->state->disableFirstRunWizard();
 
+        $storeApiUri = EnvironmentHelper::getVariable('SHOPWARE_STORE_API_URI');
+        if ($storeApiUri !== null && $storeApiUri !== '') {
+            $this->systemConfigHelper->set('core.store.apiUri', $storeApiUri);
+        }
+
+        if ($this->configuration->store->licenseDomain !== '') {
+            $this->accountService->refresh(new SymfonyStyle(new ArgvInput([]), $output), $this->state->getCurrentVersion(), $this->configuration->store->licenseDomain);
+        }
+
         $this->processHelper->console(['plugin:refresh']);
 
         $this->pluginHelper->installPlugins($output, $configuration->skipAssetsInstall);
@@ -101,14 +111,20 @@ class InstallationManager
         $this->pluginHelper->deactivatePlugins($output, $configuration->skipAssetsInstall);
         $this->pluginHelper->removePlugins($output, $configuration->skipAssetsInstall);
 
-        if ($this->configuration->store->licenseDomain !== '') {
-            $this->accountService->refresh(new SymfonyStyle(new ArgvInput([]), $output), $this->state->getCurrentVersion(), $this->configuration->store->licenseDomain);
-        }
-
         $this->appHelper->installApps();
         $this->appHelper->updateApps();
         $this->appHelper->deactivateApps();
         $this->appHelper->removeApps();
+
+        if ($this->configuration->openSearch->indexOnInstall && EnvironmentHelper::getVariable('SHOPWARE_ES_INDEXING_ENABLED') === '1') {
+            if (EnvironmentHelper::getVariable('OPENSEARCH_URL') !== null) {
+                $this->processHelper->console(['es:index', '--no-queue']);
+            }
+
+            if (EnvironmentHelper::getVariable('ADMIN_OPENSEARCH_URL') !== null) {
+                $this->processHelper->console(['es:admin:index', '--no-queue']);
+            }
+        }
 
         $this->state->setVersion($this->state->getCurrentVersion());
 
