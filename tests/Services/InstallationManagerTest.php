@@ -16,6 +16,7 @@ use Shopware\Deployment\Services\HookExecutor;
 use Shopware\Deployment\Services\InstallationManager;
 use Shopware\Deployment\Services\Plugin\PluginHelper;
 use Shopware\Deployment\Services\ShopwareState;
+use Shopware\Deployment\Services\SystemConfigHelper;
 use Shopware\Deployment\Services\TrackingService;
 use Shopware\Deployment\Struct\RunConfiguration;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -32,7 +33,7 @@ class InstallationManagerTest extends TestCase
 
     protected function setUp(): void
     {
-        foreach (['SHOPWARE_ES_INDEXING_ENABLED', 'OPENSEARCH_URL', 'ADMIN_OPENSEARCH_URL'] as $key) {
+        foreach (['SHOPWARE_ES_INDEXING_ENABLED', 'OPENSEARCH_URL', 'ADMIN_OPENSEARCH_URL', 'SHOPWARE_STORE_API_URI'] as $key) {
             $this->environment[$key] = [
                 'serverExists' => \array_key_exists($key, $_SERVER),
                 'serverValue' => $_SERVER[$key] ?? null,
@@ -76,6 +77,7 @@ class InstallationManagerTest extends TestCase
             new ProjectConfiguration(),
             $this->createMock(AccountService::class),
             $this->createMock(TrackingService::class),
+            $this->createMock(SystemConfigHelper::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -103,6 +105,7 @@ class InstallationManagerTest extends TestCase
             new ProjectConfiguration(),
             $this->createMock(AccountService::class),
             $this->createMock(TrackingService::class),
+            $this->createMock(SystemConfigHelper::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -136,6 +139,7 @@ class InstallationManagerTest extends TestCase
             new ProjectConfiguration(),
             $accountService,
             $this->createMock(TrackingService::class),
+            $this->createMock(SystemConfigHelper::class),
         );
 
         $manager->run(new RunConfiguration(true, true), $this->createMock(OutputInterface::class));
@@ -173,6 +177,7 @@ class InstallationManagerTest extends TestCase
             new ProjectConfiguration(),
             $this->createMock(AccountService::class),
             $this->createMock(TrackingService::class),
+            $this->createMock(SystemConfigHelper::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -204,6 +209,76 @@ class InstallationManagerTest extends TestCase
             $configuration,
             $accountService,
             $this->createMock(TrackingService::class),
+            $this->createMock(SystemConfigHelper::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+    }
+
+    public function testRunPersistsStoreApiUriBeforeRefreshingAccount(): void
+    {
+        $_SERVER['SHOPWARE_STORE_API_URI'] = 'https://store.example.com';
+
+        $configuration = new ProjectConfiguration();
+        $configuration->store->licenseDomain = 'example.com';
+        $calls = [];
+
+        $systemConfigHelper = $this->createMock(SystemConfigHelper::class);
+        $systemConfigHelper
+            ->expects($this->once())
+            ->method('set')
+            ->with('core.store.apiUri', 'https://store.example.com')
+            ->willReturnCallback(static function () use (&$calls): void {
+                $calls[] = 'set';
+            });
+
+        $accountService = $this->createMock(AccountService::class);
+        $accountService
+            ->expects($this->once())
+            ->method('refresh')
+            ->willReturnCallback(static function () use (&$calls): void {
+                $calls[] = 'refresh';
+            });
+
+        $manager = new InstallationManager(
+            $this->createMock(ShopwareState::class),
+            $this->createMock(Connection::class),
+            $this->createMock(ProcessHelper::class),
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $configuration,
+            $accountService,
+            $this->createMock(TrackingService::class),
+            $systemConfigHelper,
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertSame(['set', 'refresh'], $calls);
+    }
+
+    #[DataProvider('emptyStoreApiUriProvider')]
+    public function testRunDoesNotPersistEmptyStoreApiUri(?string $storeApiUri): void
+    {
+        if ($storeApiUri !== null) {
+            $_SERVER['SHOPWARE_STORE_API_URI'] = $storeApiUri;
+        }
+
+        $systemConfigHelper = $this->createMock(SystemConfigHelper::class);
+        $systemConfigHelper->expects($this->never())->method('set');
+
+        $manager = new InstallationManager(
+            $this->createMock(ShopwareState::class),
+            $this->createMock(Connection::class),
+            $this->createMock(ProcessHelper::class),
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            new ProjectConfiguration(),
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+            $systemConfigHelper,
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -242,6 +317,7 @@ class InstallationManagerTest extends TestCase
             $configuration,
             $accountService,
             $trackingService,
+            $this->createMock(SystemConfigHelper::class),
         );
 
         $manager->run(new RunConfiguration(true, true, forceReinstallation: true), $this->createMock(OutputInterface::class));
@@ -277,6 +353,7 @@ class InstallationManagerTest extends TestCase
             new ProjectConfiguration(),
             $this->createMock(AccountService::class),
             $this->createMock(TrackingService::class),
+            $this->createMock(SystemConfigHelper::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -323,6 +400,7 @@ class InstallationManagerTest extends TestCase
             $configuration,
             $this->createMock(AccountService::class),
             $this->createMock(TrackingService::class),
+            $this->createMock(SystemConfigHelper::class),
         );
 
         $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
@@ -366,6 +444,7 @@ class InstallationManagerTest extends TestCase
             $configuration,
             $this->createMock(AccountService::class),
             $this->createMock(TrackingService::class),
+            $this->createMock(SystemConfigHelper::class),
         );
 
         $this->expectException(\RuntimeException::class);
@@ -386,5 +465,14 @@ class InstallationManagerTest extends TestCase
         yield 'indexing flag is not enabled' => [true, 'true', 'http://opensearch:9200', 'http://admin-opensearch:9200', []];
         yield 'indexing flag is absent' => [true, null, 'http://opensearch:9200', 'http://admin-opensearch:9200', []];
         yield 'storefront URL is absent' => [true, '1', null, null, []];
+    }
+
+    /**
+     * @return iterable<string, array{?string}>
+     */
+    public static function emptyStoreApiUriProvider(): iterable
+    {
+        yield 'absent' => [null];
+        yield 'empty' => [''];
     }
 }

@@ -26,6 +26,7 @@ class InstallationManager
         private readonly ProjectConfiguration $configuration,
         private readonly AccountService $accountService,
         private readonly TrackingService $trackingService,
+        private readonly SystemConfigHelper $systemConfigHelper,
     ) {
     }
 
@@ -93,6 +94,11 @@ class InstallationManager
         }
 
         $this->state->disableFirstRunWizard();
+
+        $storeApiUri = EnvironmentHelper::getVariable('SHOPWARE_STORE_API_URI');
+        if ($storeApiUri !== null && $storeApiUri !== '') {
+            $this->systemConfigHelper->set('core.store.apiUri', $storeApiUri);
+        }
 
         if ($this->configuration->store->licenseDomain !== '') {
             $this->accountService->refresh(new SymfonyStyle(new ArgvInput([]), $output), $this->state->getCurrentVersion(), $this->configuration->store->licenseDomain);
