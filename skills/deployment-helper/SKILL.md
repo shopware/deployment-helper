@@ -1,3 +1,8 @@
+---
+name: deployment-helper
+description: Expert guidance for Shopware Deployment Helper — configuring, running, and troubleshooting server-side deployments. Use for .shopware-project.yml deployment config (hooks, one-time tasks, extension-management, staging, maintenance, theme-compile), the install vs update lifecycle, `vendor/bin/shopware-deployment-helper run`, fresh installs, migrating an existing shop onto Deployment Helper, and platform specifics (Platform.sh/Upsun, Shopware PaaS, Kubernetes, Fastly). Covers the build-vs-deploy split with Shopware CLI.
+---
+
 # Shopware Deployment Helper
 
 Use the following context when helping configure, use, or troubleshoot **Shopware Deployment Helper**.
@@ -37,6 +42,18 @@ vendor/bin/shopware-deployment-helper run
 ```
 
 It supports Shopware 6.5+ and requires PHP 8.2+.
+
+## Before running an install or migration
+
+`run` changes a live shop (schema, extensions, cache) and is not guaranteed reversible. Before running `vendor/bin/shopware-deployment-helper run` on someone's behalf, confirm with the user rather than assuming defaults:
+
+- **Scenario** — fresh install, update of a running shop, or a first migration onto Deployment Helper?
+- **Target environment** — staging or production? Never run against production to try it out; migrate on staging first.
+- **Prerequisites** — is `DATABASE_URL` set and reachable? For a fresh install, are `INSTALL_ADMIN_*`, `SALES_CHANNEL_URL`, and `APP_URL` ready?
+- **Config reviewed** — does `.shopware-project.yml` reflect the intended hooks, extension-management, staging, and maintenance settings?
+- **Rehearse on staging** — Deployment Helper has no dry-run mode; for a migration or an unfamiliar config, run the full deployment against a staging copy first and verify shop health before touching production.
+
+Do not begin an install or migration until the scenario and target environment are confirmed.
 
 ## Deployment Lifecycle
 
@@ -89,7 +106,7 @@ Moving from manual deployments or other tools:
 **Migration steps**:
 1. Install Deployment Helper via Composer
 2. Define hooks in `.shopware-project.yml` matching existing manual steps
-3. Run `vendor/bin/shopware-deployment-helper run --dry-run` to verify
+3. Run the full deployment on a staging/non-prod copy first (Deployment Helper has no `--dry-run`)
 4. Enable maintenance mode
 5. Run actual deployment with `vendor/bin/shopware-deployment-helper run`
 6. Disable maintenance mode
@@ -125,59 +142,25 @@ Do not assume Shopware CLI and Deployment Helper interpret fields identically. T
 
 ### Key Configuration Areas
 
-**Hooks** (pre, post, pre-install, post-install, pre-update, post-update):
-```yaml
-deployment:
-  hooks:
-    pre:
-      - %php.bin% bin/console some:command
-```
+Everything lives under the top-level `deployment:` key. Each area below has a dedicated section with its schema and gotchas:
 
-**Extension management** (install, update, remove, exclude):
-```yaml
-deployment:
-  extension-management:
-    enabled: true
-```
+| `deployment.*` key | Purpose | Detailed in |
+|---|---|---|
+| `hooks` | Custom logic at lifecycle stages | "Hooks: Custom Deployment Operations" |
+| `extension-management` | Plugin/app lifecycle automation | "Extension Management Operations" |
+| `one-time-tasks` | Idempotent, run-once, update-time tasks | "One-Time Tasks: Idempotent Updates" |
+| `theme-compile` | Theme build (`parallel`, `workers`) | "Themes and Assets" |
+| `maintenance` | Maintenance mode during updates | "Maintenance and Staging Workflows" |
+| `staging` | Data-leak prevention (separate environment) | "Maintenance and Staging Workflows" |
 
-**One-time tasks** (idempotent updates, run once):
-```yaml
-deployment:
-  one-time-tasks:
-    - id: unique-task-id
-      when: before
-      script: %php.bin% bin/console custom:task
-```
+Two areas have no separate section:
 
-**Staging** (data-leak prevention):
-```yaml
-deployment:
-  staging:
-    enabled: true
-```
-
-**Maintenance** (updates only):
-```yaml
-deployment:
-  maintenance:
-    enabled: true
-```
-
-**Cache and theme**:
 ```yaml
 deployment:
   cache:
-    clear: true
-  theme-compile:
-    parallel: true
-    workers: 4
-```
-
-**Store** (license, auth):
-```yaml
-deployment:
+    always_clear: true                    # clear caches on every deployment
   store:
-    authenticated: true
+    license-domain: your-domain.example   # Shopware Store license domain (or env SHOPWARE_STORE_LICENSE_DOMAIN)
 ```
 
 ### Environment Variables
@@ -228,6 +211,13 @@ Consult Shopware docs for version-specific plugin/app state machine and lifecycl
 ## Hooks: Custom Deployment Operations
 
 Hooks inject custom logic at specific deployment stages:
+
+```yaml
+deployment:
+  hooks:
+    pre:
+      - %php.bin% bin/console some:command
+```
 
 **Fresh install hooks**:
 - `pre-install`: Before `system:install` (pre-DB setup)
