@@ -6,3 +6,6 @@
 /build/coverage
 /coverage
 /.junie
+# skills.sh local install artifacts (npx skills add)
+/.agents
+/skills-lock.json
