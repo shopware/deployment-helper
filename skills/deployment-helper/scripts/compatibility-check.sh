@@ -114,16 +114,9 @@ else
   warnings+=("DATABASE_URL not found in .env / .env.local — ensure it is set at deployment time")
 fi
 
-if [ -f "$PROJECT_ROOT/.shopware-project.yml" ]; then
-  info+=(".shopware-project.yml exists")
-  if grep -qs "deployment:" "$PROJECT_ROOT/.shopware-project.yml"; then
-    info+=("deployment configuration section found")
-  else
-    warnings+=(".shopware-project.yml has no 'deployment' section — Deployment Helper config needed")
-  fi
-else
-  info+=(".shopware-project.yml not found — will be needed for Deployment Helper configuration")
-fi
+# Config-file discovery (.shopware-project.yml vs the .config/ location) is owned
+# by shopware-cli / Deployment Helper and changes over time (shopware-cli#1387).
+# We deliberately do not duplicate that priority-based lookup here.
 
 if [ -f "$composer_lock" ] && grep -qs '"shopware/deployment-helper"' "$composer_lock"; then
   info+=("Deployment Helper already installed")

@@ -18,7 +18,12 @@ project **before** installing the skill (`ai add deployment-helper`), per
 |---|---|
 | PHP ≥ 8.2 | yes |
 | `shopware/core` (or `shopware/platform`) ≥ 6.5 — from `composer.lock`, else the `composer.json` constraint | yes |
-| Composer available, `DATABASE_URL` set, `.shopware-project.yml` / `deployment:` present, Deployment Helper already installed | no (informational) |
+| Composer available, `DATABASE_URL` set, Deployment Helper already installed | no (informational) |
+
+Config-file discovery (`.shopware-project.yml` vs the `.config/` location) is left
+to shopware-cli / Deployment Helper — it changes over time
+([shopware-cli#1387](https://github.com/shopware/shopware-cli/issues/1387)), so the
+check does not duplicate that lookup.
 
 ### Policy
 
