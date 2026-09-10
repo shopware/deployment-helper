@@ -53,7 +53,7 @@ class ProcessHelper
     {
         $completeCmd = ['php', ...$args];
 
-        $process = new PhpSubprocess($args, $this->projectDir);
+        $process = $this->createPhpProcess($args);
         $process->setTimeout($this->timeout);
 
         $startTime = $this->printPreStart($completeCmd);
@@ -99,7 +99,7 @@ class ProcessHelper
         $label = 'parallel: ' . \count($commands) . ' commands, ' . $workers . ' workers';
         $startTime = $this->printPreStart([$label]);
 
-        /** @var array<int, array{process: PhpSubprocess, tag: string}> $running */
+        /** @var array<int, array{process: Process, tag: string}> $running */
         $running = [];
         $queue = $commands;
         $failures = [];
@@ -114,7 +114,7 @@ class ProcessHelper
             while (\count($running) < $workers && $queue !== []) {
                 $args = array_shift($queue);
                 $tag = '[#' . $nextTag++ . ' ' . implode(' ', $args) . ']';
-                $process = new PhpSubprocess(['bin/console', '-n', ...$args], $this->projectDir);
+                $process = $this->createPhpProcess(['bin/console', '-n', ...$args]);
                 $process->setTimeout($this->timeout);
                 $process->start();
                 $running[] = ['process' => $process, 'tag' => $tag];
@@ -215,7 +215,7 @@ class ProcessHelper
 
     public function getPluginList(): string
     {
-        return (new PhpSubprocess(['bin/console', 'plugin:list', '--json'], $this->projectDir))->mustRun()->getOutput();
+        return $this->createPhpProcess(['bin/console', 'plugin:list', '--json'])->mustRun()->getOutput();
     }
 
     /**
@@ -299,6 +299,24 @@ class ProcessHelper
         }
 
         return $timeout;
+    }
+
+    /**
+     * Runs a PHP script with the PHP binary that started the current process.
+     *
+     * PhpSubprocess (symfony/process >= 6.4) also passes the current ini settings
+     * on to the child. Shopware 6.5.0-6.5.7 ship symfony/process 6.3 without it,
+     * so fall back to a plain Process with the same binary there.
+     *
+     * @param list<string> $args
+     */
+    private function createPhpProcess(array $args): Process
+    {
+        if (class_exists(PhpSubprocess::class)) {
+            return new PhpSubprocess($args, $this->projectDir);
+        }
+
+        return new Process([\PHP_BINARY, ...$args], $this->projectDir);
     }
 
     /**
