@@ -41,7 +41,7 @@ and executed with:
 vendor/bin/shopware-deployment-helper run
 ```
 
-It supports Shopware 6.5+ and requires PHP 8.2+.
+It supports Shopware 6.5.8 or newer and requires PHP 8.2+. Older 6.5 releases are not compatible.
 
 ## Before running an install or migration
 

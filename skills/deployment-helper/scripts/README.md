@@ -17,7 +17,7 @@ project **before** installing the skill (`ai add deployment-helper`), per
 | Requirement | Blocking? |
 |---|---|
 | PHP ≥ 8.2 | yes |
-| `shopware/core` (or `shopware/platform`) ≥ 6.5 — from `composer.lock`, else the `composer.json` constraint | yes |
+| `shopware/core` (or `shopware/platform`) ≥ 6.5.8 — from `composer.lock`, else the `composer.json` constraint (a bare `^6.5` cannot prove the patch level and fails) | yes |
 | Composer available, `DATABASE_URL` set, Deployment Helper already installed | no (informational) |
 
 Config-file discovery (`.shopware-project.yml` vs the `.config/` location) is left
@@ -28,7 +28,7 @@ check does not duplicate that lookup.
 ### Policy
 
 A requirement that cannot be positively confirmed is treated as **incompatible**
-("unknown counts as incompatible"): if no `shopware/core >= 6.5` can be resolved,
+("unknown counts as incompatible"): if no `shopware/core >= 6.5.8` can be resolved,
 the check fails rather than warning.
 
 ### Maintenance
