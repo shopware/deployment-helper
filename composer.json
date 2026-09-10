@@ -23,7 +23,7 @@
     "symfony/event-dispatcher": "^7.0 || ^6.0",
     "symfony/filesystem": "^7.0 || ^6.0",
     "symfony/finder": "^7.0 || ^6.0",
-    "symfony/process": "^7.0 || ^6.0",
+    "symfony/process": "^7.0 || ^6.4",
     "symfony/yaml": "^7.0 || ^6.0",
     "symfony/http-client": "^7.0 || ^6.0"
   },
