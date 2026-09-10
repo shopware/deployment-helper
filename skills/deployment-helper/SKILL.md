@@ -224,12 +224,12 @@ deployment:
 ```
 
 **Fresh install hooks**:
-- `pre-install`: Before `system:install` (pre-DB setup)
-- `post-install`: After storefront/admin setup, before extensions
+- `pre-install`: before `system:install`, the database is still empty
+- `post-install`: last step of the install path, after plugins and apps are installed and activated. Use it when your command needs extensions present.
 
 **Update hooks**:
-- `pre-update`: Before `system:update:finish` (pre-schema changes)
-- `post-update`: After extension updates, before post-deploy integrations
+- `pre-update`: first step of the update path, before `when: before` one-time tasks and before maintenance mode is enabled
+- `post-update`: after `system:update:finish`, extension updates, theme compile and `when: after` one-time tasks. Maintenance mode is still on at this point; post-deploy integrations have not run yet.
 
 **Always run**:
 - `pre`: Before all operations (fresh or update)
