@@ -40,7 +40,7 @@ else
   info+=("PHP $php_ver detected")
 fi
 
-# ----- Shopware >= 6.5 (unknown = incompatible) -----
+# ----- Shopware >= 6.5.8 (unknown = incompatible) -----
 # Prefer the exact installed version from composer.lock; fall back to the
 # constraint declared in composer.json. Both are parsed with PHP's JSON reader
 # rather than grep, so version constraints do not produce false results.
@@ -71,21 +71,32 @@ else
     echo $ver;
   ' "$PROJECT_ROOT" 2>/dev/null)"
 
-  # First major.minor found in the string (handles "6.6.1.0", "~6.6.0", "^6.5", "6.5.* || 6.6.*").
+  # First version-like token in the string (handles "6.6.1.0", "~6.6.0", "^6.5", "6.5.* || 6.6.*").
+  # Deployment Helper needs Shopware 6.5.8+ (older 6.5 releases ship Symfony 6.3 without PhpSubprocess),
+  # so for 6.5.x the patch level matters; 6.6+ is fine at any patch level.
   sw_mm="$(printf '%s' "$sw_ver" | tr -c '0-9.' ' ' | awk '{print $1}')"
   sw_major="${sw_mm%%.*}"
   sw_rest="${sw_mm#*.}"
   sw_minor="${sw_rest%%.*}"
+  sw_rest2="${sw_rest#*.}"
+  sw_patch="${sw_rest2%%.*}"
+  [ "$sw_rest2" = "$sw_rest" ] && sw_patch=""   # no third component present
 
   sw_ok=false
+  sw_reason=""
   case "$sw_major" in
     ''|*[!0-9]*) : ;;
     *)
       case "$sw_minor" in
         ''|*[!0-9]*) : ;;
         *)
-          if [ "$sw_major" -gt 6 ] || { [ "$sw_major" -eq 6 ] && [ "$sw_minor" -ge 5 ]; }; then
+          if [ "$sw_major" -gt 6 ] || { [ "$sw_major" -eq 6 ] && [ "$sw_minor" -ge 6 ]; }; then
             sw_ok=true
+          elif [ "$sw_major" -eq 6 ] && [ "$sw_minor" -eq 5 ]; then
+            case "$sw_patch" in
+              ''|*[!0-9]*) sw_reason="cannot tell the 6.5 patch level from \"$sw_ver\"; run composer install so composer.lock holds the exact version" ;;
+              *) [ "$sw_patch" -ge 8 ] && sw_ok=true ;;
+            esac
           fi
           ;;
       esac
@@ -93,11 +104,13 @@ else
   esac
 
   if [ "$sw_ok" = true ]; then
-    info+=("Shopware $sw_ver detected (>= 6.5)")
+    info+=("Shopware $sw_ver detected (>= 6.5.8)")
+  elif [ -n "$sw_reason" ]; then
+    errors+=("Shopware 6.5.8+ required: $sw_reason")
   elif [ -n "$sw_ver" ]; then
-    errors+=("Shopware 6.5+ required, found $sw_ver")
+    errors+=("Shopware 6.5.8+ required, found $sw_ver")
   else
-    errors+=("Could not determine a shopware/core >= 6.5 version from composer.lock or composer.json (unknown counts as incompatible)")
+    errors+=("Could not determine a shopware/core >= 6.5.8 version from composer.lock or composer.json (unknown counts as incompatible)")
   fi
 fi
 

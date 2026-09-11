@@ -4,7 +4,7 @@
 [![PHP](https://github.com/shopware/deployment-helper/actions/workflows/php.yml/badge.svg)](https://github.com/shopware/deployment-helper/actions/workflows/php.yml)
 
 This is a helper script to install or update Shopware on the target system. 
-It's independent of the Shopware version and can be used for all versions 6.5 or newer.
+It's independent of the Shopware version and can be used for all versions 6.5.8 or newer.
 
 ## Installation
 

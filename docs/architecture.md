@@ -9,7 +9,7 @@ tags: [boundaries, orchestration, pipeline, patterns]
 
 ## Why Deployment Helper (DH) exists
 
-DH unifies post-upload deploy steps: install fresh shops and upgrade live ones, independent of Shopware version (6.5+). One run handles both paths. Shopware CLI authors and validates `deployment:` config; DH executes it on the server.
+DH unifies post-upload deploy steps: install fresh shops and upgrade live ones, independent of Shopware version (6.5.8+). One run handles both paths. Shopware CLI authors and validates `deployment:` config; DH executes it on the server.
 
 ## How it's invoked
 
