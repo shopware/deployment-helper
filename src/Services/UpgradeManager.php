@@ -114,9 +114,14 @@ class UpgradeManager
         $this->hookExecutor->execute(HookExecutor::HOOK_POST_UPDATE);
 
         if ($this->configuration->maintenance->enabled) {
-            $this->state->disableMaintenanceMode();
+            $remainingInMaintenance = $this->state->disableMaintenanceMode();
 
-            $output->writeln('Maintenance mode is disabled, clearing cache to make sure the storefront is visible again');
+            if ($remainingInMaintenance === 0) {
+                $output->writeln('Maintenance mode is disabled, clearing cache to make sure the storefront is visible again');
+            } else {
+                $output->writeln(\sprintf('Maintenance mode is restored to the previous state, %d sales channel(s) remain in maintenance mode, clearing cache', $remainingInMaintenance));
+            }
+
             $this->processHelper->console(['cache:pool:clear', 'cache.http', 'cache.object']);
         }
     }

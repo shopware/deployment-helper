@@ -324,6 +324,43 @@ class UpgradeManagerTest extends TestCase
         static::assertSame(['cache:pool:clear', 'cache.http', 'cache.object'], $consoleCommands[6]);
     }
 
+    public function testRunWithMaintenanceModeReportsSalesChannelsRemainingInMaintenance(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state
+            ->expects($this->once())
+            ->method('disableMaintenanceMode')
+            ->willReturn(2);
+
+        $output = $this->createMock(OutputInterface::class);
+        $messages = [];
+        $output
+            ->method('writeln')
+            ->willReturnCallback(static function (string|iterable $message) use (&$messages): void {
+                $messages[] = $message;
+            });
+
+        $config = new ProjectConfiguration();
+        $config->maintenance->enabled = true;
+
+        $manager = new UpgradeManager(
+            $state,
+            $this->createMock(ProcessHelper::class),
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+            $config,
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $output);
+
+        static::assertContains('Maintenance mode is restored to the previous state, 2 sales channel(s) remain in maintenance mode, clearing cache', $messages);
+        static::assertNotContains('Maintenance mode is disabled, clearing cache to make sure the storefront is visible again', $messages);
+    }
+
     public function testParallelThemeCompileFallsBackWithSingleSalesChannel(): void
     {
         $state = $this->createMock(ShopwareState::class);

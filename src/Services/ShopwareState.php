@@ -16,7 +16,14 @@ class ShopwareState
     private const STOREFRONT_TYPE_ID = '8a243080f92e4c719546314b577cf82b';
 
     /**
-     * @var array<string, string>
+     * system_config key holding the maintenance flags from before the first
+     * update attempt, so a retry after a failed run restores that state
+     * instead of the all-enabled state the failed run left behind.
+     */
+    private const MAINTENANCE_MODE_SNAPSHOT_KEY = 'deployment.maintenanceMode';
+
+    /**
+     * @var array<string, int>
      */
     private array $maintenanceMode = [];
 
@@ -140,13 +147,32 @@ class ShopwareState
 
     public function enableMaintenanceMode(): void
     {
-        // Make a copy, so we can restore the original state later
-        /** @var array<string, string> */
-        $data = $this->connection->fetchAllKeyValue(
+        /** @var array<string, string|int> $currentState */
+        $currentState = $this->connection->fetchAllKeyValue(
             'SELECT LOWER(HEX(id)), maintenance FROM sales_channel WHERE type_id = UNHEX(?)',
             [self::STOREFRONT_TYPE_ID],
         );
-        $this->maintenanceMode = $data;
+        $currentState = array_map(static fn (string|int $maintenance): int => (int) $maintenance, $currentState);
+
+        $snapshot = $this->getPersistedMaintenanceModeSnapshot();
+
+        // Persist before enabling maintenance: if the process dies in between, the
+        // next run reuses the snapshot and the flags were never touched.
+        if ($snapshot === null) {
+            $snapshot = $currentState;
+            $this->persistMaintenanceModeSnapshot($snapshot);
+        } else {
+            // A previous run failed while maintenance was enabled: keep its snapshot.
+            // Sales channels created since then are not part of it yet, remember their
+            // current state as well so the restore does not leave them in maintenance.
+            $newSalesChannels = array_diff_key($currentState, $snapshot);
+            if ($newSalesChannels !== []) {
+                $snapshot += $newSalesChannels;
+                $this->persistMaintenanceModeSnapshot($snapshot);
+            }
+        }
+
+        $this->maintenanceMode = $snapshot;
 
         $this->connection->executeStatement(
             'UPDATE sales_channel SET maintenance = 1 WHERE type_id = UNHEX(?)',
@@ -154,11 +180,92 @@ class ShopwareState
         );
     }
 
-    public function disableMaintenanceMode(): void
+    /**
+     * Restores the maintenance flags remembered by enableMaintenanceMode() and
+     * returns how many sales channels remain in maintenance mode afterwards.
+     */
+    public function disableMaintenanceMode(): int
     {
-        foreach ($this->maintenanceMode as $id => $maintenance) {
+        $snapshot = $this->maintenanceMode !== [] ? $this->maintenanceMode : $this->getPersistedMaintenanceModeSnapshot() ?? [];
+
+        foreach ($snapshot as $id => $maintenance) {
             $this->connection->executeStatement('UPDATE sales_channel SET maintenance = ? WHERE id = UNHEX(?)', [$maintenance, $id]);
         }
+
+        $this->deleteMaintenanceModeSnapshot();
+
+        return array_sum($snapshot);
+    }
+
+    /**
+     * @return array<string, int>|null
+     */
+    private function getPersistedMaintenanceModeSnapshot(): ?array
+    {
+        $data = $this->connection->fetchOne(
+            'SELECT configuration_value FROM system_config WHERE configuration_key = ? AND sales_channel_id IS NULL',
+            [self::MAINTENANCE_MODE_SNAPSHOT_KEY],
+        );
+
+        if (!\is_string($data)) {
+            return null;
+        }
+
+        try {
+            $decoded = json_decode($data, true, 512, \JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            return null;
+        }
+
+        if (!\is_array($decoded)) {
+            return null;
+        }
+
+        $value = $decoded['_value'] ?? null;
+        if (!\is_array($value)) {
+            return null;
+        }
+
+        $snapshot = [];
+        foreach ($value as $salesChannelId => $maintenance) {
+            if (!\is_string($salesChannelId) || (!\is_int($maintenance) && !\is_string($maintenance))) {
+                return null;
+            }
+
+            $snapshot[$salesChannelId] = (int) $maintenance;
+        }
+
+        return $snapshot;
+    }
+
+    /**
+     * @param array<string, int> $snapshot
+     */
+    private function persistMaintenanceModeSnapshot(array $snapshot): void
+    {
+        $payload = json_encode(['_value' => $snapshot], \JSON_THROW_ON_ERROR);
+
+        $id = $this->connection->fetchOne(
+            'SELECT id FROM system_config WHERE configuration_key = ? AND sales_channel_id IS NULL',
+            [self::MAINTENANCE_MODE_SNAPSHOT_KEY],
+        );
+
+        if ($id !== false) {
+            $this->connection->executeStatement('UPDATE system_config SET configuration_value = ? WHERE id = ?', [$payload, $id]);
+        } else {
+            $this->connection->executeStatement(
+                'INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (UNHEX(REPLACE(UUID(), "-", "")), ?, ?, NULL, NOW())',
+                [self::MAINTENANCE_MODE_SNAPSHOT_KEY, $payload],
+            );
+        }
+    }
+
+    private function deleteMaintenanceModeSnapshot(): void
+    {
+        $this->connection->executeStatement(
+            'DELETE FROM system_config WHERE configuration_key = ? AND sales_channel_id IS NULL',
+            [self::MAINTENANCE_MODE_SNAPSHOT_KEY],
+        );
     }
 
     public function getMySqlVersion(): string

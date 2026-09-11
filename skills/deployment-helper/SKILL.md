@@ -313,13 +313,14 @@ deployment:
 Deployment Helper:
 - Enables maintenance before update
 - Restores previous state after success
+- Persists the pre-update per-sales-channel state (`system_config` key `deployment.maintenanceMode`), so a retry after a failed run restores the state from before the first attempt instead of keeping maintenance on
 - Does NOT guarantee protection against all partial-failure scenarios
 
 **Typical workflow**:
 1. Customer-facing storefront shows maintenance page
 2. Update executes (migrations, theme compile, extension updates)
 3. Maintenance mode restored to previous state on success
-4. On failure, manually verify storefront state before retry
+4. On failure, the shop stays in maintenance; fix the cause and retry — the persisted snapshot restores the original state on success
 
 ### Staging Mode (Data-Leak Prevention)
 
