@@ -51,7 +51,7 @@ First inside the deployment-helper directory execute
 composer install
 ```
 
-Next you can execute it on your local shopware project like so:
+Next you can execute it on your local Shopware project like so:
 ```bash
 PROJECT_ROOT=../shopware ./bin/shopware-deployment-helper --help
 ```
