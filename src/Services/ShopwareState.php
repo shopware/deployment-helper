@@ -29,6 +29,7 @@ class ShopwareState
 
     public function __construct(
         private readonly Connection $connection,
+        private readonly SystemConfigHelper $systemConfigHelper,
     ) {
     }
 
@@ -192,7 +193,7 @@ class ShopwareState
             $this->connection->executeStatement('UPDATE sales_channel SET maintenance = ? WHERE id = UNHEX(?)', [$maintenance, $id]);
         }
 
-        $this->deleteMaintenanceModeSnapshot();
+        $this->systemConfigHelper->delete(self::MAINTENANCE_MODE_SNAPSHOT_KEY);
 
         return array_sum($snapshot);
     }
@@ -202,12 +203,13 @@ class ShopwareState
      */
     private function getPersistedMaintenanceModeSnapshot(): ?array
     {
-        $data = $this->connection->fetchOne(
-            'SELECT configuration_value FROM system_config WHERE configuration_key = ? AND sales_channel_id IS NULL',
-            [self::MAINTENANCE_MODE_SNAPSHOT_KEY],
-        );
+        try {
+            $data = $this->systemConfigHelper->get(self::MAINTENANCE_MODE_SNAPSHOT_KEY);
+        } catch (\JsonException|\UnexpectedValueException) {
+            return null;
+        }
 
-        if (!\is_string($data)) {
+        if ($data === null) {
             return null;
         }
 
@@ -221,13 +223,8 @@ class ShopwareState
             return null;
         }
 
-        $value = $decoded['_value'] ?? null;
-        if (!\is_array($value)) {
-            return null;
-        }
-
         $snapshot = [];
-        foreach ($value as $salesChannelId => $maintenance) {
+        foreach ($decoded as $salesChannelId => $maintenance) {
             if (!\is_string($salesChannelId) || (!\is_int($maintenance) && !\is_string($maintenance))) {
                 return null;
             }
@@ -239,33 +236,13 @@ class ShopwareState
     }
 
     /**
+     * SystemConfigHelper stores strings only, so the snapshot is kept as a JSON string.
+     *
      * @param array<string, int> $snapshot
      */
     private function persistMaintenanceModeSnapshot(array $snapshot): void
     {
-        $payload = json_encode(['_value' => $snapshot], \JSON_THROW_ON_ERROR);
-
-        $id = $this->connection->fetchOne(
-            'SELECT id FROM system_config WHERE configuration_key = ? AND sales_channel_id IS NULL',
-            [self::MAINTENANCE_MODE_SNAPSHOT_KEY],
-        );
-
-        if ($id !== false) {
-            $this->connection->executeStatement('UPDATE system_config SET configuration_value = ? WHERE id = ?', [$payload, $id]);
-        } else {
-            $this->connection->executeStatement(
-                'INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (UNHEX(REPLACE(UUID(), "-", "")), ?, ?, NULL, NOW())',
-                [self::MAINTENANCE_MODE_SNAPSHOT_KEY, $payload],
-            );
-        }
-    }
-
-    private function deleteMaintenanceModeSnapshot(): void
-    {
-        $this->connection->executeStatement(
-            'DELETE FROM system_config WHERE configuration_key = ? AND sales_channel_id IS NULL',
-            [self::MAINTENANCE_MODE_SNAPSHOT_KEY],
-        );
+        $this->systemConfigHelper->set(self::MAINTENANCE_MODE_SNAPSHOT_KEY, json_encode($snapshot, \JSON_THROW_ON_ERROR));
     }
 
     public function getMySqlVersion(): string
