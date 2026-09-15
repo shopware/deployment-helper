@@ -41,6 +41,21 @@ example, `next`) as the pull request target branch.
 
 Before submitting, run the relevant checks locally. Add or update tests for bug fixes and new behavior.
 
+### Testing changes manually
+
+If you want to test your changes to deployment-helper on a local Shopware project make sure to set the `PROJECT_ROOT` env variable
+instead of executing it from a different working directory.
+
+First inside the deployment-helper directory execute
+```bash
+composer install
+```
+
+Next you can execute it on your local Shopware project like so:
+```bash
+PROJECT_ROOT=../shopware ./bin/shopware-deployment-helper --help
+```
+
 ## Reviews
 
 Maintainers may ask for changes, suggest a different direction, or decline a PR if the approach was not discussed beforehand. That is not personal; it is how we keep the project consistent and sustainable.
