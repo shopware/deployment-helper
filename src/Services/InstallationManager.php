@@ -116,6 +116,8 @@ class InstallationManager
         $this->appHelper->deactivateApps();
         $this->appHelper->removeApps();
 
+        $this->processHelper->console(['cache:clear']);
+
         if ($this->configuration->openSearch->indexOnInstall && EnvironmentHelper::getVariable('SHOPWARE_ES_INDEXING_ENABLED') === '1') {
             if (EnvironmentHelper::getVariable('OPENSEARCH_URL') !== null) {
                 $this->processHelper->console(['es:index', '--no-queue']);
