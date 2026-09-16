@@ -116,12 +116,15 @@ class InstallationManager
         $this->appHelper->deactivateApps();
         $this->appHelper->removeApps();
 
+        if ($this->shouldIndexOpenSearch() && $this->isCommercialActive()) {
+            $this->processHelper->console(['commercial:license:update']);
+            $this->processHelper->console(['commercial:feature:list']); // validates that a key now exists
+        }
+
         $this->processHelper->console(['cache:clear']);
 
-        if ($this->configuration->openSearch->indexOnInstall && EnvironmentHelper::getVariable('SHOPWARE_ES_INDEXING_ENABLED') === '1') {
+        if ($this->shouldIndexOpenSearch()) {
             if (EnvironmentHelper::getVariable('OPENSEARCH_URL') !== null) {
-                $this->processHelper->console(['commercial:license:info']);
-                $this->processHelper->console(['commercial:feature:list']);
                 $this->processHelper->console(['es:index', '--no-queue']);
             }
 
@@ -138,5 +141,19 @@ class InstallationManager
     private function removeExistingHeadlessSalesChannel(): void
     {
         $this->connection->executeStatement('DELETE FROM sales_channel WHERE type_id = 0xf183ee5650cf4bdb8a774337575067a6');
+    }
+
+    private function shouldIndexOpenSearch(): bool
+    {
+        return $this->configuration->openSearch->indexOnInstall
+            && EnvironmentHelper::getVariable('SHOPWARE_ES_INDEXING_ENABLED') === '1';
+    }
+
+    private function isCommercialActive(): bool
+    {
+        return (bool) $this->connection->fetchOne(
+            'SELECT active FROM plugin WHERE name = :name',
+            ['name' => 'SwagCommercial'],
+        );
     }
 }
