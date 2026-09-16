@@ -120,6 +120,8 @@ class InstallationManager
 
         if ($this->configuration->openSearch->indexOnInstall && EnvironmentHelper::getVariable('SHOPWARE_ES_INDEXING_ENABLED') === '1') {
             if (EnvironmentHelper::getVariable('OPENSEARCH_URL') !== null) {
+                $this->processHelper->console(['commercial:license:info']);
+                $this->processHelper->console(['commercial:feature:list']);
                 $this->processHelper->console(['es:index', '--no-queue']);
             }
 
