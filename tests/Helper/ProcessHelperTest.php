@@ -39,6 +39,22 @@ class ProcessHelperTest extends TestCase
         }
     }
 
+    public function testConsoleOutput(): void
+    {
+        $projectDir = $this->makeFakeProjectDir(<<<'PHP'
+            $argv = array_values(array_filter(array_slice($argv, 1), fn (string $argument): bool => $argument !== '-n'));
+            echo implode(' ', $argv) . "\n";
+            PHP);
+
+        try {
+            $helper = new ProcessHelper($projectDir, output: new BufferedConsoleOutput());
+
+            static::assertSame('system:config:get key --format=json' . "\n", $helper->consoleOutput(['system:config:get', 'key', '--format=json']));
+        } finally {
+            $this->removeDirectory($projectDir);
+        }
+    }
+
     public function testConsoleParallelRunsAllCommandsAndTagsOutput(): void
     {
         $projectDir = $this->makeFakeProjectDir(<<<'PHP'

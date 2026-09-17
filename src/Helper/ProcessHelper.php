@@ -80,6 +80,18 @@ class ProcessHelper
     }
 
     /**
+     * @param list<string> $args
+     */
+    public function consoleOutput(array $args): string
+    {
+        $process = new PhpSubprocess(['bin/console', '-n', ...$args], $this->projectDir);
+        $process->setTimeout($this->timeout);
+        $process->mustRun();
+
+        return $process->getOutput();
+    }
+
+    /**
      * Runs multiple console commands in parallel, with at most $workers running concurrently.
      *
      * Each worker's stdout/stderr is buffered and flushed as a single block when the process

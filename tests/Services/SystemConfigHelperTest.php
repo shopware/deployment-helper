@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Services;
 
-use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Services\SystemConfigHelper;
 
 #[CoversClass(SystemConfigHelper::class)]
@@ -14,39 +14,33 @@ class SystemConfigHelperTest extends TestCase
 {
     public function testGet(): void
     {
-        $connection = $this->createMock(Connection::class);
-        $connection->expects($this->once())
-            ->method('fetchOne')
-            ->with('SELECT configuration_value FROM system_config WHERE configuration_key = ? AND sales_channel_id IS NULL', ['key'])
-            ->willReturn('{"_value": "value"}');
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())
+            ->method('consoleOutput')
+            ->with(['system:config:get', 'key', '--format=json'])
+            ->willReturn("{\"key\":\"value\"}\n");
 
-        $systemConfigHelper = new SystemConfigHelper($connection);
+        $systemConfigHelper = new SystemConfigHelper($processHelper);
 
         static::assertSame('value', $systemConfigHelper->get('key'));
     }
 
     public function testGetInt(): void
     {
-        $connection = $this->createMock(Connection::class);
-        $connection->expects($this->once())
-            ->method('fetchOne')
-            ->with('SELECT configuration_value FROM system_config WHERE configuration_key = ? AND sales_channel_id IS NULL', ['key'])
-            ->willReturn('{"_value": 5}');
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->method('consoleOutput')->willReturn("{\"key\":5}\n");
 
-        $systemConfigHelper = new SystemConfigHelper($connection);
+        $systemConfigHelper = new SystemConfigHelper($processHelper);
 
         static::assertSame('5', $systemConfigHelper->get('key'));
     }
 
     public function testGetArray(): void
     {
-        $connection = $this->createMock(Connection::class);
-        $connection->expects($this->once())
-            ->method('fetchOne')
-            ->with('SELECT configuration_value FROM system_config WHERE configuration_key = ? AND sales_channel_id IS NULL', ['key'])
-            ->willReturn('{"_value": {"key": "value"}}');
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->method('consoleOutput')->willReturn("{\"key\":{\"key\":\"value\"}}\n");
 
-        $systemConfigHelper = new SystemConfigHelper($connection);
+        $systemConfigHelper = new SystemConfigHelper($processHelper);
 
         static::expectException(\UnexpectedValueException::class);
         $systemConfigHelper->get('key');
@@ -54,46 +48,33 @@ class SystemConfigHelperTest extends TestCase
 
     public function testGetNull(): void
     {
-        $connection = $this->createMock(Connection::class);
-        $connection->expects($this->once())
-            ->method('fetchOne')
-            ->with('SELECT configuration_value FROM system_config WHERE configuration_key = ? AND sales_channel_id IS NULL', ['key'])
-            ->willReturn(false);
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->method('consoleOutput')->willReturn("{\"key\":null}\n");
 
-        $systemConfigHelper = new SystemConfigHelper($connection);
+        $systemConfigHelper = new SystemConfigHelper($processHelper);
 
         static::assertNull($systemConfigHelper->get('key'));
     }
 
-    public function testSetNotExistingKey(): void
+    public function testSet(): void
     {
-        $connection = $this->createMock(Connection::class);
-        $connection->expects($this->once())
-            ->method('fetchOne')
-            ->with('SELECT id FROM system_config WHERE configuration_key = ? AND sales_channel_id IS NULL', ['key'])
-            ->willReturn('5');
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())
+            ->method('console')
+            ->with(['system:config:set', 'key', 'value']);
 
-        $connection->expects($this->once())
-            ->method('executeStatement')
-            ->with('UPDATE system_config SET configuration_value = ? WHERE id = ?');
-
-        $systemConfigHelper = new SystemConfigHelper($connection);
+        $systemConfigHelper = new SystemConfigHelper($processHelper);
         $systemConfigHelper->set('key', 'value');
     }
 
-    public function testSetExistingKey(): void
+    public function testDelete(): void
     {
-        $connection = $this->createMock(Connection::class);
-        $connection->expects($this->once())
-            ->method('fetchOne')
-            ->with('SELECT id FROM system_config WHERE configuration_key = ? AND sales_channel_id IS NULL', ['key'])
-            ->willReturn('');
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $processHelper->expects($this->once())
+            ->method('console')
+            ->with(['system:config:set', 'key', 'null', '--json']);
 
-        $connection->expects($this->once())
-            ->method('executeStatement')
-            ->with('INSERT INTO system_config (id, configuration_key, configuration_value, sales_channel_id, created_at) VALUES (?, ?, ?, NULL, NOW())');
-
-        $systemConfigHelper = new SystemConfigHelper($connection);
-        $systemConfigHelper->set('key', 'value');
+        $systemConfigHelper = new SystemConfigHelper($processHelper);
+        $systemConfigHelper->delete('key');
     }
 }
