@@ -13,7 +13,7 @@ DH unifies post-upload deploy steps: install fresh shops and upgrade live ones, 
 
 ## How it's invoked
 
-Server-side Deployer recipe calls `vendor/bin/shopware-deployment-helper run`. CI may invoke that recipe directly or through another action/wrapper. Config-driven execution: CLI prepares config (`.shopware-project.yml`), DH executes it.
+Server-side Deployer recipe calls `vendor/bin/shopware-deployment-helper run`. CI may invoke that recipe directly or through another action/wrapper. Config-driven execution: CLI prepares config (e.g. `.config/shopware-project.yml`), DH executes it.
 
 Hidden `dump-env` loads the Symfony dotenv cascade (`.env`, `.env.local`, `.env.$APP_ENV`, compiled `.env.local.php`) and prints the parsed key/value pairs as JSON. Output is unprefixed so other tools can consume it.
 
@@ -63,7 +63,7 @@ A `pre` hook or PostDeploy subscriber can also abort.
 - **`deployment.extension-management.enabled`:** enables or disables DH-managed plugin and app lifecycle operations. When `false`, DH skips plugin/app lifecycle actions; plugin:refresh still runs. When `true`, per-extension overrides influence lifecycle behavior, although exact semantics differ between plugins and apps.
 - **Hooks:** `pre`, `post`, `pre-install`, `post-install`, `pre-update`, `post-update` - inject shell commands at deploy moments. Untyped escape hatch.
 - **One-time tasks:** update-only, stateful run-once scripts keyed by id. Marked done only after success; failures re-run on next deploy. `before`/`after` phasing. Not enforced idempotent - re-running is caller's responsibility.
-- **Local config:** `.shopware-project.local.yml` (or `.local.yaml`) layers per-environment overrides. Env vars pass short-lived inputs (locale, admin user, URLs, credentials).
+- **Local config:** `.config/shopware-project.local.yml` / `.shopware-project.local.yaml` / `.shopware-project.local.yml` layers per-environment overrides. Env vars pass short-lived inputs (locale, admin user, URLs, credentials).
 - **Flags:** `--skip-theme-compile`, `--skip-assets-install`. Flag affects plugins (receives `--skip-asset-build`); apps do not receive skip-assets option.
 - **Maintenance mode:** update-only, optional. Snapshots per-storefront prior state (persisted in `system_config` under `deployment.maintenanceMode`); enables maintenance and clears cache. On exit, restores prior states, deletes the snapshot, and clears cache. Failure after enable leaves maintenance on (no finally); the next run reuses the persisted snapshot and restores the state from before the first attempt.
 - **Staging:** `deployment.staging.enabled` runs `system:setup:staging --no-interaction --force` via PostDeploy subscriber (separate from maintenance).
@@ -85,7 +85,7 @@ Config parsed by `ConfigFactory` (hand-written interpreter). Ad-hoc parsing/type
 
 These rules, if broken, turn an addition into a regression.
 
-- **Config-driven execution:** CLI writes `.shopware-project.yml`; DH reads and executes. No call-backs to CLI.
+- **Config-driven execution:** CLI writes `.config/shopware-project.yml` / `.shopware-project.yaml` / `.shopware-project.yml`; DH reads and executes. No call-backs to CLI.
 - **PostDeploy integrations stay at edges:** Fastly, Platform.sh, staging, always-clear-cache handling, and Shopware consent are implemented as PostDeploy subscribers. Telemetry and store-license refresh are documented exceptions used directly by command/managers.
 - **Rerun safety where provided:** One-time-tasks marked done only after success (failed tasks retry). Fastly performs change detection. Maintenance restores per-storefront prior states, even across a failed run (snapshot persisted in `system_config`). Hooks and partial deployments remain caller's responsibility.
 

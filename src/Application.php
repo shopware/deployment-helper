@@ -34,7 +34,12 @@ class Application extends SymfonyApplication
         $this->setDispatcher($this->container->get('event_dispatcher'));
         $this->setCommandLoader($this->container->get('console.command_loader'));
 
-        $this->getDefinition()->addOption(new InputOption('project-config', null, InputOption::VALUE_REQUIRED, 'Path to .shopware-project.yaml'));
+        $this->getDefinition()->addOption(new InputOption(
+            'project-config',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'Explicit path to project config, if not specified auto discovery looks for .config/shopware-project.yml / .shopware-project.yaml / .shopware-project.yml',
+        ));
     }
 
     public function getContainer(): ContainerBuilder

@@ -68,7 +68,7 @@ body:
     id: config
     attributes:
       label: Deployment config (if relevant)
-      description: If the issue relates to deployment configuration, paste the relevant section from `.shopware-project.yml` or `.shopware-project.local.yml` (redact sensitive values).
+      description: If the issue relates to deployment configuration, paste the relevant sections from `.config/shopware-project.yml`, `.shopware-project.yaml`, or `.shopware-project.yml` and its sibling `.local` override, if present (redact sensitive values).
       render: yaml
 
   - type: textarea
