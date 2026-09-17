@@ -62,9 +62,7 @@ class ConfigFactory
      */
     private static function searchProjectConfig(string $projectDir): string
     {
-        $locationCount = \count(self::CONFIG_LOCATIONS);
-
-        foreach (self::CONFIG_LOCATIONS as $idx => $location) {
+        foreach (self::CONFIG_LOCATIONS as $location) {
             $file = Path::join($projectDir, $location);
             if (file_exists($file)) {
                 return $file;

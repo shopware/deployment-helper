@@ -1,6 +1,6 @@
 ---
 name: deployment-helper
-description: Expert guidance for Shopware Deployment Helper — configuring, running, and troubleshooting server-side deployments. Use for .shopware-project.yml deployment config (hooks, one-time tasks, extension-management, staging, maintenance, theme-compile), the install vs update lifecycle, `vendor/bin/shopware-deployment-helper run`, fresh installs, migrating an existing shop onto Deployment Helper, and platform specifics (Platform.sh/Upsun, Shopware PaaS, Kubernetes, Fastly). Covers the build-vs-deploy split with Shopware CLI.
+description: Expert guidance for Shopware Deployment Helper — configuring, running, and troubleshooting server-side deployments. Use for `.config/shopware-project.yml` (or it's legacy variants `.shopware-project.yaml` / `.shopware-project.yml`) deployment config (hooks, one-time tasks, extension-management, staging, maintenance, theme-compile), the install vs update lifecycle, `vendor/bin/shopware-deployment-helper run`, fresh installs, migrating an existing shop onto Deployment Helper, and platform specifics (Platform.sh/Upsun, Shopware PaaS, Kubernetes, Fastly). Covers the build-vs-deploy split with Shopware CLI.
 ---
 
 # Shopware Deployment Helper
@@ -50,7 +50,7 @@ It supports Shopware 6.5.8 or newer and requires PHP 8.2+. Older 6.5 releases ar
 - **Scenario** — fresh install, update of a running shop, or a first migration onto Deployment Helper?
 - **Target environment** — staging or production? Never run against production to try it out; migrate on staging first.
 - **Prerequisites** — is `DATABASE_URL` set and reachable? For a fresh install, are `INSTALL_ADMIN_*`, `SALES_CHANNEL_URL`, and `APP_URL` ready?
-- **Config reviewed** — does `.shopware-project.yml` reflect the intended hooks, extension-management, staging, and maintenance settings?
+- **Config reviewed** — does shopware-project config reflect the intended hooks, extension-management, staging, and maintenance settings?
 - **Readiness probe** — `vendor/bin/shopware-deployment-helper is-installed` confirms the helper runs and can reach the database, and reports whether Shopware is already installed (exit `0` installed, `1` not). Cheap to run before any changes.
 - **Rehearse on staging** — Deployment Helper has no dry-run mode; for a migration or an unfamiliar config, run the full deployment against a staging copy first and verify shop health before touching production.
 
@@ -100,13 +100,13 @@ Moving from manual deployments or other tools:
 
 **Pre-migration**:
 - Document current deployment steps and hooks
-- Create `.shopware-project.yml` deployment config matching current procedures
+- Create `.config/shopware-project.yml` deployment config matching current procedures, or adapt an existing config in the legacy paths
 - Test on staging/non-prod environment first
 - Plan maintenance window if required
 
 **Migration steps**:
 1. Install Deployment Helper via Composer
-2. Define hooks in `.shopware-project.yml` matching existing manual steps
+2. Define hooks in shopware-project config matching existing manual steps
 3. Sanity-check with `vendor/bin/shopware-deployment-helper is-installed` (helper runs and reaches the database), then rehearse the full deployment on a staging/non-prod copy first (Deployment Helper has no `--dry-run`)
 4. Enable maintenance mode
 5. Run actual deployment with `vendor/bin/shopware-deployment-helper run`
@@ -133,10 +133,16 @@ Deployment Helper can handle:
 
 Deployment Helper reads from:
 
-```yaml
-.shopware-project.yml        # Source control
-.shopware-project.local.yml  # Server-specific, not committed
-.shopware-project.local.yaml # Server-specific, not committed
+```txt
+# config discovery in order, if no explicit config path was provided as flag / env var
+.config/shopware-project.yml        # Source control
+.shopware-project.yaml              # Source control
+.shopware-project.yml               # Source control
+
+# when a config file is found, it will also pick up the local override next to it, e.g.
+.config/shopware-project.local.yml  # Server-specific, not committed
+.shopware-project.local.yaml        # Server-specific, not committed
+.shopware-project.local.yml         # Server-specific, not committed
 ```
 
 Do not assume Shopware CLI and Deployment Helper interpret fields identically. They have separate implementations.
@@ -354,7 +360,7 @@ Deployment Helper detects Platform.sh environment and:
 - Integrates with Platform.sh's staging/production separation
 - May handle cache clearing via platform
 
-**Config consideration**: `.shopware-project.yml` environment vars may differ from local development.
+**Config consideration**: shopware-project config environment vars may differ from local development.
 
 ### Shopware PaaS Native
 
@@ -386,7 +392,7 @@ Deployment Helper can integrate with Fastly for:
 ### Generic / Self-Hosted
 
 Standard server deployment:
-- All configuration via environment variables or `.shopware-project.local.yml`
+- All configuration via environment variables or config `.local` overrides
 - Manual cache invalidation if CDN in use
 - No platform-specific integrations
 
@@ -411,7 +417,7 @@ When diagnosing deployment failure, establish context in order:
 3. **Which lifecycle stage?** `pre` → `install`/`update` → `post-deploy` → `post`?
 4. **Database connectivity?** Can Deployment Helper reach and write DATABASE_URL?
 5. **Environment variables?** Are required vars set (credentials, URLs, locales, timeouts)?
-6. **Configuration?** Is `.shopware-project.yml` or `.shopware-project.local.yml` correct?
+6. **Configuration?** Is `.config/shopware-project.yml` or `.shopware-project.yaml` or `.shopware-project.local.yml` correct?
 7. **Partial state?** Have earlier deployment steps already persisted changes (schema, extensions, cache)?
 8. **Hooks/tasks?** Are custom hooks or one-time tasks involved? Are they idempotent?
 9. **Extension management?** Are plugin/app lifecycles causing the failure?
