@@ -1,6 +1,6 @@
 ---
 name: deployment-helper
-description: Expert guidance for Shopware Deployment Helper — configuring, running, and troubleshooting server-side deployments. Use for `.config/shopware-project.yml` (or it's legacy variants `.shopware-project.yaml` / `.shopware-project.yml`) deployment config (hooks, one-time tasks, extension-management, staging, maintenance, theme-compile), the install vs update lifecycle, `vendor/bin/shopware-deployment-helper run`, fresh installs, migrating an existing shop onto Deployment Helper, and platform specifics (Platform.sh/Upsun, Shopware PaaS, Kubernetes, Fastly). Covers the build-vs-deploy split with Shopware CLI.
+description: Expert guidance for Shopware Deployment Helper — configuring, running, and troubleshooting server-side deployments. Use for `.config/shopware-project.yml` (or its legacy variants `.shopware-project.yaml` / `.shopware-project.yml`) deployment config (hooks, one-time tasks, extension-management, staging, maintenance, theme-compile), the install vs update lifecycle, `vendor/bin/shopware-deployment-helper run`, fresh installs, migrating an existing shop onto Deployment Helper, and platform specifics (Platform.sh/Upsun, Shopware PaaS, Kubernetes, Fastly). Covers the build-vs-deploy split with Shopware CLI.
 ---
 
 # Shopware Deployment Helper
@@ -417,7 +417,7 @@ When diagnosing deployment failure, establish context in order:
 3. **Which lifecycle stage?** `pre` → `install`/`update` → `post-deploy` → `post`?
 4. **Database connectivity?** Can Deployment Helper reach and write DATABASE_URL?
 5. **Environment variables?** Are required vars set (credentials, URLs, locales, timeouts)?
-6. **Configuration?** Is `.config/shopware-project.yml` or `.shopware-project.yaml` or `.shopware-project.local.yml` correct?
+6. **Configuration?** Are the discovered project config and its sibling `.local` override, if present, correct?
 7. **Partial state?** Have earlier deployment steps already persisted changes (schema, extensions, cache)?
 8. **Hooks/tasks?** Are custom hooks or one-time tasks involved? Are they idempotent?
 9. **Extension management?** Are plugin/app lifecycles causing the failure?
