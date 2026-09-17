@@ -11,17 +11,21 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Services\ShopwareState;
+use Shopware\Deployment\Services\SystemConfigHelper;
+use Shopware\Deployment\Tests\TestUtil\StaticSystemConfigHelper;
 
 #[CoversClass(ShopwareState::class)]
 class ShopwareStateTest extends TestCase
 {
     private Connection&MockObject $connection;
+    private StaticSystemConfigHelper $systemConfigHelper;
     private ShopwareState $state;
 
     protected function setUp(): void
     {
         $this->connection = $this->createMock(Connection::class);
-        $this->state = new ShopwareState($this->connection);
+        $this->systemConfigHelper = new StaticSystemConfigHelper();
+        $this->state = new ShopwareState($this->connection, $this->systemConfigHelper);
     }
 
     public function testShopwareIsNotInstalled(): void
@@ -219,7 +223,7 @@ class ShopwareStateTest extends TestCase
                 'SELECT LOWER(HEX(id)), maintenance FROM sales_channel WHERE type_id = UNHEX(?)',
                 ['8a243080f92e4c719546314b577cf82b'],
             )
-            ->willReturn(['id' => 'maintenance']);
+            ->willReturn(['id' => 0]);
 
         $this->connection
             ->expects($this->once())
@@ -230,6 +234,115 @@ class ShopwareStateTest extends TestCase
             );
 
         $this->state->enableMaintenanceMode();
+
+        // The snapshot is persisted before maintenance is enabled, so a failed
+        // run leaves it behind for the retry
+        static::assertSame('{"id":0}', $this->systemConfigHelper->get('deployment.maintenanceMode'));
+    }
+
+    public function testEnableMaintenanceModeReusesSnapshotOfFailedRun(): void
+    {
+        // A previous run enabled maintenance and failed before restoring it: the
+        // channel is still in maintenance, the snapshot holds the original flag
+        $this->systemConfigHelper->set('deployment.maintenanceMode', '{"id":0}');
+
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchAllKeyValue')
+            ->willReturn(['id' => 1]);
+
+        $statements = [];
+        $this->connection
+            ->method('executeStatement')
+            ->willReturnCallback(static function (string $sql, array $params) use (&$statements): int {
+                $statements[] = [$sql, $params];
+
+                return 1;
+            });
+
+        $this->state->enableMaintenanceMode();
+
+        // The snapshot of the failed run is reused unchanged
+        static::assertSame('{"id":0}', $this->systemConfigHelper->get('deployment.maintenanceMode'));
+
+        static::assertSame(0, $this->state->disableMaintenanceMode());
+
+        // The state from before the first run is restored and the snapshot is deleted
+        static::assertSame(
+            [
+                [
+                    'UPDATE sales_channel SET maintenance = 1 WHERE type_id = UNHEX(?)',
+                    ['8a243080f92e4c719546314b577cf82b'],
+                ],
+                [
+                    'UPDATE sales_channel SET maintenance = ? WHERE id = UNHEX(?)',
+                    [0, 'id'],
+                ],
+            ],
+            $statements,
+        );
+        static::assertNull($this->systemConfigHelper->get('deployment.maintenanceMode'));
+    }
+
+    public function testEnableMaintenanceModeExtendsSnapshotWithNewSalesChannels(): void
+    {
+        // channel-b was created after a failed run had taken its snapshot
+        $this->systemConfigHelper->set('deployment.maintenanceMode', '{"channel-a":0}');
+
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchAllKeyValue')
+            ->willReturn(['channel-a' => 1, 'channel-b' => 0]);
+
+        $this->connection
+            ->expects($this->once())
+            ->method('executeStatement')
+            ->with(
+                'UPDATE sales_channel SET maintenance = 1 WHERE type_id = UNHEX(?)',
+                ['8a243080f92e4c719546314b577cf82b'],
+            );
+
+        $this->state->enableMaintenanceMode();
+
+        static::assertSame('{"channel-a":0,"channel-b":0}', $this->systemConfigHelper->get('deployment.maintenanceMode'));
+    }
+
+    public function testEnableMaintenanceModeTakesFreshSnapshotWhenPersistedOneIsCorrupt(): void
+    {
+        $this->systemConfigHelper->set('deployment.maintenanceMode', 'not-json');
+
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchAllKeyValue')
+            ->willReturn(['id' => 1]);
+
+        $this->state->enableMaintenanceMode();
+
+        static::assertSame('{"id":1}', $this->systemConfigHelper->get('deployment.maintenanceMode'));
+    }
+
+    public function testEnableMaintenanceModeTakesFreshSnapshotWhenPersistedOneIsNotAString(): void
+    {
+        // SystemConfigHelper::get() throws when the stored value is not a string
+        $systemConfigHelper = $this->createMock(SystemConfigHelper::class);
+        $systemConfigHelper
+            ->expects($this->once())
+            ->method('get')
+            ->with('deployment.maintenanceMode')
+            ->willThrowException(new \UnexpectedValueException('Expected string, got array'));
+
+        $systemConfigHelper
+            ->expects($this->once())
+            ->method('set')
+            ->with('deployment.maintenanceMode', '{"id":1}');
+
+        $this->connection
+            ->expects($this->once())
+            ->method('fetchAllKeyValue')
+            ->willReturn(['id' => 1]);
+
+        $state = new ShopwareState($this->connection, $systemConfigHelper);
+        $state->enableMaintenanceMode();
     }
 
     public function testDisableMaintenanceMode(): void
@@ -246,7 +359,35 @@ class ShopwareStateTest extends TestCase
             ->method('executeStatement')
             ->with('UPDATE sales_channel SET maintenance = ? WHERE id = UNHEX(?)', [0, 'id']);
 
-        $this->state->disableMaintenanceMode();
+        static::assertSame(0, $this->state->disableMaintenanceMode());
+        static::assertNull($this->systemConfigHelper->get('deployment.maintenanceMode'));
+    }
+
+    public function testDisableMaintenanceModeReturnsChannelsRemainingInMaintenance(): void
+    {
+        // channel-a was already in maintenance before the update and must stay enabled
+        $this->connection
+            ->method('fetchAllKeyValue')
+            ->willReturn(['channel-a' => 1, 'channel-b' => 0]);
+
+        $this->state->enableMaintenanceMode();
+
+        static::assertSame(1, $this->state->disableMaintenanceMode());
+    }
+
+    public function testDisableMaintenanceModeRestoresPersistedSnapshot(): void
+    {
+        // No enableMaintenanceMode() in this process: the snapshot persisted by a
+        // failed run is restored and deleted
+        $this->systemConfigHelper->set('deployment.maintenanceMode', '{"id":0}');
+
+        $this->connection
+            ->expects($this->once())
+            ->method('executeStatement')
+            ->with('UPDATE sales_channel SET maintenance = ? WHERE id = UNHEX(?)', [0, 'id']);
+
+        static::assertSame(0, $this->state->disableMaintenanceMode());
+        static::assertNull($this->systemConfigHelper->get('deployment.maintenanceMode'));
     }
 
     #[DataProvider('mysqlVersionProvider')]
