@@ -14,16 +14,21 @@ use Symfony\Component\Yaml\Yaml;
 
 class ConfigFactory
 {
+    /**
+     * @var string[]
+     */
+    private const CONFIG_LOCATIONS = [
+        '.config/shopware-project.yml',
+        '.shopware-project.yaml',
+        '.shopware-project.yml',
+    ];
+
     public static function create(string $projectDir, Application $application): ProjectConfiguration
     {
         $file = EnvironmentHelper::getVariable('SHOPWARE_PROJECT_CONFIG_FILE', $application->projectConfigFile);
 
         if ($file === null) {
-            $file = Path::join($projectDir, '.shopware-project.yml');
-
-            if (!file_exists($file)) {
-                $file = Path::join($projectDir, '.shopware-project.yaml');
-            }
+            $file = self::searchProjectConfig($projectDir);
         } else {
             // Handle relative paths by joining with project directory
             if (!Path::isAbsolute($file)) {
@@ -50,6 +55,24 @@ class ConfigFactory
         }
 
         return self::fillDefaults($projectConfiguration);
+    }
+
+    /**
+     * Searches $projectDir for the project config in documented priority.
+     */
+    private static function searchProjectConfig(string $projectDir): string
+    {
+        $locationCount = \count(self::CONFIG_LOCATIONS);
+
+        foreach (self::CONFIG_LOCATIONS as $idx => $location) {
+            $file = Path::join($projectDir, $location);
+            if (file_exists($file)) {
+                return $file;
+            }
+        }
+
+        // if no config exists, still return recommended path for failing downstream + error reporting
+        return Path::join($projectDir, self::CONFIG_LOCATIONS[0]);
     }
 
     /**

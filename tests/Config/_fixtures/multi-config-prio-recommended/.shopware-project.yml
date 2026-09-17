@@ -1,0 +1,4 @@
+deployment:
+  one-time-tasks:
+    - id: bar
+      script: test
