@@ -31,6 +31,11 @@ class ProjectHooks
     /**
      * @var list<HookStep>
      */
+    public array $postExtensionOnProjectInstall;
+
+    /**
+     * @var list<HookStep>
+     */
     public array $preUpdate;
 
     /**
@@ -45,6 +50,7 @@ class ProjectHooks
      * @param string|list<HookStep> $postInstall
      * @param string|list<HookStep> $preUpdate
      * @param string|list<HookStep> $postUpdate
+     * @param string|list<HookStep> $postExtensionOnProjectInstall
      */
     public function __construct(
         string|array $pre = [],
@@ -53,11 +59,13 @@ class ProjectHooks
         string|array $postInstall = [],
         string|array $preUpdate = [],
         string|array $postUpdate = [],
+        string|array $postExtensionOnProjectInstall = [],
     ) {
         $this->pre = self::normalize($pre);
         $this->post = self::normalize($post);
         $this->preInstall = self::normalize($preInstall);
         $this->postInstall = self::normalize($postInstall);
+        $this->postExtensionOnProjectInstall = self::normalize($postExtensionOnProjectInstall);
         $this->preUpdate = self::normalize($preUpdate);
         $this->postUpdate = self::normalize($postUpdate);
     }

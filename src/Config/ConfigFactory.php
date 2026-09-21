@@ -144,6 +144,10 @@ class ConfigFactory
             $hooks->postInstall = self::parseHookSteps($config['post-install']);
         }
 
+        if (isset($config['post-extension-on-project-install'])) {
+            $hooks->postExtensionOnProjectInstall = self::parseHookSteps($config['post-extension-on-project-install']);
+        }
+
         if (isset($config['pre-update'])) {
             $hooks->preUpdate = self::parseHookSteps($config['pre-update']);
         }
