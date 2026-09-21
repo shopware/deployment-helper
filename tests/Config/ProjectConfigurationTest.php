@@ -29,6 +29,7 @@ class ProjectConfigurationTest extends TestCase
         static::assertEmpty($config->hooks->post);
         static::assertEmpty($config->hooks->preInstall);
         static::assertEmpty($config->hooks->postInstall);
+        static::assertEmpty($config->hooks->postExtensionInstall);
         static::assertEmpty($config->hooks->preUpdate);
         static::assertEmpty($config->hooks->postUpdate);
 

@@ -56,6 +56,7 @@ class ConfigFactoryTest extends TestCase
         static::assertNotEmpty($config->hooks->post);
         static::assertNotEmpty($config->hooks->preInstall);
         static::assertNotEmpty($config->hooks->postInstall);
+        static::assertNotEmpty($config->hooks->postExtensionInstall);
         static::assertNotEmpty($config->hooks->preUpdate);
         static::assertNotEmpty($config->hooks->postUpdate);
         static::assertStringContainsString('Before deployment general', $config->hooks->pre[0]->script);

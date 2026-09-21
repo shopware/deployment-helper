@@ -64,7 +64,7 @@ class InstallationManagerTest extends TestCase
     {
         $hookExecutor = $this->createMock(HookExecutor::class);
         $hookExecutor
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('execute');
 
         $manager = new InstallationManager(
@@ -190,7 +190,7 @@ class InstallationManagerTest extends TestCase
     {
         $hookExecutor = $this->createMock(HookExecutor::class);
         $hookExecutor
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('execute');
 
         $configuration = new ProjectConfiguration();
@@ -425,11 +425,14 @@ class InstallationManagerTest extends TestCase
         $state = $this->createMock(ShopwareState::class);
         $state->expects(static::never())->method('setVersion');
 
+        $hookCalls = [];
         $hookExecutor = $this->createMock(HookExecutor::class);
         $hookExecutor
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('execute')
-            ->with(HookExecutor::HOOK_PRE_INSTALL);
+            ->willReturnCallback(static function (string $hook) use (&$hookCalls): void {
+                $hookCalls[] = $hook;
+            });
 
         $configuration = new ProjectConfiguration();
         $configuration->openSearch->indexOnInstall = true;
@@ -447,10 +450,17 @@ class InstallationManagerTest extends TestCase
             $this->createMock(SystemConfigHelper::class),
         );
 
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('OpenSearch indexing failed');
+        try {
+            $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+            static::fail('Expected OpenSearch indexing to fail');
+        } catch (\RuntimeException $exception) {
+            static::assertSame('OpenSearch indexing failed', $exception->getMessage());
+        }
 
-        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+        static::assertSame([
+            HookExecutor::HOOK_PRE_INSTALL,
+            HookExecutor::HOOK_POST_EXTENSION_INSTALL,
+        ], $hookCalls);
     }
 
     /**

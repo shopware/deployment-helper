@@ -13,6 +13,7 @@ class HookExecutor
     public const HOOK_POST = 'post';
     public const HOOK_PRE_INSTALL = 'preInstall';
     public const HOOK_POST_INSTALL = 'postInstall';
+    public const HOOK_POST_EXTENSION_INSTALL = 'postExtensionInstall';
     public const HOOK_PRE_UPDATE = 'preUpdate';
     public const HOOK_POST_UPDATE = 'postUpdate';
 
@@ -32,6 +33,7 @@ class HookExecutor
             self::HOOK_POST => $this->configuration->hooks->post,
             self::HOOK_PRE_INSTALL => $this->configuration->hooks->preInstall,
             self::HOOK_POST_INSTALL => $this->configuration->hooks->postInstall,
+            self::HOOK_POST_EXTENSION_INSTALL => $this->configuration->hooks->postExtensionInstall,
             self::HOOK_PRE_UPDATE => $this->configuration->hooks->preUpdate,
             self::HOOK_POST_UPDATE => $this->configuration->hooks->postUpdate,
             default => throw new \RuntimeException('Unknown hook name'),
