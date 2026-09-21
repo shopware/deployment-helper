@@ -43,7 +43,7 @@ A `pre` hook or PostDeploy subscriber can also abort.
 1. `pre-install` hook
 2. system:install → create admin user (INSTALL_ADMIN_PASSWORD optional; defaults to "shopware") → messenger:setup-transports → storefront setup (if shopware/storefront is installed)
 3. plugin:refresh → install/update/deactivate/remove plugins → optional license refresh → install/update/deactivate/remove apps
-4. `post-extension-install` hook
+4. `post-extension-on-project-install` hook
 6. `post-install` hook
 
 **Update (live shop):**
@@ -62,7 +62,7 @@ A `pre` hook or PostDeploy subscriber can also abort.
 ## Config that matters
 
 - **`deployment.extension-management.enabled`:** enables or disables DH-managed plugin and app lifecycle operations. When `false`, DH skips plugin/app lifecycle actions; plugin:refresh still runs. When `true`, per-extension overrides influence lifecycle behavior, although exact semantics differ between plugins and apps.
-- **Hooks:** `pre`, `post`, `pre-install`, `post-extension-install`, `post-install`, `pre-update`, `post-update` - inject shell commands at deploy moments. Untyped escape hatch.
+- **Hooks:** `pre`, `post`, `pre-install`, `post-extension-on-project-install`, `post-install`, `pre-update`, `post-update` - inject shell commands at deploy moments. Untyped escape hatch.
 - **One-time tasks:** update-only, stateful run-once scripts keyed by id. Marked done only after success; failures re-run on next deploy. `before`/`after` phasing. Not enforced idempotent - re-running is caller's responsibility.
 - **Local config:** `.shopware-project.local.yml` (or `.local.yaml`) layers per-environment overrides. Env vars pass short-lived inputs (locale, admin user, URLs, credentials).
 - **Flags:** `--skip-theme-compile`, `--skip-assets-install`. Flag affects plugins (receives `--skip-asset-build`); apps do not receive skip-assets option.

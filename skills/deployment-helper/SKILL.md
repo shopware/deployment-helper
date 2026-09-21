@@ -225,7 +225,7 @@ deployment:
 
 **Fresh install hooks**:
 - `pre-install`: before `system:install`, the database is still empty
-- `post-extension-install`: after plugin and app install/update/activation/deactivation/removal operations
+- `post-extension-on-project-install`: after plugin and app install/update/activation/deactivation/removal operations
 - `post-install`: last step of the install path, after plugins and apps are installed and activated. Use it when your command needs extensions present.
 
 **Update hooks**:

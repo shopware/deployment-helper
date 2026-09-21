@@ -459,7 +459,7 @@ class InstallationManagerTest extends TestCase
 
         static::assertSame([
             HookExecutor::HOOK_PRE_INSTALL,
-            HookExecutor::HOOK_POST_EXTENSION_INSTALL,
+            HookExecutor::HOOK_POST_EXTENSION_ON_PROJECT_INSTALL,
         ], $hookCalls);
     }
 

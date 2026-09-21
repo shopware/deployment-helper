@@ -8,7 +8,7 @@ deployment:
       echo "Before running system:install"
     post-install: |
       echo "After running system:install"
-    post-extension-install: |
+    post-extension-on-project-install: |
       echo "After installing extensions"
     pre-update: |
       echo "Before running system:update"

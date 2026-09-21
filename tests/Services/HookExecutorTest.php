@@ -36,7 +36,7 @@ class HookExecutorTest extends TestCase
         yield [HookExecutor::HOOK_POST, new ProjectHooks(post: 'Hello World')];
         yield [HookExecutor::HOOK_PRE_INSTALL, new ProjectHooks(preInstall: 'Hello World')];
         yield [HookExecutor::HOOK_POST_INSTALL, new ProjectHooks(postInstall: 'Hello World')];
-        yield [HookExecutor::HOOK_POST_EXTENSION_INSTALL, new ProjectHooks(postExtensionInstall: 'Hello World')];
+        yield [HookExecutor::HOOK_POST_EXTENSION_ON_PROJECT_INSTALL, new ProjectHooks(postExtensionOnProjectInstall: 'Hello World')];
         yield [HookExecutor::HOOK_PRE_UPDATE, new ProjectHooks(preUpdate: 'Hello World')];
         yield [HookExecutor::HOOK_POST_UPDATE, new ProjectHooks(postUpdate: 'Hello World')];
     }

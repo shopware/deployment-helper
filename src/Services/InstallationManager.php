@@ -116,7 +116,7 @@ class InstallationManager
         $this->appHelper->deactivateApps();
         $this->appHelper->removeApps();
 
-        $this->hookExecutor->execute(HookExecutor::HOOK_POST_EXTENSION_INSTALL);
+        $this->hookExecutor->execute(HookExecutor::HOOK_POST_EXTENSION_ON_PROJECT_INSTALL);
 
         if ($this->configuration->openSearch->indexOnInstall && EnvironmentHelper::getVariable('SHOPWARE_ES_INDEXING_ENABLED') === '1') {
             if (EnvironmentHelper::getVariable('OPENSEARCH_URL') !== null) {
