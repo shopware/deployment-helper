@@ -18,7 +18,12 @@ Releases are published to [Packagist](https://packagist.org/packages/shopware/de
    git push origin v1.2.3
    ```
 
-Pushing the tag creates a GitHub release and triggers Packagist to mirror the release. Verify the release on [Packagist](https://packagist.org/packages/shopware/deployment-helper) and [GitHub Releases](https://github.com/shopware/deployment-helper/releases).
+Pushing the tag triggers Packagist to mirror the release. Verify the release on [Packagist](https://packagist.org/packages/shopware/deployment-helper)
+
+4. Go to [GitHub Releases](https://github.com/shopware/deployment-helper/releases):
+  - create a new release based on the pushed tag
+  - auto generate the release notes
+  - publish it and confirm it's visible (e.g. not a draft)
 
 ## If a release fails
 
