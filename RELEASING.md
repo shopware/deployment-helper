@@ -8,17 +8,26 @@ Releases are published to [Packagist](https://packagist.org/packages/shopware/de
 2. Create an annotated [semantic version](https://semver.org/) tag, for example:
 
    ```sh
-   git tag -a v1.2.3 -m "v1.2.3"
+   git tag -s 1.2.3 -m "1.2.3"
    ```
 
-   Use a prerelease suffix such as `v1.2.3-rc.1` for prereleases.
+   Use a prerelease suffix such as `1.2.3-rc.1` for prereleases.
+ 
+   The `-s` flag makes the tag "signed", similar to commits it is considered best practice.
+   For it to work you might need to refer to [GitHub's documentation on the matter](https://docs.github.com/en/authentication/managing-commit-signature-verification/associating-an-email-with-your-gpg-key).
+
 3. Push only the new tag:
 
    ```sh
-   git push origin v1.2.3
+   git push origin 1.2.3
    ```
 
-Pushing the tag creates a GitHub release and triggers Packagist to mirror the release. Verify the release on [Packagist](https://packagist.org/packages/shopware/deployment-helper) and [GitHub Releases](https://github.com/shopware/deployment-helper/releases).
+Pushing the tag triggers Packagist to mirror the release. Verify the release on [Packagist](https://packagist.org/packages/shopware/deployment-helper)
+
+4. Go to [GitHub Releases](https://github.com/shopware/deployment-helper/releases):
+  - create a new release based on the pushed tag
+  - auto generate the release notes
+  - publish it and confirm it's visible (e.g. not a draft)
 
 ## If a release fails
 
