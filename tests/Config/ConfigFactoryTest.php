@@ -37,8 +37,11 @@ class ConfigFactoryTest extends TestCase
 
     public static function files(): \Generator
     {
+        yield [__DIR__ . '/_fixtures/configyml'];
         yield [__DIR__ . '/_fixtures/yml'];
         yield [__DIR__ . '/_fixtures/yaml'];
+        yield [__DIR__ . '/_fixtures/multi-config-prio-recommended'];
+        yield [__DIR__ . '/_fixtures/multi-config-prio-first-fallback'];
     }
 
     #[DataProvider('files')]
