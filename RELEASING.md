@@ -8,7 +8,7 @@ Releases are published to [Packagist](https://packagist.org/packages/shopware/de
 2. Create an annotated [semantic version](https://semver.org/) tag, for example:
 
    ```sh
-   git tag -a 1.2.3 -m "1.2.3" -s
+   git tag -s 1.2.3 -m "1.2.3"
    ```
 
    Use a prerelease suffix such as `1.2.3-rc.1` for prereleases.
