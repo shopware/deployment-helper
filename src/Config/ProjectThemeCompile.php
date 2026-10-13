@@ -8,5 +8,7 @@ class ProjectThemeCompile
 {
     public bool $parallel = false;
 
+    public bool $forceThemeCompileSync = false;
+
     public ?int $workers = null;
 }

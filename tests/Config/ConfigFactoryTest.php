@@ -99,6 +99,7 @@ class ConfigFactoryTest extends TestCase
     {
         $config = ConfigFactory::create(__DIR__, $this->createMockApplication());
         static::assertFalse($config->themeCompile->parallel);
+        static::assertFalse($config->themeCompile->forceThemeCompileSync);
         static::assertNull($config->themeCompile->workers);
     }
 
@@ -106,6 +107,7 @@ class ConfigFactoryTest extends TestCase
     {
         $config = ConfigFactory::create(__DIR__ . '/_fixtures/theme-compile', $this->createMockApplication());
         static::assertTrue($config->themeCompile->parallel);
+        static::assertTrue($config->themeCompile->forceThemeCompileSync);
         static::assertSame(6, $config->themeCompile->workers);
     }
 

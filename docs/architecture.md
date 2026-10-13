@@ -68,7 +68,7 @@ A `pre` hook or PostDeploy subscriber can also abort.
 - **Flags:** `--skip-theme-compile`, `--skip-assets-install`. Flag affects plugins (receives `--skip-asset-build`); apps do not receive skip-assets option.
 - **Maintenance mode:** update-only, optional. Snapshots per-storefront prior state (persisted in `system_config` under `deployment.maintenanceMode`); enables maintenance and clears cache. On exit, restores prior states, deletes the snapshot, and clears cache. Failure after enable leaves maintenance on (no finally); the next run reuses the persisted snapshot and restores the state from before the first attempt.
 - **Staging:** `deployment.staging.enabled` runs `system:setup:staging --no-interaction --force` via PostDeploy subscriber (separate from maintenance).
-- **Theme compilation:** `deployment.theme-compile.parallel` enables per-sales-channel parallel compile when supported; `workers` limits concurrency. Falls back to serial `theme:compile --active-only` where unsupported, inapplicable, or not beneficial.
+- **Theme compilation:** `deployment.theme-compile.parallel` enables per-sales-channel parallel compile when supported; `workers` limits concurrency. Set `deployment.theme-compile.force-theme-compile-sync: true` to add `--sync` to serial compilation on Shopware 6.6.1+. Falls back to serial `theme:compile --active-only` where unsupported, inapplicable, or not beneficial.
 
 Config parsed by `ConfigFactory` (hand-written interpreter). Ad-hoc parsing/type checks; no shared schema; unknown keys ignored (typos pass silently).
 

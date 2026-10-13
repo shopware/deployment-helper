@@ -129,7 +129,7 @@ class UpgradeManager
     private function compileThemes(OutputInterface $output): void
     {
         if (!$this->configuration->themeCompile->parallel) {
-            $this->processHelper->console(['theme:compile', '--active-only']);
+            $this->processHelper->console($this->themeCompileActiveOnlyArgs());
 
             return;
         }
@@ -142,7 +142,7 @@ class UpgradeManager
                 'Parallel theme compile requires Shopware 6.5.6+ for --only (current: %s); falling back to serial compile',
                 $shopwareVersion,
             ));
-            $this->processHelper->console(['theme:compile', '--active-only']);
+            $this->processHelper->console($this->themeCompileActiveOnlyArgs($shopwareVersion));
 
             return;
         }
@@ -151,7 +151,7 @@ class UpgradeManager
 
         if (\count($assignments) <= 1) {
             // Nothing to parallelize - fall back to the regular command.
-            $this->processHelper->console(['theme:compile', '--active-only']);
+            $this->processHelper->console($this->themeCompileActiveOnlyArgs($shopwareVersion));
 
             return;
         }
@@ -174,7 +174,7 @@ class UpgradeManager
         if ($parallelSalesChannelIds === []) {
             // Every sales channel has a distinct theme - no shared-asset work to skip,
             // so the regular single-process compile is simpler and avoids temp-file races.
-            $this->processHelper->console(['theme:compile', '--active-only']);
+            $this->processHelper->console($this->themeCompileActiveOnlyArgs($shopwareVersion));
 
             return;
         }
@@ -187,7 +187,7 @@ class UpgradeManager
             $workers,
         ));
 
-        $baseArgs = $this->themeCompileBaseArgs($shopwareVersion);
+        $baseArgs = $this->themeCompileBaseArgs($shopwareVersion, true);
 
         // Seed compiles write theme/{themeId} assets; run them serially so seeds for
         // different themes do not race on shared SCSS temp files.
@@ -209,13 +209,25 @@ class UpgradeManager
     /**
      * @return list<string>
      */
-    private function themeCompileBaseArgs(string $shopwareVersion): array
+    private function themeCompileActiveOnlyArgs(?string $shopwareVersion = null): array
+    {
+        if (!$this->configuration->themeCompile->forceThemeCompileSync) {
+            return ['theme:compile', '--active-only'];
+        }
+
+        return [...$this->themeCompileBaseArgs($shopwareVersion ?? $this->state->getCurrentVersion()), '--active-only'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function themeCompileBaseArgs(string $shopwareVersion, bool $sync = false): array
     {
         $args = ['theme:compile'];
 
         // --sync is available from Shopware 6.6.1 and forces synchronous compile when
         // theme.compile_async is enabled. Older cores reject the unknown option.
-        if ($this->supportsThemeCompileSync($shopwareVersion)) {
+        if (($sync || $this->configuration->themeCompile->forceThemeCompileSync) && $this->supportsThemeCompileSync($shopwareVersion)) {
             $args[] = '--sync';
         }
 
