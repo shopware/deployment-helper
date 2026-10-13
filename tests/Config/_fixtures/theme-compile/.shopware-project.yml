@@ -1,4 +1,5 @@
 deployment:
   theme-compile:
     parallel: true
+    force-theme-compile-sync: true
     workers: 6

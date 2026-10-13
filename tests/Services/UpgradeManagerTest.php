@@ -398,6 +398,39 @@ class UpgradeManagerTest extends TestCase
         static::assertContains(['theme:compile', '--active-only'], $consoleCommands);
     }
 
+    public function testThemeCompileCanBeForcedSynchronousWithoutParallelCompilation(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state->method('getCurrentVersion')->willReturn('6.6.10.3');
+
+        $processHelper = $this->createMock(ProcessHelper::class);
+        $consoleCommands = [];
+        $processHelper
+            ->method('console')
+            ->willReturnCallback(static function (array $command) use (&$consoleCommands): void {
+                $consoleCommands[] = $command;
+            });
+
+        $configuration = new ProjectConfiguration();
+        $configuration->themeCompile->forceThemeCompileSync = true;
+
+        $manager = new UpgradeManager(
+            $state,
+            $processHelper,
+            $this->createMock(PluginHelper::class),
+            $this->createMock(AppHelper::class),
+            $this->createMock(HookExecutor::class),
+            $this->createMock(OneTimeTasks::class),
+            $configuration,
+            $this->createMock(AccountService::class),
+            $this->createMock(TrackingService::class),
+        );
+
+        $manager->run(new RunConfiguration(), $this->createMock(OutputInterface::class));
+
+        static::assertContains(['theme:compile', '--sync', '--active-only'], $consoleCommands);
+    }
+
     public function testParallelThemeCompileFallsBackWhenEachChannelHasDistinctTheme(): void
     {
         $state = $this->createMock(ShopwareState::class);
@@ -568,7 +601,7 @@ class UpgradeManagerTest extends TestCase
         );
     }
 
-    public function testParallelThemeCompileOmitsSyncOnShopwareBefore661(): void
+    public function testParallelThemeCompileOmitsSyncOnShopwareBefore661EvenWhenForced(): void
     {
         $state = $this->createMock(ShopwareState::class);
         $state
@@ -596,6 +629,7 @@ class UpgradeManagerTest extends TestCase
 
         $configuration = new ProjectConfiguration();
         $configuration->themeCompile->parallel = true;
+        $configuration->themeCompile->forceThemeCompileSync = true;
 
         $manager = new UpgradeManager(
             $state,

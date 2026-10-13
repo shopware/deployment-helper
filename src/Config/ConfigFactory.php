@@ -109,6 +109,10 @@ class ConfigFactory
                 $projectConfiguration->themeCompile->parallel = $deployment['theme-compile']['parallel'];
             }
 
+            if (isset($deployment['theme-compile']['force-theme-compile-sync']) && \is_bool($deployment['theme-compile']['force-theme-compile-sync'])) {
+                $projectConfiguration->themeCompile->forceThemeCompileSync = $deployment['theme-compile']['force-theme-compile-sync'];
+            }
+
             if (isset($deployment['theme-compile']['workers']) && \is_int($deployment['theme-compile']['workers']) && $deployment['theme-compile']['workers'] >= 1) {
                 $projectConfiguration->themeCompile->workers = $deployment['theme-compile']['workers'];
             }

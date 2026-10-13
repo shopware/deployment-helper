@@ -303,6 +303,16 @@ deployment:
     workers: 4
 ```
 
+To force serial theme compilation to wait for completion on Shopware 6.6.1 and newer:
+
+```yaml
+deployment:
+  theme-compile:
+    force-theme-compile-sync: true
+```
+
+Parallel theme compilation already uses `--sync` where supported.
+
 ## Maintenance and Staging Workflows
 
 **Maintenance mode** and **staging mode** are separate features.
