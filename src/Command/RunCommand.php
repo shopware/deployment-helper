@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Command;
 
+use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Event\PostDeploy;
 use Shopware\Deployment\Helper\EnvironmentHelper;
 use Shopware\Deployment\Services\HookExecutor;
@@ -29,6 +30,7 @@ class RunCommand extends Command
         private readonly HookExecutor $hookExecutor,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly TrackingService $trackingService,
+        private readonly ProjectConfiguration $configuration,
     ) {
         parent::__construct();
     }
@@ -50,7 +52,7 @@ class RunCommand extends Command
 
         $config = new RunConfiguration(
             skipThemeCompile: (bool) $input->getOption('skip-theme-compile'),
-            skipAssetsInstall: ((bool) $input->getOption('skip-asset-install') || (bool) $input->getOption('skip-assets-install')),
+            skipAssetsInstall: ((bool) $input->getOption('skip-asset-install') || (bool) $input->getOption('skip-assets-install') || $this->configuration->skipAssetsInstall),
             timeout: (float) (is_numeric($timeout) ? $timeout : EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_TIMEOUT', '300')),
             forceReinstallation: EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_FORCE_REINSTALL', '0') === '1',
         );

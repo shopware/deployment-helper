@@ -96,6 +96,10 @@ class ConfigFactory
             }
         }
 
+        if (isset($deployment['skip-assets-install']) && \is_bool($deployment['skip-assets-install'])) {
+            $projectConfiguration->skipAssetsInstall = $deployment['skip-assets-install'];
+        }
+
         if (isset($deployment['hooks']) && \is_array($deployment['hooks'])) {
             self::fillHooks($projectConfiguration->hooks, $deployment['hooks']);
         }
@@ -275,6 +279,10 @@ class ConfigFactory
 
         if (EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_STAGING') === '1') {
             $config->staging->enabled = true;
+        }
+
+        if (EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_SKIP_ASSETS_INSTALL') === '1') {
+            $config->skipAssetsInstall = true;
         }
 
         $themeCompileWorkers = EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_THEME_COMPILE_WORKERS');

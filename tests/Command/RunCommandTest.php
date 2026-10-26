@@ -7,6 +7,7 @@ namespace Shopware\Deployment\Tests\Command;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Command\RunCommand;
+use Shopware\Deployment\Config\ProjectConfiguration;
 use Shopware\Deployment\Services\HookExecutor;
 use Shopware\Deployment\Services\InstallationManager;
 use Shopware\Deployment\Services\ShopwareState;
@@ -72,7 +73,8 @@ class RunCommandTest extends TestCase
             $this->createMock(UpgradeManager::class),
             $hookExecutor,
             new EventDispatcher(),
-            $trackingService
+            $trackingService,
+            new ProjectConfiguration(),
         );
 
         $tester = new CommandTester($command);
@@ -80,6 +82,58 @@ class RunCommandTest extends TestCase
             '--skip-theme-compile' => true,
             '--skip-asset-install' => true,
         ]);
+    }
+
+    public function testSkipAssetsInstallFromConfiguration(): void
+    {
+        $state = $this->createMock(ShopwareState::class);
+        $state
+            ->expects($this->once())
+            ->method('isInstalled')
+            ->willReturn(false);
+        $state
+            ->expects($this->once())
+            ->method('getMySqlVersion')
+            ->willReturn('5.7.0');
+
+        $hookExecutor = $this->createMock(HookExecutor::class);
+        $hookExecutor
+            ->expects($this->exactly(2))
+            ->method('execute');
+
+        $installationManager = $this->createMock(InstallationManager::class);
+        $installationManager
+            ->expects($this->once())
+            ->method('run')
+            ->with(self::callback(static function ($config) {
+                static::assertTrue($config->skipAssetsInstall);
+
+                return true;
+            }));
+
+        $trackingService = $this->createMock(TrackingService::class);
+        $trackingService
+            ->expects($this->once())
+            ->method('showHint');
+        $trackingService
+            ->expects($this->exactly(2))
+            ->method('track');
+
+        $projectConfiguration = new ProjectConfiguration();
+        $projectConfiguration->skipAssetsInstall = true;
+
+        $command = new RunCommand(
+            $state,
+            $installationManager,
+            $this->createMock(UpgradeManager::class),
+            $hookExecutor,
+            new EventDispatcher(),
+            $trackingService,
+            $projectConfiguration,
+        );
+
+        $tester = new CommandTester($command);
+        $tester->execute([]);
     }
 
     public function testUpdate(): void
@@ -139,7 +193,8 @@ class RunCommandTest extends TestCase
             $upgradeManager,
             $hookExecutor,
             new EventDispatcher(),
-            $trackingService
+            $trackingService,
+            new ProjectConfiguration(),
         );
 
         $tester = new CommandTester($command);
@@ -204,7 +259,8 @@ class RunCommandTest extends TestCase
             $this->createMock(UpgradeManager::class),
             $hookExecutor,
             new EventDispatcher(),
-            $trackingService
+            $trackingService,
+            new ProjectConfiguration(),
         );
 
         $tester = new CommandTester($command);
