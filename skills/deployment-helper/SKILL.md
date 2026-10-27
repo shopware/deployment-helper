@@ -157,6 +157,7 @@ Everything lives under the top-level `deployment:` key. Each area below has a de
 | `extension-management` | Plugin/app lifecycle automation | "Extension Management Operations" |
 | `one-time-tasks` | Idempotent, run-once, update-time tasks | "One-Time Tasks: Idempotent Updates" |
 | `theme-compile` | Theme build (`parallel`, `workers`) | "Themes and Assets" |
+| `skip-assets-install` | Skip asset installation (use when assets were built in CI/CD) | "Themes and Assets" |
 | `maintenance` | Maintenance mode during updates | "Maintenance and Staging Workflows" |
 | `staging` | Data-leak prevention (separate environment) | "Maintenance and Staging Workflows" |
 
@@ -181,6 +182,7 @@ Fresh install:
 Runtime:
 - `SHOPWARE_DEPLOYMENT_TIMEOUT` (seconds, or `null` to disable)
 - `SHOPWARE_DEPLOYMENT_FORCE_REINSTALL` (only when understood)
+- `SHOPWARE_DEPLOYMENT_SKIP_ASSETS_INSTALL` (`1` to skip asset installation)
 
 Store account (needed to install/update paid Store extensions via `extension-management`):
 - `SHOPWARE_STORE_ACCOUNT_EMAIL`, `SHOPWARE_STORE_ACCOUNT_PASSWORD` — used to refresh the Store account on deploy; without them Store account login is skipped. Store account credentials come from these env vars, not from config.
@@ -286,13 +288,24 @@ If themes were already compiled during CI/CD, use:
 vendor/bin/shopware-deployment-helper run --skip-theme-compile
 ```
 
-Asset installation can be skipped with:
+Asset installation can be skipped with the CLI flag:
 
 ```bash
 --skip-assets-install
 ```
 
-`--skip-asset-install` is deprecated.
+or persistently through config or environment:
+
+```yaml
+deployment:
+  skip-assets-install: true
+```
+
+```bash
+export SHOPWARE_DEPLOYMENT_SKIP_ASSETS_INSTALL=1
+```
+
+`--skip-asset-install` is deprecated. The config/env switches are equivalent to the CLI flag.
 
 Theme compilation can be parallelized:
 

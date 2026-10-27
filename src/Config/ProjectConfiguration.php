@@ -27,6 +27,8 @@ class ProjectConfiguration
 
     public bool $alwaysClearCache = false;
 
+    public bool $skipAssetsInstall = false;
+
     public function __construct()
     {
         $this->hooks = new ProjectHooks();

@@ -33,6 +33,7 @@ class ConfigFactoryTest extends TestCase
         static::assertSame([], $config->oneTimeTasks);
         static::assertSame([], $config->hooks->pre);
         static::assertFalse($config->openSearch->indexOnInstall);
+        static::assertFalse($config->skipAssetsInstall);
     }
 
     public static function files(): \Generator
@@ -101,6 +102,19 @@ class ConfigFactoryTest extends TestCase
         static::assertFalse($config->themeCompile->parallel);
         static::assertFalse($config->themeCompile->forceThemeCompileSync);
         static::assertNull($config->themeCompile->workers);
+    }
+
+    public function testExistingConfigWithSkipAssetsInstall(): void
+    {
+        $config = ConfigFactory::create(__DIR__ . '/_fixtures/skip-assets-install', $this->createMockApplication());
+        static::assertTrue($config->skipAssetsInstall);
+    }
+
+    #[Env('SHOPWARE_DEPLOYMENT_SKIP_ASSETS_INSTALL', '1')]
+    public function testSkipAssetsInstallEnvVar(): void
+    {
+        $config = ConfigFactory::create(__DIR__, $this->createMockApplication());
+        static::assertTrue($config->skipAssetsInstall);
     }
 
     public function testExistingConfigWithThemeCompile(): void
