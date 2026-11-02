@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Services;
 
+use PHPUnit\Framework\Attributes\BackupGlobals;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Services\ShopwareState;
@@ -104,5 +106,45 @@ class TrackingServiceTest extends TestCase
         $service->showHint($output);
 
         static::assertSame('', $output->fetch());
+    }
+
+    /**
+     * @param array<string, string> $environment
+     */
+    #[BackupGlobals(true)]
+    #[DataProvider('provideDetectRuntimeCases')]
+    public function testDetectRuntime(array $environment, bool $dockerEnvFileExists, string $expected): void
+    {
+        foreach (['CI', 'GITHUB_ACTIONS', 'GITLAB_CI', 'JENKINS_URL', 'BUILDKITE', 'CIRCLECI', 'DRONE', 'TEAMCITY_VERSION', 'TF_BUILD', 'PLATFORM_ROUTES', 'KUBERNETES_SERVICE_HOST', 'container'] as $name) {
+            unset($_SERVER[$name], $_ENV[$name]);
+        }
+
+        foreach ($environment as $name => $value) {
+            $_SERVER[$name] = $value;
+        }
+
+        // Any existing file stands in for /.dockerenv
+        $dockerEnvFile = $dockerEnvFileExists ? __FILE__ : __DIR__ . '/missing-dockerenv';
+
+        static::assertSame($expected, TrackingService::detectRuntime($dockerEnvFile));
+    }
+
+    /**
+     * @return array<string, array{array<string, string>, bool, string}>
+     */
+    public static function provideDetectRuntimeCases(): array
+    {
+        return [
+            'plain host' => [[], false, 'cli'],
+            'CI=true' => [['CI' => 'true'], false, 'ci'],
+            'CI=false' => [['CI' => 'false'], false, 'cli'],
+            'Jenkins without CI' => [['JENKINS_URL' => 'https://jenkins.example.com'], false, 'ci'],
+            'Platform.sh' => [['PLATFORM_ROUTES' => 'e30='], false, 'platformsh'],
+            'Kubernetes' => [['KUBERNETES_SERVICE_HOST' => '10.0.0.1'], false, 'kubernetes'],
+            'Docker' => [[], true, 'docker'],
+            'Podman' => [['container' => 'podman'], false, 'docker'],
+            'CI job in a container' => [['CI' => 'true'], true, 'ci'],
+            'Kubernetes pod with a Docker marker' => [['KUBERNETES_SERVICE_HOST' => '10.0.0.1'], true, 'kubernetes'],
+        ];
     }
 }
