@@ -17,6 +17,9 @@ class TrackingService
 
     private const TELEMETRY_DOCS_URL = 'https://developer.shopware.com/docs/resources/references/telemetry.html';
 
+    // CI markers besides CI=true, the same list shopware-cli checks
+    private const CI_VARIABLES = ['GITHUB_ACTIONS', 'GITLAB_CI', 'JENKINS_URL', 'BUILDKITE', 'CIRCLECI', 'DRONE', 'TEAMCITY_VERSION', 'TF_BUILD'];
+
     /**
      * @var array<string, string>
      */
@@ -95,9 +98,40 @@ class TrackingService
 
         $this->defaultTags = [
             'shopware_version' => $this->shopwareState->getCurrentVersion(),
+            'runtime' => self::detectRuntime(),
         ];
 
         return $this->defaultTags;
+    }
+
+    /**
+     * Returns where the helper runs: ci, platformsh, kubernetes, docker or cli.
+     */
+    public static function detectRuntime(string $dockerEnvFile = '/.dockerenv'): string
+    {
+        return match (true) {
+            self::isCi() => 'ci',
+            EnvironmentHelper::getVariable('PLATFORM_ROUTES', '') !== '' => 'platformsh',
+            EnvironmentHelper::getVariable('KUBERNETES_SERVICE_HOST', '') !== '' => 'kubernetes',
+            // @ keeps an open_basedir restriction from printing a warning on every run
+            @file_exists($dockerEnvFile) || EnvironmentHelper::getVariable('container', '') !== '' => 'docker',
+            default => 'cli',
+        };
+    }
+
+    private static function isCi(): bool
+    {
+        if (strcasecmp(EnvironmentHelper::getVariable('CI', ''), 'true') === 0) {
+            return true;
+        }
+
+        foreach (self::CI_VARIABLES as $variable) {
+            if (EnvironmentHelper::getVariable($variable, '') !== '') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function getId(): string

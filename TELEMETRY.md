@@ -12,6 +12,7 @@ Every tracking event includes the following common information:
 
 *   **Anonymized User ID**: A randomly generated UUID stored in your shop's configuration (`core.deployment_helper.id`). This allows us to correlate events from the same installation without knowing who the user is.
 *   **Shopware Version**: The version of Shopware being deployed.
+*   **Runtime**: Where the helper runs: `ci`, `platformsh`, `kubernetes`, `docker` (including other containers such as Podman) or `cli` when none of these applies. Only this value is sent, never the environment variables it is detected from.
 *   **Timestamp**: The date and time when the event occurred.
 
 ### Events
