@@ -29,21 +29,8 @@ class ProcessHelper
     public function shell(array $command): void
     {
         $process = new Process($command, $this->projectDir);
-        $process->setTimeout($this->timeout);
 
-        $startTime = $this->printPreStart($command);
-
-        if ($this->output instanceof DefaultConsoleOutput && \function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
-            $process->setTty(true);
-        }
-
-        $process->run($this->output(...));
-
-        if (!$process->isSuccessful()) {
-            throw new \RuntimeException('Execution of ' . implode(' ', $command) . ' failed');
-        }
-
-        $this->printPostStart($command, $startTime);
+        $this->execute($process, $command, implode(' ', $command));
     }
 
     /**
@@ -54,21 +41,8 @@ class ProcessHelper
         $completeCmd = ['php', ...$args];
 
         $process = new PhpSubprocess($args, $this->projectDir);
-        $process->setTimeout($this->timeout);
 
-        $startTime = $this->printPreStart($completeCmd);
-
-        if ($this->output instanceof DefaultConsoleOutput && \function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
-            $process->setTty(true);
-        }
-
-        $process->run($this->output(...));
-
-        if (!$process->isSuccessful()) {
-            throw new \RuntimeException('Execution of ' . implode(' ', $args) . ' failed');
-        }
-
-        $this->printPostStart($completeCmd, $startTime);
+        $this->execute($process, $completeCmd, implode(' ', $args));
     }
 
     /**
@@ -160,6 +134,8 @@ class ProcessHelper
                 );
             }
 
+            $this->printPostStart([$label], $startTime, false);
+
             throw new \RuntimeException('Parallel execution failed:' . \PHP_EOL . implode(\PHP_EOL . \PHP_EOL, $details));
         }
 
@@ -195,22 +171,42 @@ class ProcessHelper
 
         $label = $title !== '' ? $title : $originalCode;
 
-        $start = $this->printPreStart([$label]);
-
         $process = new Process(['sh', '-c', $code], $this->projectDir);
+
+        $this->execute($process, [$label], $originalCode);
+    }
+
+    /**
+     * Runs the process with the start/end banners. The end banner (including the elapsed time)
+     * is also printed when the process fails or times out, so the runtime of failed tasks is visible.
+     *
+     * @param list<string> $label
+     */
+    private function execute(Process $process, array $label, string $failureDescription): void
+    {
         $process->setTimeout($this->timeout);
+
+        $startTime = $this->printPreStart($label);
 
         if ($this->output instanceof DefaultConsoleOutput && \function_exists('stream_isatty') && stream_isatty(\STDOUT)) {
             $process->setTty(true);
         }
 
-        $process->run($this->output(...));
+        try {
+            $process->run($this->output(...));
+        } catch (\Throwable $e) {
+            $this->printPostStart($label, $startTime, false);
 
-        if (!$process->isSuccessful()) {
-            throw new \RuntimeException('Execution of ' . $originalCode . ' failed');
+            throw $e;
         }
 
-        $this->printPostStart([$label], $start);
+        if (!$process->isSuccessful()) {
+            $this->printPostStart($label, $startTime, false);
+
+            throw new \RuntimeException('Execution of ' . $failureDescription . ' failed');
+        }
+
+        $this->printPostStart($label, $startTime);
     }
 
     public function getPluginList(): string
@@ -266,12 +262,12 @@ class ProcessHelper
     /**
      * @param array<string> $cmd
      */
-    private function printPostStart(array $cmd, float $startTime): void
+    private function printPostStart(array $cmd, float $startTime, bool $successful = true): void
     {
         $this->output->writeStdout("=================================================\n");
         $this->output->writeStdout("============== [deployment-helper] ==============\n");
         $this->output->writeStdout("=================================================\n");
-        $this->output->writeStdout(\sprintf("End: %s\n", implode(' ', $cmd)));
+        $this->output->writeStdout(\sprintf("%s: %s\n", $successful ? 'End' : 'FAILED', implode(' ', $cmd)));
         $this->output->writeStdout(\sprintf(
             "> Time: %sms\n",
             number_format((microtime(true) - $startTime) * 1000, 2, '.', ''),
