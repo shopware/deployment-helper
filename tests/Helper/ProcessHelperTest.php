@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Helper\ProcessHelper;
 use Shopware\Deployment\Tests\TestUtil\BufferedConsoleOutput;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
 
 #[CoversClass(ProcessHelper::class)]
 class ProcessHelperTest extends TestCase
@@ -22,6 +23,40 @@ class ProcessHelperTest extends TestCase
         static::assertStringContainsString('Start: echo "test"', $output->getStdout());
         static::assertStringContainsString('test', $output->getStdout());
         static::assertStringContainsString('End: echo "test"', $output->getStdout());
+    }
+
+    public function testFailedCommandPrintsFailedStatusAndTime(): void
+    {
+        $output = new BufferedConsoleOutput();
+        $helper = new ProcessHelper('/tmp', output: $output);
+
+        try {
+            $helper->runAndTail('exit 3');
+            static::fail('expected RuntimeException');
+        } catch (\RuntimeException $e) {
+            static::assertSame('Execution of exit 3 failed', $e->getMessage());
+        }
+
+        $stdout = $output->getStdout();
+        static::assertStringContainsString('Start: exit 3', $stdout);
+        static::assertStringContainsString('FAILED: exit 3', $stdout);
+        static::assertStringNotContainsString('End: exit 3', $stdout);
+        static::assertMatchesRegularExpression('/FAILED: exit 3\n> Time: \d+\.\d{2}ms\n/', $stdout);
+    }
+
+    public function testTimedOutCommandPrintsFailedStatusAndTime(): void
+    {
+        $output = new BufferedConsoleOutput();
+        $helper = new ProcessHelper('/tmp', timeout: 0.2, output: $output);
+
+        try {
+            $helper->runAndTail('sleep 5');
+            static::fail('expected ProcessTimedOutException');
+        } catch (ProcessTimedOutException) {
+            // expected
+        }
+
+        static::assertMatchesRegularExpression('/FAILED: sleep 5\n> Time: \d+\.\d{2}ms\n/', $output->getStdout());
     }
 
     public function testRunAndTailReplacesPhpBinPlaceholder(): void
@@ -79,7 +114,8 @@ class ProcessHelperTest extends TestCase
             PHP);
 
         try {
-            $helper = new ProcessHelper($projectDir, output: new BufferedConsoleOutput());
+            $output = new BufferedConsoleOutput();
+            $helper = new ProcessHelper($projectDir, output: $output);
 
             try {
                 $helper->consoleParallel([
@@ -92,6 +128,8 @@ class ProcessHelperTest extends TestCase
                 static::assertStringContainsString('boom: something went wrong', $e->getMessage());
                 static::assertStringContainsString('exit 7', $e->getMessage());
             }
+
+            static::assertStringContainsString('FAILED: parallel: 2 commands, 2 workers', $output->getStdout());
         } finally {
             $this->removeDirectory($projectDir);
         }
