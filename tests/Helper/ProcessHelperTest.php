@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Tests\Helper;
 
+use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\Deployment\Helper\ProcessHelper;
@@ -71,6 +72,41 @@ class ProcessHelperTest extends TestCase
             static::assertStringContainsString(\PHP_BINARY, (string) file_get_contents($tempFile));
         } finally {
             @unlink($tempFile);
+        }
+    }
+
+    public function testConnectionIsClosedAfterProcess(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection->expects($this->once())->method('close');
+
+        $helper = new ProcessHelper('/tmp', output: new BufferedConsoleOutput(), connection: $connection);
+        $helper->runAndTail('true');
+    }
+
+    public function testConnectionIsClosedAfterFailedProcess(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection->expects($this->once())->method('close');
+
+        $helper = new ProcessHelper('/tmp', output: new BufferedConsoleOutput(), connection: $connection);
+
+        $this->expectException(\RuntimeException::class);
+        $helper->runAndTail('exit 3');
+    }
+
+    public function testConnectionIsClosedAfterParallelProcesses(): void
+    {
+        $projectDir = $this->makeFakeProjectDir('exit(0);');
+
+        try {
+            $connection = $this->createMock(Connection::class);
+            $connection->expects($this->once())->method('close');
+
+            $helper = new ProcessHelper($projectDir, output: new BufferedConsoleOutput(), connection: $connection);
+            $helper->consoleParallel([['cmd', 'a'], ['cmd', 'b']], 2);
+        } finally {
+            $this->removeDirectory($projectDir);
         }
     }
 
