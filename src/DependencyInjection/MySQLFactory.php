@@ -31,6 +31,8 @@ readonly class MySQLFactory
             'driverOptions' => [
                 \PDO::ATTR_STRINGIFY_FETCHES => true,
                 \PDO::ATTR_TIMEOUT => 1,
+                // Keep the helper's connection alive during long subprocesses, including after reconnecting.
+                (\PHP_VERSION_ID >= 80400 ? \Pdo\Mysql::ATTR_INIT_COMMAND : \PDO::MYSQL_ATTR_INIT_COMMAND) => 'SET SESSION wait_timeout = CAST(GREATEST(@@SESSION.wait_timeout, 86400) AS UNSIGNED)',
             ],
         ];
 
