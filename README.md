@@ -14,6 +14,8 @@ composer require shopware/deployment-helper
 
 [For docs see here](https://developer.shopware.com/docs/guides/hosting/installation-updates/deployments/deployment-helper.html#configuration)
 
+The helper raises its MySQL session's idle timeout (`wait_timeout`) to at least one day so the connection stays available during long deployment tasks. Higher server settings are preserved; global settings are unchanged.
+
 ## Architecture
 
 Curious about how this tool works? See [docs/architecture.md](docs/architecture.md) for an overview of the design and core concepts.

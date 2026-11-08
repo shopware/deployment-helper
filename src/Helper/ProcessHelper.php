@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Shopware\Deployment\Helper;
 
-use Doctrine\DBAL\Connection;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\Exception\InvalidArgumentException;
 use Symfony\Component\Process\PhpSubprocess;
@@ -20,7 +19,6 @@ class ProcessHelper
         private readonly string $projectDir,
         private ?float $timeout = null,
         private readonly ConsoleOutputInterface $output = new DefaultConsoleOutput(),
-        private readonly ?Connection $connection = null,
     ) {
         $this->timeout = $this->validateTimeout($timeout ?? (float) EnvironmentHelper::getVariable('SHOPWARE_DEPLOYMENT_TIMEOUT', '60'));
     }
@@ -124,8 +122,6 @@ class ProcessHelper
             $running = array_values($running);
         }
 
-        $this->closeIdleConnection();
-
         if ($failures !== []) {
             $details = [];
             foreach ($failures as $failure) {
@@ -202,8 +198,6 @@ class ProcessHelper
             $this->printPostStart($label, $startTime, false);
 
             throw $e;
-        } finally {
-            $this->closeIdleConnection();
         }
 
         if (!$process->isSuccessful()) {
@@ -234,16 +228,6 @@ class ProcessHelper
         $this->timeout = $this->validateTimeout($timeout);
 
         return $this;
-    }
-
-    /**
-     * The connection was idle while the process ran. If that took longer than the server's
-     * wait_timeout, the server has dropped it and the next query fails with "MySQL server has gone away".
-     * Closing it makes DBAL reconnect on the next query.
-     */
-    private function closeIdleConnection(): void
-    {
-        $this->connection?->close();
     }
 
     private function output(string $type, string $buffer): void
