@@ -97,7 +97,7 @@ class InstallationManager
 
         $storeApiUri = EnvironmentHelper::getVariable('SHOPWARE_STORE_API_URI');
         if ($storeApiUri !== null && $storeApiUri !== '') {
-            $this->systemConfigHelper->set('core.store.apiUri', $storeApiUri);
+            $this->systemConfigHelper->set(AccountService::CORE_STORE_API_URI, $storeApiUri);
         }
 
         if ($this->configuration->store->licenseDomain !== '') {

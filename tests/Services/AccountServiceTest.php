@@ -212,4 +212,48 @@ class AccountServiceTest extends TestCase
         $service->refresh($output, '6.4.0-dev', 'old.example.com');
         static::assertSame('some-key', $systemConfigHelper->get(AccountService::CORE_STORE_SHOP_SECRET));
     }
+
+    #[Env('SHOPWARE_STORE_SHOP_SECRET', 'some-key')]
+    public function testStoreApiUrlDefaultsToShopwareApi(): void
+    {
+        static::assertSame('api.shopware.com', $this->requestedHostFor([]));
+    }
+
+    #[Env('SHOPWARE_STORE_SHOP_SECRET', 'some-key')]
+    #[Env('SHOPWARE_STORE_API_URI', 'https://env.example.com')]
+    public function testStoreApiUrlFromEnvironment(): void
+    {
+        static::assertSame('env.example.com', $this->requestedHostFor([]));
+    }
+
+    #[Env('SHOPWARE_STORE_SHOP_SECRET', 'some-key')]
+    #[Env('SHOPWARE_STORE_API_URI', 'https://env.example.com')]
+    public function testStoreApiUrlFromSystemConfigWinsOverEnvironment(): void
+    {
+        static::assertSame(
+            'config.example.com',
+            $this->requestedHostFor([AccountService::CORE_STORE_API_URI => 'https://config.example.com']),
+        );
+    }
+
+    /**
+     * @param array<string, string> $config
+     */
+    private function requestedHostFor(array $config): string
+    {
+        $url = null;
+        $mockHttpClient = new MockHttpClient(static function (string $method, string $requestUrl) use (&$url): MockResponse {
+            $url = $requestUrl;
+
+            return new MockResponse('{}', ['http_code' => 500]);
+        });
+
+        $systemConfigHelper = new StaticSystemConfigHelper($config + [AccountService::CORE_STORE_LICENSE_HOST => 'example.com']);
+        $service = new AccountService($systemConfigHelper, $this->createMock(ProcessHelper::class), $mockHttpClient);
+        $service->refresh($this->createMock(SymfonyStyle::class), '6.4.0-dev', 'example.com');
+
+        static::assertIsString($url);
+
+        return (string) parse_url($url, \PHP_URL_HOST);
+    }
 }
