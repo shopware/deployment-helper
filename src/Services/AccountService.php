@@ -14,12 +14,13 @@ readonly class AccountService
 {
     public const CORE_STORE_LICENSE_HOST = 'core.store.licenseHost';
     public const CORE_STORE_SHOP_SECRET = 'core.store.shopSecret';
+    public const CORE_STORE_API_URI = 'core.store.apiUri';
 
     private HttpClientInterface $client;
 
     public function __construct(private SystemConfigHelper $systemConfigHelper, private ProcessHelper $processHelper, ?HttpClientInterface $client = null)
     {
-        $this->client = $client ?? HttpClient::createForBaseUri('https://api.shopware.com');
+        $this->client = $client ?? HttpClient::create();
     }
 
     public function refresh(SymfonyStyle $output, string $shopwareVersion, string $licenseDomain): void
@@ -72,7 +73,7 @@ readonly class AccountService
             return false;
         }
 
-        $response = $this->client->request('POST', '/swplatform/login', [
+        $response = $this->client()->request('POST', '/swplatform/login', [
             'query' => [
                 'shopwareVersion' => $shopwareVersion,
                 'domain' => $licenseDomain,
@@ -98,7 +99,7 @@ readonly class AccountService
 
     private function isShopSecretStillValid(string $secret, string $shopwareVersion, string $licenseDomain): bool
     {
-        $response = $this->client->request('POST', '/swplatform/pluginupdates', [
+        $response = $this->client()->request('POST', '/swplatform/pluginupdates', [
             'query' => [
                 'shopwareVersion' => $shopwareVersion,
                 'domain' => $licenseDomain,
@@ -130,5 +131,13 @@ readonly class AccountService
         $this->systemConfigHelper->set(self::CORE_STORE_SHOP_SECRET, $shopSecret);
 
         return true;
+    }
+
+    private function client(): HttpClientInterface
+    {
+        $baseUri = $this->systemConfigHelper->get(self::CORE_STORE_API_URI)
+            ?? EnvironmentHelper::getVariable('SHOPWARE_STORE_API_URI', 'https://api.shopware.com');
+
+        return $this->client->withOptions(['base_uri' => $baseUri]);
     }
 }
